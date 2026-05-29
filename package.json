@@ -17,10 +17,10 @@
     "typecheck": "tsc && tsc -p integration_tests && tsc -p assets/js",
     "test": "jest",
     "test:ci": "jest --runInBand",
-    "security_audit": "audit-ci --config audit-ci.json",
-    "int-test": "playwright test",
-    "int-test-ui": "playwright test --ui",
-    "int-test-init:ci": "playwright install",
+    "security_audit": "npx audit-ci --config audit-ci.json",
+    "int-test": "npx playwright test",
+    "int-test-ui": "npx playwright test --ui",
+    "int-test-init:ci": "npx playwright install",
     "clean": "rm -rf dist test_results",
     "rebuild": "npm run clean && npm run setup && npm run build",
     "setup": "npm ci && hmpps-npm-script-run-allowlist"
@@ -34,10 +34,10 @@
     "@ministryofjustice/frontend": "^9.0.0",
     "@ministryofjustice/hmpps-auth-clients": "3.0.0",
     "@ministryofjustice/hmpps-connect-dps-components": "6.1.0",
+    "@ministryofjustice/hmpps-azure-telemetry": "^1.0.0",
     "@ministryofjustice/hmpps-monitoring": "^2.1.0",
     "@ministryofjustice/hmpps-rest-client": "^2.1.0",
     "@sentry/node": "10.58.0",
-    "applicationinsights": "^2.9.8",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1",
     "compression": "^1.8.1",
@@ -95,5 +95,13 @@
     "supertest": "^7.2.2",
     "ts-jest": "29.4.11",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/core": "2.8.0",
+    "@opentelemetry/resources": "2.8.0",
+    "@opentelemetry/sdk-trace-base": "2.8.0",
+    "@opentelemetry/sdk-trace-web": "2.8.0",
+    "js-yaml": ">=4.1.2"
   }
 }
