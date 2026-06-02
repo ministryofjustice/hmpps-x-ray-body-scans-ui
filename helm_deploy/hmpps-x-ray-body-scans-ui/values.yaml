@@ -49,7 +49,7 @@ generic-service:
       AUTH_CODE_CLIENT_SECRET: 'AUTH_CODE_CLIENT_SECRET'    
     hmpps-x-ray-body-scans-ui-session-secret:
       SESSION_SECRET: 'SESSION_SECRET'
-    hmpps-x-ray-body-scans-ui-elasticache-redis:
+    elasticache-redis:
       REDIS_HOST: 'primary_endpoint_address'
       REDIS_AUTH_TOKEN: 'auth_token'
     hmpps-x-ray-body-scans-ui-application-insights:
