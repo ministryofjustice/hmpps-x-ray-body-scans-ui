@@ -47,6 +47,10 @@ export default {
     secret: get('SESSION_SECRET', 'app-insecure-default-session', requiredInProduction),
     expiryMinutes: Number(get('WEB_SESSION_TIMEOUT_IN_MINUTES', 120)),
   },
+  sentry: {
+    dsn: get('SENTRY_DSN', null, requiredInProduction),
+    environment: get('SENTRY_ENVIRONMENT', 'local', requiredInProduction) as 'local' | 'dev' | 'preprod' | 'prod',
+  },
   apis: {
     hmppsAuth: {
       url: get('HMPPS_AUTH_URL', 'http://localhost:9090/auth', requiredInProduction),
@@ -86,5 +90,8 @@ export default {
     audit: auditConfig(),
   },
   ingressUrl: get('INGRESS_URL', 'http://localhost:3000', requiredInProduction),
+  /** k8s namespace suffix & github environment or "local" */
+  environment: get('ENVIRONMENT', 'local', requiredInProduction) as 'local' | 'dev' | 'preprod' | 'prod',
+  /** Phase banner tag label (blank in prod namespace) */
   environmentName: get('ENVIRONMENT_NAME', ''),
 }

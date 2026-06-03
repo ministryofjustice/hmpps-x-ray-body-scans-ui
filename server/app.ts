@@ -1,6 +1,5 @@
 import express from 'express'
-
-import createError from 'http-errors'
+import { NotFound } from 'http-errors'
 
 import nunjucksSetup from './utils/nunjucksSetup'
 import errorHandler from './errorHandler'
@@ -15,6 +14,7 @@ import setUpStaticResources from './middleware/setUpStaticResources'
 import setUpWebRequestParsing from './middleware/setUpRequestParsing'
 import setUpWebSecurity from './middleware/setUpWebSecurity'
 import setUpWebSession from './middleware/setUpWebSession'
+import { setUpSentry, setUpSentryErrorHandler } from './middleware/setUpSentry'
 
 import routes from './routes'
 import type { Services } from './services'
@@ -26,6 +26,7 @@ export default function createApp(services: Services): express.Application {
   app.set('trust proxy', true)
   app.set('port', process.env.PORT || 3000)
 
+  setUpSentry()
   app.use(appInsightsMiddleware())
   app.use(setUpHealthChecks(services.applicationInfo))
   app.use(setUpWebSecurity())
@@ -40,7 +41,8 @@ export default function createApp(services: Services): express.Application {
 
   app.use(routes(services))
 
-  app.use((_req, _res, next) => next(createError(404, 'Not found')))
+  app.use((_req, _res, next) => next(new NotFound()))
+  setUpSentryErrorHandler(app)
   app.use(errorHandler(process.env.NODE_ENV === 'production'))
 
   return app
