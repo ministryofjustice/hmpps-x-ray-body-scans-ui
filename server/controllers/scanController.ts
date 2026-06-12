@@ -17,6 +17,6 @@ export default class ScanController {
     const { username } = res.locals.user
     const createScanRequest = { scanDate } as CreateScanRequest
     const createScanResponse = await this.xrayBodyScansApiClient.createScan(prisonerNumber, createScanRequest, username)
-    res.status(201).send("Scan created for prisoner " + prisonerNumber + " with scan ID " + createScanResponse.id)
+    res.status(201).send(`Scan created for prisoner ${prisonerNumber} with scan ID ${createScanResponse.id}`)
   }
 }
