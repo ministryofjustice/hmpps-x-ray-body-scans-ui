@@ -1,0 +1,25 @@
+{% extends "../partials/layout.njk" %}
+
+{% set pageTitle = applicationName + " - Create Scan" %}
+{% set mainClasses = "govuk-body" %}
+
+{% block content %}
+
+  <h1>Create New Scan for {{ prisonerNumber }}</h1>
+  
+  <form method="POST" action="/prisoner/{{ prisonerNumber }}/create-scan">
+    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+    
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="scanDate">
+        Scan Date
+      </label>
+      <input class="govuk-input" id="scanDate" name="scanDate" type="date" required>
+    </div>
+
+    <button type="submit" class="govuk-button">
+      Create Scan
+    </button>
+  </form>
+
+{% endblock %}

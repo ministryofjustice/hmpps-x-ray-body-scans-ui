@@ -3,12 +3,13 @@ import AuditService from './auditService'
 import ExampleService from './exampleService'
 
 export const services = () => {
-  const { applicationInfo, hmppsAuditClient, exampleApiClient } = dataAccess()
+  const { applicationInfo, hmppsAuditClient, exampleApiClient, xrayBodyScansApiClient } = dataAccess()
 
   return {
     applicationInfo,
     auditService: new AuditService(hmppsAuditClient),
     exampleService: new ExampleService(exampleApiClient),
+    xrayBodyScansApiClient, // We can use a more sophisticated service later, IFF we need to.
   }
 }
 
