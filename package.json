@@ -1,7 +1,7 @@
 {
   "name": "hmpps-x-ray-body-scans-ui",
   "version": "0.0.1",
-  "description": "HMPPS X Ray Body Scans Ui",
+  "description": "HMPPS X-ray Body Scans",
   "repository": "git@github.com:ministryofjustice/hmpps-x-ray-body-scans-ui.git",
   "license": "MIT",
   "scripts": {
