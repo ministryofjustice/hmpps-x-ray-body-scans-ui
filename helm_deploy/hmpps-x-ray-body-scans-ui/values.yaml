@@ -43,8 +43,8 @@ generic-service:
     hmpps-x-ray-body-scans-ui:
       SENTRY_DSN: "SENTRY_DSN"
     hmpps-x-ray-body-scans-ui-client-creds:
-      CLIENT_CREDS_CLIENT_ID: 'CLIENT_CREDS_CLIENT_ID'
-      CLIENT_CREDS_CLIENT_SECRET: 'CLIENT_CREDS_CLIENT_SECRET'
+      CLIENT_CREDS_CLIENT_ID: 'API_CLIENT_ID'
+      CLIENT_CREDS_CLIENT_SECRET: 'API_CLIENT_SECRET'
     hmpps-x-ray-body-scans-ui-auth-code:
       AUTH_CODE_CLIENT_ID: 'AUTH_CODE_CLIENT_ID'
       AUTH_CODE_CLIENT_SECRET: 'AUTH_CODE_CLIENT_SECRET'
@@ -60,7 +60,7 @@ generic-service:
     # sqs-hmpps-audit-secret:
     #   AUDIT_SQS_QUEUE_URL: 'sqs_queue_url'
 
-  allowlist:
+allowlist:
     groups:
       - internal
 
