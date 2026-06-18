@@ -1,33 +1,24 @@
-import { type Locator, type Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 export default class AbstractPage {
-  readonly page: Page
+  protected constructor(protected readonly page: Page) {}
 
-  /** user name that appear in header */
-  readonly usersName: Locator
+  /** phase banner that appear in header (requires micro frontend components to use fallback) */
+  get phaseBanner(): Locator {
+    return this.page.locator('.fallback-dps-header__title strong.govuk-tag')
+  }
 
-  /** phase banner that appear in header */
-  readonly phaseBanner: Locator
+  /** user name that appear in header (requires micro frontend components to use fallback) */
+  get usersName(): Locator {
+    return this.page.getByTestId('header-user-name')
+  }
 
   /** link to sign out */
-  readonly signoutLink: Locator
-
-  /** link to manage user details */
-  readonly manageUserDetails: Locator
-
-  protected constructor(page: Page) {
-    this.page = page
-    this.phaseBanner = page.getByTestId('header-phase-banner')
-    this.usersName = page.getByTestId('header-user-name')
-    this.signoutLink = page.getByText('Sign out')
-    this.manageUserDetails = page.getByTestId('manageDetails')
+  get signoutLink(): Locator {
+    return this.page.getByText('Sign out')
   }
 
   async signOut() {
-    await this.signoutLink.first().click()
-  }
-
-  async clickManageUserDetails() {
-    await this.manageUserDetails.first().click()
+    return this.signoutLink.first().click()
   }
 }

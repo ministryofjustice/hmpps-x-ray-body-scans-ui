@@ -78,7 +78,6 @@ export default {
     },
     componentApi: {
       url: get('COMPONENT_API_URL', 'http://localhost:8082', requiredInProduction),
-      healthPath: '/ping',
       timeout: {
         response: Number(get('COMPONENT_API_TIMEOUT_RESPONSE', 2500)),
         deadline: Number(get('COMPONENT_API_TIMEOUT_DEADLINE', 2500)),
@@ -103,5 +102,5 @@ export default {
   /** k8s namespace suffix & github environment or "local" */
   environment: get('ENVIRONMENT', 'local', requiredInProduction) as 'local' | 'dev' | 'preprod' | 'prod',
   /** Phase banner tag label (blank in prod namespace) */
-  environmentName: get('ENVIRONMENT_NAME', ''),
+  environmentName: get('ENVIRONMENT_NAME', '') as 'DEV' | 'PRE-PRODUCTION',
 }

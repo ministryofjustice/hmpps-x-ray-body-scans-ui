@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import hmppsAuth from '../mockApis/hmppsAuth'
+import microFrontendComponents from '../mockApis/microFrontendComponents'
 import tokenVerification from '../mockApis/tokenVerification'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 
@@ -8,6 +9,7 @@ import { resetStubs } from '../testUtils'
 test.describe('Health', () => {
   test.afterEach(async () => {
     await resetStubs()
+    await microFrontendComponents.stubComponents()
   })
 
   test.describe('All healthy', () => {
