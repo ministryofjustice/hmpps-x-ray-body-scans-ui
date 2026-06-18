@@ -6,6 +6,16 @@ import { stubFor, stubPing } from './wiremock'
 export default {
   stubPing: (httpStatus = 200): SuperAgentRequest => stubPing('/frontend-components', httpStatus),
 
+  stubUnavailable() {
+    return stubFor({
+      request: {
+        method: 'GET',
+        urlPath: '/frontend-components/components',
+      },
+      response: { status: 503 },
+    })
+  },
+
   stubComponents(
     options: {
       caseLoads?: CaseLoad[]
