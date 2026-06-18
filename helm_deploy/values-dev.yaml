@@ -11,11 +11,13 @@ generic-service:
     ENVIRONMENT: dev      # k8s namespace suffix & github environment
     ENVIRONMENT_NAME: DEV # Phase banner tag label
     SENTRY_ENVIRONMENT: dev
+    AUDIT_ENABLED: "false"
     INGRESS_URL: "https://x-ray-body-scans-ui-dev.hmpps.service.justice.gov.uk"
     HMPPS_AUTH_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
     TOKEN_VERIFICATION_API_URL: "https://token-verification-api-dev.prison.service.justice.gov.uk"
+    COMPONENT_API_URL: "https://frontend-components-dev.hmpps.service.justice.gov.uk"
+    DPS_HOME_PAGE_URL: "https://dps-dev.prison.service.justice.gov.uk"
     XRAY_BODY_SCANS_API_URL: "https://x-ray-body-scans-api-dev.hmpps.service.justice.gov.uk"
-    AUDIT_ENABLED: "false"
 
 generic-prometheus-alerts:
   alertSeverity: hmpps-connect-dps-non-prod

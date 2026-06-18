@@ -11,11 +11,13 @@ generic-service:
     ENVIRONMENT: preprod             # k8s namespace suffix & github environment
     ENVIRONMENT_NAME: PRE-PRODUCTION # Phase banner tag label
     SENTRY_ENVIRONMENT: preprod
+    AUDIT_ENABLED: "false"
     INGRESS_URL: "https://x-ray-body-scans-ui-preprod.hmpps.service.justice.gov.uk"
     HMPPS_AUTH_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
     TOKEN_VERIFICATION_API_URL: "https://token-verification-api-preprod.prison.service.justice.gov.uk"
+    COMPONENT_API_URL: "https://frontend-components-preprod.hmpps.service.justice.gov.uk"
+    DPS_HOME_PAGE_URL: "https://dps-preprod.prison.service.justice.gov.uk"
     XRAY_BODY_SCANS_API_URL: "https://x-ray-body-scans-api-preprod.hmpps.service.justice.gov.uk"
-    AUDIT_ENABLED: "false"
 
 generic-prometheus-alerts:
   alertSeverity: hmpps-connect-dps-non-prod
