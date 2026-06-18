@@ -1,7 +1,7 @@
 {
   "name": "hmpps-x-ray-body-scans-ui",
   "version": "0.0.1",
-  "description": "HMPPS X Ray Body Scans Ui",
+  "description": "HMPPS X-ray Body Scans",
   "repository": "git@github.com:ministryofjustice/hmpps-x-ray-body-scans-ui.git",
   "license": "MIT",
   "scripts": {
@@ -17,10 +17,10 @@
     "typecheck": "tsc && tsc -p integration_tests && tsc -p assets/js",
     "test": "jest",
     "test:ci": "jest --runInBand",
-    "security_audit": "npx audit-ci --config audit-ci.json",
-    "int-test": "npx playwright test",
-    "int-test-ui": "npx playwright test --ui",
-    "int-test-init:ci": "npx playwright install",
+    "security_audit": "audit-ci --config audit-ci.json",
+    "int-test": "playwright test",
+    "int-test-ui": "playwright test --ui",
+    "int-test-init:ci": "playwright install",
     "clean": "rm -rf dist test_results",
     "rebuild": "npm run clean && npm run setup && npm run build",
     "setup": "npm ci && hmpps-npm-script-run-allowlist"

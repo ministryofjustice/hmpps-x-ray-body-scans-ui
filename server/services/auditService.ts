@@ -1,7 +1,8 @@
 import HmppsAuditClient, { AuditEvent } from '../data/hmppsAuditClient'
 
 export enum Page {
-  EXAMPLE_PAGE = 'EXAMPLE_PAGE',
+  /** TODO: will become something like RECENT_SCANS? */
+  HOME = 'HOME',
 }
 
 export interface PageViewEventDetails {
