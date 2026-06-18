@@ -1,9 +1,11 @@
 import type { SuperAgentRequest } from 'superagent'
 import type CaseLoad from '@ministryofjustice/hmpps-connect-dps-components/dist/types/CaseLoad'
 import type Service from '@ministryofjustice/hmpps-connect-dps-components/dist/types/Service'
-import { stubFor } from './wiremock'
+import { stubFor, stubPing } from './wiremock'
 
 export default {
+  stubPing: (httpStatus = 200): SuperAgentRequest => stubPing('/frontend-components', httpStatus),
+
   stubComponents(
     options: {
       caseLoads?: CaseLoad[]
