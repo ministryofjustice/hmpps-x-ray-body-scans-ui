@@ -85,21 +85,6 @@ export default {
       },
     }),
 
-  stubManageDetailsPage: () =>
-    stubFor({
-      request: {
-        method: 'GET',
-        urlPattern: '/auth/account-details.*',
-      },
-      response: {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/html',
-        },
-        body: '<html><body><h1>Your account details</h1></body></html>',
-      },
-    }),
-
   token: (userToken: UserToken) =>
     stubFor({
       request: {
