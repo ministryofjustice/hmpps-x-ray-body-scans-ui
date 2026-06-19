@@ -2,6 +2,8 @@
 # Per environment values which override defaults in hmpps-x-ray-body-scans-ui/values.yaml
 
 generic-service:
+  replicaCount: 0
+
   ingress:
     host: x-ray-body-scans-ui.hmpps.service.justice.gov.uk
 
