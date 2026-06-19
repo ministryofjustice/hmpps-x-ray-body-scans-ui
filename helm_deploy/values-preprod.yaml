@@ -19,5 +19,11 @@ generic-service:
     DPS_HOME_PAGE_URL: "https://dps-preprod.prison.service.justice.gov.uk"
     XRAY_BODY_SCANS_API_URL: "https://x-ray-body-scans-api-preprod.hmpps.service.justice.gov.uk"
 
+  scheduledDowntime:
+    enabled: true
+    startup: '30 6 * * 1-5' # Start at 6.30am UTC Monday-Friday
+    shutdown: '30 21 * * 1-5' # Stop at 9.30pm UTC Monday-Friday
+
 generic-prometheus-alerts:
   alertSeverity: hmpps-connect-dps-non-prod
+  businessHoursOnly: true
