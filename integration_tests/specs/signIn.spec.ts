@@ -1,10 +1,15 @@
 import { expect, test } from '@playwright/test'
 import hmppsAuth from '../mockApis/hmppsAuth'
+import microFrontendComponents from '../mockApis/microFrontendComponents'
 
 import { login, resetStubs } from '../testUtils'
 import HomePage from '../pages/homePage'
 
 test.describe('SignIn', () => {
+  test.beforeEach(async () => {
+    await microFrontendComponents.stubUnavailable() // in order to force fallback header to show
+  })
+
   test.afterEach(async () => {
     await resetStubs()
   })
@@ -36,7 +41,7 @@ test.describe('SignIn', () => {
 
     const homePage = await HomePage.verifyOnPage(page)
 
-    await expect(homePage.phaseBanner).toHaveText('dev')
+    await expect(homePage.phaseBanner).toHaveText('DEV')
   })
 
   test('User can sign out', async ({ page }) => {
@@ -46,17 +51,6 @@ test.describe('SignIn', () => {
     await homePage.signOut()
 
     await expect(page.getByRole('heading')).toHaveText('Sign in')
-  })
-
-  test('User can manage their details', async ({ page }) => {
-    await login(page, { name: 'A TestUser' })
-
-    await hmppsAuth.stubManageDetailsPage()
-
-    const homePage = await HomePage.verifyOnPage(page)
-    await homePage.clickManageUserDetails()
-
-    await expect(page.getByRole('heading')).toHaveText('Your account details')
   })
 
   test('Token verification failure takes user to sign in page', async ({ page }) => {

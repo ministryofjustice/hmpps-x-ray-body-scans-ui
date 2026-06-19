@@ -38,7 +38,7 @@ export default defineConfig({
     launchOptions: { slowMo: 150 },
     screenshot: 'only-on-failure',
     trace: process.env.CI ? 'off' : 'on',
-    ...devices['Desktop Chrome'],
+    ...devices['Desktop Edge'],
     testIdAttribute: 'data-qa',
     baseURL: 'http://localhost:3007',
   },

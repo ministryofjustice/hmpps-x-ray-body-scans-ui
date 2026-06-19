@@ -26,8 +26,7 @@ export default {
     getMatchingRequests({
       method: 'GET',
       urlPath: '/auth/oauth/authorize',
-    }).then(data => {
-      const { requests } = data.body
+    }).then(requests => {
       const stateValue = requests[requests.length - 1].queryParams.state.values[0]
       return `/sign-in/callback?code=codexxxx&state=${stateValue}`
     }),
@@ -36,7 +35,7 @@ export default {
     stubFor({
       request: {
         method: 'GET',
-        urlPattern: '/favicon.ico',
+        urlPath: '/favicon.ico',
       },
       response: {
         status: 200,
@@ -47,7 +46,7 @@ export default {
     stubFor({
       request: {
         method: 'GET',
-        urlPattern: '/auth/health/ping',
+        urlPath: '/auth/health/ping',
       },
       response: {
         status: 200,
@@ -85,26 +84,11 @@ export default {
       },
     }),
 
-  stubManageDetailsPage: () =>
-    stubFor({
-      request: {
-        method: 'GET',
-        urlPattern: '/auth/account-details.*',
-      },
-      response: {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/html',
-        },
-        body: '<html><body><h1>Your account details</h1></body></html>',
-      },
-    }),
-
   token: (userToken: UserToken) =>
     stubFor({
       request: {
         method: 'POST',
-        urlPattern: '/auth/oauth/token',
+        urlPath: '/auth/oauth/token',
       },
       response: {
         status: 200,

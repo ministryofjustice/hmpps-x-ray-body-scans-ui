@@ -76,6 +76,14 @@ export default {
       agent: new AgentConfig(Number(get('TOKEN_VERIFICATION_API_TIMEOUT_RESPONSE', 5000))),
       enabled: get('TOKEN_VERIFICATION_ENABLED', 'false') === 'true',
     },
+    componentApi: {
+      url: get('COMPONENT_API_URL', 'http://localhost:8082', requiredInProduction),
+      timeout: {
+        response: Number(get('COMPONENT_API_TIMEOUT_RESPONSE', 2500)),
+        deadline: Number(get('COMPONENT_API_TIMEOUT_DEADLINE', 2500)),
+      },
+      agent: new AgentConfig(Number(get('COMPONENT_TIMEOUT_DEADLINE', 10000))),
+    },
     xrayBodyScansApi: {
       url: get('XRAY_BODY_SCANS_API_URL', 'http://localhost:8081', requiredInProduction),
       healthPath: '/health/ping',
@@ -86,6 +94,7 @@ export default {
       agent: new AgentConfig(Number(get('XRAY_BODY_SCANS_API_TIMEOUT_RESPONSE', 5000))),
     },
   },
+  serviceUrls: { digitalPrison: get('DPS_HOME_PAGE_URL', 'http://localhost:3001', requiredInProduction) },
   sqs: {
     audit: auditConfig(),
   },
@@ -93,5 +102,5 @@ export default {
   /** k8s namespace suffix & github environment or "local" */
   environment: get('ENVIRONMENT', 'local', requiredInProduction) as 'local' | 'dev' | 'preprod' | 'prod',
   /** Phase banner tag label (blank in prod namespace) */
-  environmentName: get('ENVIRONMENT_NAME', ''),
+  environmentName: get('ENVIRONMENT_NAME', '') as 'DEV' | 'PRE-PRODUCTION',
 }
