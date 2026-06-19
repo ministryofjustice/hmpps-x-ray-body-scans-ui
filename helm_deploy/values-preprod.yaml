@@ -19,6 +19,10 @@ generic-service:
     DPS_HOME_PAGE_URL: "https://dps-preprod.prison.service.justice.gov.uk"
     XRAY_BODY_SCANS_API_URL: "https://x-ray-body-scans-api-preprod.hmpps.service.justice.gov.uk"
 
+  allowlist:
+    groups:
+      - internal
+
   scheduledDowntime:
     enabled: true
     startup: '30 6 * * 1-5' # Start at 6.30am UTC Monday-Friday
