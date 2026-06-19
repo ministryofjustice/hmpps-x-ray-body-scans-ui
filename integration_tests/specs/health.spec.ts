@@ -6,6 +6,9 @@ import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 
 import { resetStubs } from '../testUtils'
 
+// NB: add new mock apis here:
+const mockApis = [hmppsAuth, tokenVerification, xrayBodyScansApi]
+
 test.describe('Health', () => {
   test.afterEach(async () => {
     await resetStubs()
@@ -14,7 +17,7 @@ test.describe('Health', () => {
 
   test.describe('All healthy', () => {
     test.beforeEach(async () => {
-      await Promise.all([hmppsAuth.stubPing(), tokenVerification.stubPing(), xrayBodyScansApi.stubPing()])
+      await Promise.all(mockApis.map(api => api.stubPing()))
     })
 
     test('Health check is accessible and status is UP', async ({ page }) => {
@@ -37,11 +40,9 @@ test.describe('Health', () => {
   })
 
   test.describe('Some unhealthy', () => {
-    test.beforeEach(async () => {
-      await Promise.all([hmppsAuth.stubPing(), tokenVerification.stubPing(500)])
-    })
-
     test('Health check status is down', async ({ page }) => {
+      await Promise.all(mockApis.map(api => (api === tokenVerification ? api.stubPing(500) : api.stubPing())))
+
       const response = await page.request.get('/health')
       const payload = await response.json()
       expect(payload.status).toBe('DOWN')
