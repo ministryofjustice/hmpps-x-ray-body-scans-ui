@@ -10,9 +10,12 @@ import { resetStubs } from '../testUtils'
 const mockApis = [hmppsAuth, tokenVerification, xrayBodyScansApi]
 
 test.describe('Health', () => {
+  test.beforeEach(async () => {
+    await microFrontendComponents.stubComponents()
+  })
+
   test.afterEach(async () => {
     await resetStubs()
-    await microFrontendComponents.stubComponents()
   })
 
   test.describe('All healthy', () => {
@@ -40,7 +43,7 @@ test.describe('Health', () => {
   })
 
   test.describe('Some unhealthy', () => {
-    test('Health check status is down', async ({ page }) => {
+    test('Health check status is down for 1 api', async ({ page }) => {
       await Promise.all(mockApis.map(api => (api === tokenVerification ? api.stubPing(500) : api.stubPing())))
 
       const response = await page.request.get('/health')
@@ -50,6 +53,12 @@ test.describe('Health', () => {
       expect(payload.components.tokenVerification.status).toBe('DOWN')
       expect(payload.components.tokenVerification.details.status).toBe(500)
       expect(payload.components.tokenVerification.details.attempts).toBe(3)
+      expect(
+        Object.values<{ status: 'UP' | 'DOWN' }>(payload.components).reduce(
+          (downCount, api) => (api.status === 'DOWN' ? downCount + 1 : downCount),
+          0,
+        ),
+      ).toEqual(1)
     })
   })
 })

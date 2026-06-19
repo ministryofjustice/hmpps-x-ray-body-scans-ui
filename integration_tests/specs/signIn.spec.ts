@@ -6,9 +6,12 @@ import { login, resetStubs } from '../testUtils'
 import HomePage from '../pages/homePage'
 
 test.describe('SignIn', () => {
+  test.beforeEach(async () => {
+    await microFrontendComponents.stubUnavailable() // in order to force fallback header to show
+  })
+
   test.afterEach(async () => {
     await resetStubs()
-    await microFrontendComponents.stubUnavailable()
   })
 
   test('Unauthenticated user directed to auth', async ({ page }) => {
