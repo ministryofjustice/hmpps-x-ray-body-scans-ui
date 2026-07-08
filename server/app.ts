@@ -6,7 +6,6 @@ import logger from '../logger'
 import config from './config'
 import nunjucksSetup from './utils/nunjucksSetup'
 import errorHandler from './errorHandler'
-import { appInsightsMiddleware } from './utils/azureAppInsights'
 import authorisationMiddleware from './middleware/authorisationMiddleware'
 
 import setUpAuthentication from './middleware/setUpAuthentication'
@@ -21,6 +20,7 @@ import { setUpSentry, setUpSentryErrorHandler } from './middleware/setUpSentry'
 
 import routes from './routes'
 import type { Services } from './services'
+import addUserMetadataToLogs from './middleware/addUserMetadataToLogs'
 
 export default function createApp(services: Services): express.Application {
   const app = express()
@@ -30,7 +30,6 @@ export default function createApp(services: Services): express.Application {
   app.set('port', process.env.PORT || 3000)
 
   setUpSentry()
-  app.use(appInsightsMiddleware())
   app.use(setUpHealthChecks(services.applicationInfo))
   app.use(setUpWebSecurity())
   app.use(setUpWebSession())
@@ -50,6 +49,8 @@ export default function createApp(services: Services): express.Application {
       requestOptions: { includeSharedData: true, environmentName: config.environmentName },
     }),
   )
+
+  app.use(addUserMetadataToLogs())
 
   app.use(routes(services))
 
