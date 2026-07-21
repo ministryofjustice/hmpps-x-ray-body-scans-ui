@@ -30,7 +30,7 @@
     "npm": "^11"
   },
   "dependencies": {
-    "@aws-sdk/client-sqs": "3.1085.0",
+    "@aws-sdk/client-sqs": "3.1086.0",
     "@ministryofjustice/frontend": "^9.0.0",
     "@ministryofjustice/hmpps-auth-clients": "3.0.0",
     "@ministryofjustice/hmpps-azure-telemetry": "1.0.2",
@@ -77,8 +77,8 @@
     "@types/nunjucks": "^3.2.6",
     "@types/passport": "^1.0.17",
     "@types/passport-oauth2": "^1.8.0",
-    "@types/superagent": "8.1.10",
-    "@types/supertest": "^7.2.0",
+    "@types/superagent": "8.1.11",
+    "@types/supertest": "^7.2.1",
     "audit-ci": "^7.1.0",
     "aws-sdk-client-mock": "^4.1.0",
     "del": "8.0.1",
@@ -103,6 +103,6 @@
     "@opentelemetry/sdk-trace-base": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
     "brace-expansion": "5.0.7",
-    "js-yaml": "^5.1.0"
+    "js-yaml": "^5.2.1"
   }
 }
