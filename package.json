@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "3.1089.0",
-    "@ministryofjustice/frontend": "^9.0.0",
+    "@ministryofjustice/frontend": "9.0.0",
     "@ministryofjustice/hmpps-auth-clients": "3.0.0",
     "@ministryofjustice/hmpps-azure-telemetry": "1.0.2",
     "@ministryofjustice/hmpps-connect-dps-components": "6.3.0",
@@ -46,7 +46,7 @@
     "csrf-sync": "^4.2.1",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
-    "govuk-frontend": "^6.3.0",
+    "govuk-frontend": "6.4.0",
     "helmet": "8.3.0",
     "http-errors": "^2.0.1",
     "jwt-decode": "^4.0.0",
