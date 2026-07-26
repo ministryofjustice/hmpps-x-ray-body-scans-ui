@@ -1,30 +1,89 @@
-import { RestClient, asSystem } from '@ministryofjustice/hmpps-rest-client'
+import { asSystem, RestClient } from '@ministryofjustice/hmpps-rest-client'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import logger from '../../logger'
+import { isoDate } from '../utils/dates'
+import type {
+  CreateScanRequest,
+  ListScansRequest,
+  ScanResponse,
+  ScanSummaryRequest,
+  ScanSummaryResponse,
+} from './interfaces/xrayBodyScansApiClient'
 
-export interface CreateScanRequest extends Record<string, unknown> {
+interface RawScanResponse extends Omit<ScanResponse, 'scanDate' | 'mergedAt' | 'createdAt' | 'lastModifiedAt'> {
   scanDate: string
+  mergedAt: string | null
+  createdAt: string
+  lastModifiedAt: string
 }
 
-export interface CreateScanResponse {
-  id: number
-  prisonerNumber: string
-  scanDate: string
+export function convertRawScanResponse(scan: RawScanResponse): ScanResponse {
+  return {
+    ...scan,
+    // using midday in order to avoid daylight saving switches
+    scanDate: new Date(`${scan.scanDate}T12:00:00`),
+    mergedAt: scan.mergedAt ? new Date(scan.mergedAt) : null,
+    createdAt: new Date(scan.createdAt),
+    lastModifiedAt: new Date(scan.lastModifiedAt),
+  }
 }
 
-export default class XrayBodyScansApiClient extends RestClient {
+interface RawScanSummaryResponse extends Omit<ScanSummaryResponse, 'fromScanDate' | 'toScanDate'> {
+  fromScanDate: string
+  toScanDate: string
+}
+
+export function convertRawScanSummaryResponse(summary: RawScanSummaryResponse): ScanSummaryResponse {
+  return {
+    ...summary,
+    // using midday in order to avoid daylight saving switches
+    fromScanDate: new Date(`${summary.fromScanDate}T12:00:00`),
+    toScanDate: new Date(`${summary.toScanDate}T12:00:00`),
+  }
+}
+
+export class XrayBodyScansApiClient extends RestClient {
   constructor(authenticationClient: AuthenticationClient) {
-    super('X-Ray Body Scans API', config.apis.xrayBodyScansApi, logger, authenticationClient)
+    super('X-ray Body Scans API', config.apis.xrayBodyScansApi, logger, authenticationClient)
   }
 
-  createScan(prisonerNumber: string, scanData: CreateScanRequest, username: string) {
-    return this.post<CreateScanResponse, CreateScanRequest>(
+  getScanSummary(prisonerNumber: string, request: ScanSummaryRequest, username: string): Promise<ScanSummaryResponse> {
+    const query: Record<string, string | undefined> = {
+      fromScanDate: isoDate(request.fromScanDate),
+      toScanDate: isoDate(request.toScanDate),
+    }
+    return this.get<RawScanSummaryResponse>(
       {
-        path: `/prisoner/${prisonerNumber}/scan`,
+        path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan/summary`,
+        query,
+      },
+      asSystem(username),
+    ).then(convertRawScanSummaryResponse)
+  }
+
+  listScans(prisonerNumber: string, request: ListScansRequest, username: string): Promise<ScanResponse[]> {
+    const query: object = {
+      ...(request ?? {}),
+      fromScanDate: isoDate(request?.fromScanDate),
+      toScanDate: isoDate(request?.toScanDate),
+    }
+    return this.get<RawScanResponse[]>(
+      {
+        path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan`,
+        query,
+      },
+      asSystem(username),
+    ).then(response => response.map(convertRawScanResponse))
+  }
+
+  createScan(prisonerNumber: string, scanData: CreateScanRequest, username: string): Promise<ScanResponse> {
+    return this.post<RawScanResponse>(
+      {
+        path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan`,
         data: scanData,
       },
       asSystem(username),
-    )
+    ).then(convertRawScanResponse)
   }
 }

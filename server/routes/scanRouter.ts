@@ -1,6 +1,6 @@
 import { Router } from 'express'
 
-import type XrayBodyScansApiClient from '../data/xrayBodyScansApiClient'
+import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import ScanController from '../controllers/scanController'
 
 export default function scanRouter(xrayBodyScansApiClient: XrayBodyScansApiClient): Router {
