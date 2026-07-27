@@ -3,7 +3,7 @@ import { createRedisClient } from './redisClient'
 import config from '../config'
 import HmppsAuditClient from './hmppsAuditClient'
 import logger from '../../logger'
-import XrayBodyScansApiClient from './xrayBodyScansApiClient'
+import { XrayBodyScansApiClient } from './xrayBodyScansApiClient'
 import applicationInfoSupplier from '../applicationInfo'
 
 const applicationInfo = applicationInfoSupplier()
