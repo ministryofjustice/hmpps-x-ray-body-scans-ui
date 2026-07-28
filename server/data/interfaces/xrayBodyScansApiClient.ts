@@ -34,11 +34,6 @@ export interface ScanResponse {
   lastModifiedBy: string
 }
 
-export interface ScanSummaryRequest {
-  fromScanDate?: Date | undefined
-  toScanDate?: Date | undefined
-}
-
 export interface ScanSummaryResponse {
   prisonerNumber: string
   nomisCount: number

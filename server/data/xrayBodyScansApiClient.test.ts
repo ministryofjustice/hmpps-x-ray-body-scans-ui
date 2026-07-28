@@ -3,12 +3,7 @@ import type { Interceptor } from 'nock'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import { convertRawScanResponse, convertRawScanSummaryResponse, XrayBodyScansApiClient } from './xrayBodyScansApiClient'
-import type {
-  CreateScanRequest,
-  ListScansRequest,
-  ScanSummaryRequest,
-  ScanResponse,
-} from './interfaces/xrayBodyScansApiClient'
+import type { CreateScanRequest, ListScansRequest, ScanResponse } from './interfaces/xrayBodyScansApiClient'
 
 const now = new Date()
 const nowString = now.toISOString()
@@ -110,42 +105,25 @@ describe('XrayBodyScansApiClient', () => {
   })
 
   describe('getScanSummary', () => {
-    interface Scenario {
-      scenario: string
-      request: ScanSummaryRequest
-      expectedQueryParameters: Parameters<Interceptor['query']>[0] | undefined
-    }
-    const scenarios: Scenario[] = [
-      { scenario: 'without filters', request: {}, expectedQueryParameters: undefined },
-      {
-        scenario: 'with date range filters',
-        request: {
-          fromScanDate: new Date(2026, 0, 1, 12),
-          toScanDate: new Date(2026, 6, 31, 12),
-        },
-        expectedQueryParameters: { fromScanDate: '2026-01-01', toScanDate: '2026-07-31' },
-      },
-    ]
-    it.each(scenarios)('should send request $scenario', async ({ request, expectedQueryParameters }) => {
-      const mock = nock(config.apis.xrayBodyScansApi.url).get(`/prisoner/${prisonerNumber}/scan/summary`)
-      if (expectedQueryParameters) {
-        mock.query(expectedQueryParameters)
-      }
-      mock.matchHeader('authorization', 'Bearer test-system-token').reply(200, {
-        prisonerNumber,
-        nomisCount: 0,
-        dpsCount: 2,
-        totalCount: 2,
-        negativeCount: 1,
-        inconclusiveCount: 0,
-        positiveCount: 1,
-        annualLimit: 116,
-        remainingScans: 114,
-        fromScanDate: '2026-01-01', // UTC+0
-        toScanDate: '2026-07-31', // UTC+1
-      })
+    it('should send request', async () => {
+      nock(config.apis.xrayBodyScansApi.url)
+        .get(`/prisoner/${prisonerNumber}/scan/summary`)
+        .matchHeader('authorization', 'Bearer test-system-token')
+        .reply(200, {
+          prisonerNumber,
+          nomisCount: 0,
+          dpsCount: 2,
+          totalCount: 2,
+          negativeCount: 1,
+          inconclusiveCount: 0,
+          positiveCount: 1,
+          annualLimit: 116,
+          remainingScans: 114,
+          fromScanDate: '2026-01-01', // UTC+0
+          toScanDate: '2026-07-31', // UTC+1
+        })
 
-      const response = await xrayBodyScansApiClient.getScanSummary(prisonerNumber, request, username)
+      const response = await xrayBodyScansApiClient.getScanSummary(prisonerNumber, username)
       expect(response.fromScanDate).toBeInstanceOf(Date)
     })
   })

@@ -7,7 +7,6 @@ import type {
   CreateScanRequest,
   ListScansRequest,
   ScanResponse,
-  ScanSummaryRequest,
   ScanSummaryResponse,
 } from './interfaces/xrayBodyScansApiClient'
 
@@ -48,15 +47,10 @@ export class XrayBodyScansApiClient extends RestClient {
     super('X-ray Body Scans API', config.apis.xrayBodyScansApi, logger, authenticationClient)
   }
 
-  getScanSummary(prisonerNumber: string, request: ScanSummaryRequest, username: string): Promise<ScanSummaryResponse> {
-    const query: Record<string, string | undefined> = {
-      fromScanDate: isoDate(request.fromScanDate),
-      toScanDate: isoDate(request.toScanDate),
-    }
+  getScanSummary(prisonerNumber: string, username: string): Promise<ScanSummaryResponse> {
     return this.get<RawScanSummaryResponse>(
       {
         path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan/summary`,
-        query,
       },
       asSystem(username),
     ).then(convertRawScanSummaryResponse)
