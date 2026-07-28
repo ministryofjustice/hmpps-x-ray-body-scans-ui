@@ -3,6 +3,7 @@ import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients
 import config from '../config'
 import logger from '../../logger'
 import { isoDate } from '../utils/dates'
+import type { PageResponse } from './PageRequest'
 import type {
   CreateScanRequest,
   ListScansRequest,
@@ -68,13 +69,13 @@ export class XrayBodyScansApiClient extends RestClient {
       fromScanDate: isoDate(request?.fromScanDate),
       toScanDate: isoDate(request?.toScanDate),
     }
-    return this.get<RawScanResponse[]>(
+    return this.get<PageResponse<RawScanResponse>>(
       {
         path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan`,
         query,
       },
       asSystem(username),
-    ).then(response => response.map(convertRawScanResponse))
+    ).then(response => response.content.map(convertRawScanResponse))
   }
 
   createScan(prisonerNumber: string, scanData: CreateScanRequest, username: string): Promise<ScanResponse> {

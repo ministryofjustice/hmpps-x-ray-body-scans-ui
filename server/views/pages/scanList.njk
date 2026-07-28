@@ -1,0 +1,106 @@
+{% extends "partials/layout.njk" %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set pageTitle = applicationName + " - X-ray body scans" %}
+{% set mainClasses = "govuk-body" %}
+
+{% block content %}
+
+  <h1 class="govuk-heading-l">X-ray body scans</h1>
+
+  {{ govukButton({
+    text: "Record a new scan",
+    href: "/prisoner/" + prisonerNumber + "/create-scan"
+  }) }}
+
+  <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-three-quarters">
+      <h2 class="govuk-heading-m">X-ray body scans recorded in {{ currentYear }}</h2>
+
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-one-quarter">
+          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Scans in {{ currentYear }}</p>
+          <p class="govuk-heading-l">{{ scansThisYearCount }}</p>
+        </div>
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-!-padding-3 summary-box-items-detected">
+            <p class="govuk-body govuk-!-margin-bottom-1">Items detected</p>
+            <p class="govuk-heading-m">{{ itemsDetectedCount }}</p>
+          </div>
+        </div>
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-!-padding-3 summary-box-inconclusive">
+            <p class="govuk-body govuk-!-margin-bottom-1">Inconclusive</p>
+            <p class="govuk-heading-m">{{ inconclusiveCount }}</p>
+          </div>
+        </div>
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-!-padding-3 summary-box-no-items-detected">
+            <p class="govuk-body govuk-!-margin-bottom-1">No items detected</p>
+            <p class="govuk-heading-m">{{ noItemsDetectedCount }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="govuk-grid-column-one-quarter">
+      <h2 class="govuk-heading-m">Scan alerts</h2>
+      <p>TODO: make these as alertFlag components</p>
+      {% if scanAlerts.length %}
+        {% for alert in scanAlerts %}
+          <p><strong class="govuk-tag govuk-tag--grey">{{ alert }}</strong></p>
+        {% endfor %}
+      {% else %}
+        <p>No scan alerts</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
+
+  <h2 class="govuk-heading-m">X-ray body scan history</h2>
+
+  <h3 class="govuk-heading-s">All scans</h3>
+
+  {% set resultTags = {
+    "Item detected": "govuk-tag--red",
+    "Inconclusive": "govuk-tag--grey",
+    "No item detected": "govuk-tag--blue"
+  } %}
+
+  {% set rows = [] %}
+  {% for scan in rawScanRows %}
+    {% set actionLink = { html: '<a class="govuk-link" href="#">' + scan.action + '</a>' } %}
+    {% set rows = (rows.push([
+      { text: scan.date },
+      { text: scan.establishment },
+      { text: scan.reason },
+      { html: govukTag({ text: scan.result, classes: resultTags[scan.result] }) },
+      { text: scan.itemsFound },
+      actionLink
+    ]), rows) %}
+  {% endfor %}
+
+  <p class="govuk-body">TODO show page / scan numbers</p>
+
+  {{ govukTable({
+    head: [
+      { text: "Date" },
+      { text: "Establishment" },
+      { text: "Reason" },
+      { text: "Result" },
+      { text: "Items found" },
+      { text: "Action", format: "numeric" }
+    ],
+    rows: rows
+  }) }}
+
+  <p class="govuk-body">TODO show page / scan numbers</p>
+
+  <p><a class="govuk-link" href="#">TODO profile link</a></p>
+
+{% endblock %}

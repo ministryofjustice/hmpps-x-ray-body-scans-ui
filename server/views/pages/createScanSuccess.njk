@@ -1,0 +1,56 @@
+{% extends "partials/layout.njk" %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set pageTitle = applicationName + " - Scan Recorded" %}
+{% set mainClasses = "govuk-body" %}
+
+{% block content %}
+
+  {{ govukPanel({
+    titleText: "Scan recorded for",
+    html: "TODO"
+  }) }}
+
+  <h2 class="govuk-heading-m">Scan details</h2>
+
+  {{ govukSummaryList({
+    rows: [
+      {
+        key: { text: "Date" },
+        value: { text: "TODO" }
+      },
+      {
+        key: { text: "Reason" },
+        value: { text: "TODO" }
+      },
+      {
+        key: { text: "Result" },
+        value: { html: govukTag({ text: "TODO", classes: "govuk-tag--red" }) }
+      },
+      {
+        key: { text: "Items found" },
+        value: { text: "TODO" }
+      }
+    ]
+  }) }}
+
+  <p>TODO: content, conditional rendering + links</p>
+
+  {{ govukButton({
+    text: "Add a case note",
+    classes: "govuk-button--secondary",
+    href: "TODO"
+  }) }}
+
+  <div class="govuk-button-group">
+    {{ govukButton({
+      text: "Return to body scans",
+      href: "/prisoner/" + prisonerNumber + "/scans"
+    }) }}
+    <a class="govuk-link" href="#">TODO: profile link</a>
+  </div>
+
+{% endblock %}

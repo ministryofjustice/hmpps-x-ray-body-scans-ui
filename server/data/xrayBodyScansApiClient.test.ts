@@ -182,13 +182,19 @@ describe('XrayBodyScansApiClient', () => {
       if (expectedQueryParameters) {
         mock.query(expectedQueryParameters)
       }
-      mock.matchHeader('authorization', 'Bearer test-system-token').reply(200, [
-        {
-          ...scanResponse,
-          createdAt: nowString,
-          lastModifiedAt: nowString,
-        },
-      ])
+      mock.matchHeader('authorization', 'Bearer test-system-token').reply(200, {
+        content: [
+          {
+            ...scanResponse,
+            createdAt: nowString,
+            lastModifiedAt: nowString,
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+        number: 0,
+        size: 20,
+      })
 
       const response = await xrayBodyScansApiClient.listScans(prisonerNumber, request, username)
       expect(response).toHaveLength(1)
