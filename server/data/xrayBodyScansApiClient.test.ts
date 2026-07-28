@@ -92,6 +92,8 @@ describe('XrayBodyScansApiClient', () => {
         positiveCount: 0,
         annualLimit: 116,
         remainingScans: 116,
+        nearingScanLimit: false,
+        atScanLimit: false,
         fromScanDate: '2026-01-01', // UTC+0
         toScanDate: '2026-07-31', // UTC+1
       })
