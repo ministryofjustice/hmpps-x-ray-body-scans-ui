@@ -8,9 +8,7 @@ jest.mock('../services/auditService')
 jest.mock('../data/xrayBodyScansApiClient')
 
 const auditService = new AuditService({} as HmppsAuditClient) as jest.Mocked<AuditService>
-const xrayBodyScansApiClient = new XrayBodyScansApiClient(
-  undefined as unknown as ConstructorParameters<typeof XrayBodyScansApiClient>[0],
-) as jest.Mocked<XrayBodyScansApiClient>
+const xrayBodyScansApiClient = new XrayBodyScansApiClient(undefined as never) as jest.Mocked<XrayBodyScansApiClient>
 
 const prisonerNumber = 'A1234BC'
 const username = 'user1'
