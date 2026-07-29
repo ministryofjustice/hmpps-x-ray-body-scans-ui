@@ -14,8 +14,7 @@ export default function routes(services: Services): Router {
     return res.render('pages/index')
   })
 
-  // Throw-away demo route, /create-scan is in the scan router, this just sets up the context.
-  router.use('/prisoner/:prisonerNumber', scanRouter(xrayBodyScansApiClient))
+  router.use('/prisoner/:prisonerNumber', scanRouter(xrayBodyScansApiClient, auditService))
 
   return router
 }
