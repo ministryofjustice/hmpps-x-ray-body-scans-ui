@@ -4,16 +4,9 @@ import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest } from '../data/interfaces/xrayBodyScansApiClient'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
+import { formatDisplayDate, formatIsoDate } from '../utils/dates'
 
 const dayMillis = 24 * 60 * 60 * 1000
-
-function formatDisplayDate(date: Date): string {
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-}
-
-function formatIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
 
 export default class ScanController {
   constructor(

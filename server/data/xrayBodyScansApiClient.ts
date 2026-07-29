@@ -2,7 +2,7 @@ import { asSystem, RestClient } from '@ministryofjustice/hmpps-rest-client'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import logger from '../../logger'
-import { isoDate } from '../utils/dates'
+import { formatIsoDate } from '../utils/dates'
 import type { PageResponse } from './PageRequest'
 import type {
   CreateScanRequest,
@@ -51,8 +51,8 @@ export class XrayBodyScansApiClient extends RestClient {
 
   getScanSummary(prisonerNumber: string, request: ScanSummaryRequest, username: string): Promise<ScanSummaryResponse> {
     const query: Record<string, string | undefined> = {
-      fromScanDate: isoDate(request.fromScanDate),
-      toScanDate: isoDate(request.toScanDate),
+      fromScanDate: formatIsoDate(request.fromScanDate),
+      toScanDate: formatIsoDate(request.toScanDate),
     }
     return this.get<RawScanSummaryResponse>(
       {
@@ -66,8 +66,8 @@ export class XrayBodyScansApiClient extends RestClient {
   listScans(prisonerNumber: string, request: ListScansRequest, username: string): Promise<ScanResponse[]> {
     const query: object = {
       ...(request ?? {}),
-      fromScanDate: isoDate(request?.fromScanDate),
-      toScanDate: isoDate(request?.toScanDate),
+      fromScanDate: formatIsoDate(request?.fromScanDate),
+      toScanDate: formatIsoDate(request?.toScanDate),
     }
     return this.get<PageResponse<RawScanResponse>>(
       {
