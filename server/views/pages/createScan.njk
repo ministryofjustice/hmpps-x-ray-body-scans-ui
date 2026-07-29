@@ -1,25 +1,130 @@
 {% extends "partials/layout.njk" %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set pageTitle = applicationName + " - Create Scan" %}
+{% set pageTitle = applicationName + " - Record Scan" %}
 {% set mainClasses = "govuk-body" %}
 
 {% block content %}
 
-  <h1>Create New Scan for {{ prisonerNumber }}</h1>
+  <h1 class="govuk-heading-l">Record an x-ray body scan for TODO</h1>
 
   <form method="POST" action="/prisoner/{{ prisonerNumber }}/create-scan">
     <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
-    <div class="govuk-form-group">
-      <label class="govuk-label" for="scanDate">
-        Scan Date
-      </label>
-      <input class="govuk-input" id="scanDate" name="scanDate" type="date" required>
+    {{ govukRadios({
+      idPrefix: "scanDateOption",
+      name: "scanDateOption",
+      fieldset: {
+        legend: {
+          text: "When did the scan happen?",
+          classes: "govuk-fieldset__legend--m"
+        }
+      },
+      items: [
+        {
+          value: "today",
+          text: "Today (" + today + ")"
+        },
+        {
+          value: "yesterday",
+          text: "Yesterday (" + yesterday + ")"
+        },
+        {
+          value: "other",
+          text: "Another date",
+          checked: true,
+          conditional: {
+            html: govukDateInput({
+              id: "scanDate",
+              namePrefix: "scanDate",
+              hint: {
+                text: "For example, 23 7 2026"
+              },
+              items: [
+                { name: "day", classes: "govuk-input--width-2" },
+                { name: "month", classes: "govuk-input--width-2" },
+                { name: "year", classes: "govuk-input--width-4" }
+              ]
+            })
+          }
+        }
+      ]
+    }) }}
+
+    {{ govukRadios({
+      idPrefix: "scanResult",
+      name: "scanResult",
+      fieldset: {
+        legend: {
+          text: "What was the result of the scan?",
+          classes: "govuk-fieldset__legend--m"
+        }
+      },
+      items: [
+        {
+          value: "NEGATIVE",
+          text: "No item detected"
+        },
+        {
+          value: "INCONCLUSIVE",
+          text: "Inconclusive",
+          hint: {
+            text: "The scan did not clearly show if an item was present."
+          }
+        },
+        {
+          value: "POSITIVE",
+          text: "Item detected",
+          conditional: {
+            html: govukRadios({
+              idPrefix: "itemType",
+              name: "itemType",
+              fieldset: {
+                legend: {
+                  text: "What type of item was detected?",
+                  classes: "govuk-fieldset__legend--s"
+                }
+              },
+              hint: {
+                text: "Select the suspected item shown by the scan."
+              },
+              items: [
+                {
+                  value: "ORGANIC",
+                  text: "Organic",
+                  hint: { text: "For example, drugs." }
+                },
+                {
+                  value: "INORGANIC",
+                  text: "Inorganic",
+                  hint: { text: "For example, a mobile phone, SIM card or other object." }
+                },
+                {
+                  value: "ORGANIC_AND_INORGANIC",
+                  text: "Organic and inorganic"
+                },
+                { divider: "or" },
+                {
+                  value: "NOT_KNOWN",
+                  text: "Not known"
+                }
+              ]
+            })
+          }
+        }
+      ]
+    }) }}
+
+    <div class="govuk-button-group">
+      {{ govukButton({
+        text: "Save"
+      }) }}
+
+      <a class="govuk-link" href="/prisoner/{{ prisonerNumber }}/scans">Cancel</a>
     </div>
 
-    <button type="submit" class="govuk-button">
-      Create Scan
-    </button>
   </form>
 
 {% endblock %}

@@ -6,16 +6,23 @@ const shortDateFormatter = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Europe/London',
 })
 
+const longDateFormatter = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Europe/London',
+})
+
 /**
  * Formats dates (ignoring time) in Europe/London ISO style, used when calling APIs.
  * NB: time zone is _not_ appended.
  *
  * Example: `2024-07-30`
  */
-export function isoDate(dateTime: Date): string
-export function isoDate(dateTime: null | undefined): undefined
-export function isoDate(dateTime: Date | null | undefined): string | undefined
-export function isoDate(dateTime: Date | null | undefined): string | undefined {
+export function formatIsoDate(dateTime: Date): string
+export function formatIsoDate(dateTime: null | undefined): undefined
+export function formatIsoDate(dateTime: Date | null | undefined): string | undefined
+export function formatIsoDate(dateTime: Date | null | undefined): string | undefined {
   if (!dateTime) {
     return undefined
   }
@@ -24,4 +31,13 @@ export function isoDate(dateTime: Date | null | undefined): string | undefined {
     shortDateFormatter.formatToParts(dateTime).map(part => [part.type, part.value]),
   ) as Record<'day' | 'month' | 'year', string>
   return `${year}-${month}-${day}`
+}
+
+/**
+ * Formats dates (ignoring time) in Europe/London for display to users.
+ *
+ * Example: `01 January 2026`
+ */
+export function formatDisplayDate(dateTime: Date): string {
+  return longDateFormatter.format(dateTime)
 }
