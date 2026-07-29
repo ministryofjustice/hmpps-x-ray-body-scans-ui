@@ -25,7 +25,7 @@ export default class ScanController {
       correlationId: req.id,
     })
 
-    const scanSummary = await this.xrayBodyScansApiClient.getScanSummary(prisonerNumber, {}, username)
+    const scanSummary = await this.xrayBodyScansApiClient.getScanSummary(prisonerNumber, username)
     const scans = await this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username)
 
     const rawScanRows = scans.map(scan => ({

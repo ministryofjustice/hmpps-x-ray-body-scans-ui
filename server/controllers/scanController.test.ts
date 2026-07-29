@@ -50,8 +50,10 @@ describe('getScanList', () => {
       positiveCount: 1,
       negativeCount: 2,
       inconclusiveCount: 3,
-      annualLimit: 12,
-      remainingScans: 6,
+      annualLimit: 116,
+      remainingScans: 110,
+      nearingScanLimit: false,
+      atScanLimit: false,
       fromScanDate: new Date('2025-07-27T12:00:00'),
       toScanDate: new Date('2026-07-27T12:00:00'),
     })

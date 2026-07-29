@@ -52,6 +52,8 @@ describe('scan router authorisation', () => {
       inconclusiveCount: 0,
       annualLimit: 116,
       remainingScans: 116,
+      nearingScanLimit: false,
+      atScanLimit: false,
       fromScanDate: new Date('2025-07-27T12:00:00'),
       toScanDate: new Date('2026-07-27T12:00:00'),
     })
