@@ -94,6 +94,7 @@ describe('XrayBodyScansApiClient', () => {
         remainingScans: 116,
         nearingScanLimit: false,
         atScanLimit: false,
+        relevantAlerts: null,
         fromScanDate: '2026-01-01', // UTC+0
         toScanDate: '2026-07-31', // UTC+1
       })
@@ -107,9 +108,10 @@ describe('XrayBodyScansApiClient', () => {
   })
 
   describe('getScanSummary', () => {
-    it('should send request', async () => {
+    it.each([true, false])('should send request with alerts: %s', async includeAlerts => {
       nock(config.apis.xrayBodyScansApi.url)
         .get(`/prisoner/${prisonerNumber}/scan/summary`)
+        .query({ includeAlerts })
         .matchHeader('authorization', 'Bearer test-system-token')
         .reply(200, {
           prisonerNumber,
@@ -121,11 +123,14 @@ describe('XrayBodyScansApiClient', () => {
           positiveCount: 1,
           annualLimit: 116,
           remainingScans: 114,
+          nearingScanLimit: false,
+          atScanLimit: false,
+          relevantAlerts: includeAlerts ? [] : null,
           fromScanDate: '2026-01-01', // UTC+0
           toScanDate: '2026-07-31', // UTC+1
         })
 
-      const response = await xrayBodyScansApiClient.getScanSummary(prisonerNumber, username)
+      const response = await xrayBodyScansApiClient.getScanSummary(prisonerNumber, { includeAlerts }, username)
       expect(response.fromScanDate).toBeInstanceOf(Date)
     })
   })

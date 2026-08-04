@@ -34,6 +34,10 @@ export interface ScanResponse {
   lastModifiedBy: string
 }
 
+export interface ScanSummaryRequest {
+  includeAlerts?: boolean
+}
+
 export interface ScanSummaryResponse {
   prisonerNumber: string
   nomisCount: number
@@ -46,6 +50,23 @@ export interface ScanSummaryResponse {
   remainingScans: number
   nearingScanLimit: boolean
   atScanLimit: boolean
+  relevantAlerts: AlertResponse[] | null
   fromScanDate: Date
   toScanDate: Date
+}
+
+export interface ScanSummaryResponseWithoutAlerts extends ScanSummaryResponse {
+  relevantAlerts: null
+}
+
+export interface ScanSummaryResponseWithAlerts extends ScanSummaryResponse {
+  relevantAlerts: AlertResponse[]
+}
+
+export interface AlertResponse {
+  id: string
+  type: string
+  typeDescription: string
+  code: string
+  codeDescription: string
 }
