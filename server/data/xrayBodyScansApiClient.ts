@@ -8,7 +8,10 @@ import type {
   CreateScanRequest,
   ListScansRequest,
   ScanResponse,
+  ScanSummaryRequest,
   ScanSummaryResponse,
+  ScanSummaryResponseWithoutAlerts,
+  ScanSummaryResponseWithAlerts,
 } from './interfaces/xrayBodyScansApiClient'
 
 interface RawScanResponse extends Omit<ScanResponse, 'scanDate' | 'mergedAt' | 'createdAt' | 'lastModifiedAt'> {
@@ -48,10 +51,25 @@ export class XrayBodyScansApiClient extends RestClient {
     super('X-ray Body Scans API', config.apis.xrayBodyScansApi, logger, authenticationClient)
   }
 
-  getScanSummary(prisonerNumber: string, username: string): Promise<ScanSummaryResponse> {
+  getScanSummary(
+    prisonerNumber: string,
+    request: ScanSummaryRequest & { includeAlerts: true },
+    username: string,
+  ): Promise<ScanSummaryResponseWithAlerts>
+
+  getScanSummary(
+    prisonerNumber: string,
+    request: ScanSummaryRequest & { includeAlerts?: false },
+    username: string,
+  ): Promise<ScanSummaryResponseWithoutAlerts>
+
+  getScanSummary(prisonerNumber: string, request: ScanSummaryRequest, username: string): Promise<ScanSummaryResponse>
+
+  getScanSummary(prisonerNumber: string, request: ScanSummaryRequest, username: string): Promise<ScanSummaryResponse> {
     return this.get<RawScanSummaryResponse>(
       {
         path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan/summary`,
+        query: request,
       },
       asSystem(username),
     ).then(convertRawScanSummaryResponse)
@@ -59,7 +77,7 @@ export class XrayBodyScansApiClient extends RestClient {
 
   listScans(prisonerNumber: string, request: ListScansRequest, username: string): Promise<ScanResponse[]> {
     const query: object = {
-      ...(request ?? {}),
+      ...request,
       fromScanDate: formatIsoDate(request?.fromScanDate),
       toScanDate: formatIsoDate(request?.toScanDate),
     }
