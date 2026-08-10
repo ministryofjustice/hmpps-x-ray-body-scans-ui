@@ -32,14 +32,24 @@ export default class ScanController {
     )
     const scans = await this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username)
 
-    const rawScanRows = scans.map(scan => ({
-      date: formatDisplayDate(scan.scanDate),
-      establishment: scan.prisonId,
-      reason: scan.justificationDescription,
-      result: scan.outcomeDescription,
-      itemsFound: scan.typeOfFindDescription ?? 'None',
-      action: 'TODO: link based on scan.caseNoteId',
-    }))
+    const rawScanRows = scans.map(scan =>
+      scan.source === 'NOMIS'
+        ? {
+            source: scan.source,
+            date: scan.scanDate ? formatDisplayDate(scan.scanDate) : 'Not recorded',
+            result: scan.scanDetails || 'Not recorded',
+            action: null,
+          }
+        : {
+            source: scan.source,
+            date: formatDisplayDate(scan.scanDate),
+            establishment: scan.prisonId,
+            reason: scan.justificationDescription,
+            result: scan.outcomeDescription,
+            itemsFound: scan.typeOfFindDescription ?? 'None',
+            action: 'TODO: link based on scan.caseNoteId',
+          },
+    )
 
     res.render('pages/scanList', {
       prisonerNumber,

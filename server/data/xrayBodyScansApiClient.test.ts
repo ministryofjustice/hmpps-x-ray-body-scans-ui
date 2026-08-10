@@ -3,7 +3,12 @@ import type { Interceptor } from 'nock'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import { convertRawScanResponse, convertRawScanSummaryResponse, XrayBodyScansApiClient } from './xrayBodyScansApiClient'
-import type { CreateScanRequest, ListScansRequest, ScanResponse } from './interfaces/xrayBodyScansApiClient'
+import type {
+  CreateScanRequest,
+  LegacyScanResponse,
+  ListScansRequest,
+  ScanResponse,
+} from './interfaces/xrayBodyScansApiClient'
 
 const now = new Date()
 const nowString = now.toISOString()
@@ -11,13 +16,16 @@ const nowString = now.toISOString()
 const prisonerNumber = 'A1234BC'
 const prisonId = 'LEI'
 const username = 'abc12a'
-const sampleId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
+const scanDate = new Date(2026, 6, 20, 12)
+const scanDateString = '2026-07-20'
 
+const sampleId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
 const scanResponse: ScanResponse = {
+  source: 'DPS',
   id: sampleId,
   prisonerNumber,
   prisonId,
-  scanDate: new Date(2026, 6, 20, 12),
+  scanDate,
   justification: 'REASONABLE_SUSPICION',
   justificationDescription: 'Reasonable suspicion',
   outcome: 'POSITIVE',
@@ -31,6 +39,15 @@ const scanResponse: ScanResponse = {
   createdBy: username,
   lastModifiedAt: now,
   lastModifiedBy: username,
+}
+
+const sampleLegacyId = '715262'
+const legacyScanResponse: LegacyScanResponse = {
+  source: 'NOMIS',
+  id: sampleLegacyId,
+  prisonerNumber,
+  scanDate,
+  scanDetails: null,
 }
 
 describe('XrayBodyScansApiClient', () => {
@@ -79,6 +96,17 @@ describe('XrayBodyScansApiClient', () => {
       expect(response.mergedAt!.getUTCHours()).toEqual(11)
       expect(response.createdAt.getHours()).toEqual(12)
       expect(response.lastModifiedAt.getUTCHours()).toEqual(11)
+
+      let legacyResponse = convertRawScanResponse({
+        ...legacyScanResponse,
+        scanDate: '2026-07-23',
+      })
+      expect(legacyResponse.scanDate).toBeInstanceOf(Date)
+      legacyResponse = convertRawScanResponse({
+        ...legacyScanResponse,
+        scanDate: null,
+      })
+      expect(legacyResponse.scanDate).toBeNull()
     })
 
     it('should convert scan summaries', () => {
@@ -171,19 +199,28 @@ describe('XrayBodyScansApiClient', () => {
         content: [
           {
             ...scanResponse,
+            scanDate: scanDateString,
             createdAt: nowString,
             lastModifiedAt: nowString,
           },
+          {
+            ...legacyScanResponse,
+            scanDate: scanDateString,
+          },
         ],
-        totalElements: 1,
+        totalElements: 2,
         totalPages: 1,
         number: 0,
         size: 20,
       })
 
       const response = await xrayBodyScansApiClient.listScans(prisonerNumber, request, username)
-      expect(response).toHaveLength(1)
-      expect(response[0].createdAt).toBeInstanceOf(Date)
+      expect(response).toHaveLength(2)
+      const [dpsScan, nomisScan] = response
+      expect(dpsScan.source).toEqual('DPS')
+      if (dpsScan.source === 'DPS') expect(dpsScan.scanDate).toBeInstanceOf(Date)
+      expect(nomisScan.source).toEqual('NOMIS')
+      if (nomisScan.source === 'NOMIS') expect(nomisScan.scanDate).toBeInstanceOf(Date)
     })
   })
 

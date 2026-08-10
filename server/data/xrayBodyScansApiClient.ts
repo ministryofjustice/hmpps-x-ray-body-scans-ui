@@ -6,12 +6,13 @@ import { formatIsoDate } from '../utils/dates'
 import type { PageResponse } from './PageRequest'
 import type {
   CreateScanRequest,
+  LegacyScanResponse,
   ListScansRequest,
   ScanResponse,
   ScanSummaryRequest,
   ScanSummaryResponse,
-  ScanSummaryResponseWithoutAlerts,
   ScanSummaryResponseWithAlerts,
+  ScanSummaryResponseWithoutAlerts,
 } from './interfaces/xrayBodyScansApiClient'
 
 interface RawScanResponse extends Omit<ScanResponse, 'scanDate' | 'mergedAt' | 'createdAt' | 'lastModifiedAt'> {
@@ -21,7 +22,23 @@ interface RawScanResponse extends Omit<ScanResponse, 'scanDate' | 'mergedAt' | '
   lastModifiedAt: string
 }
 
-export function convertRawScanResponse(scan: RawScanResponse): ScanResponse {
+interface RawLegacyScanResponse extends Omit<LegacyScanResponse, 'scanDate'> {
+  scanDate: string | null
+}
+
+export function convertRawScanResponse(scan: RawScanResponse): ScanResponse
+export function convertRawScanResponse(scan: RawLegacyScanResponse): LegacyScanResponse
+export function convertRawScanResponse(scan: RawScanResponse | RawLegacyScanResponse): ScanResponse | LegacyScanResponse
+export function convertRawScanResponse(
+  scan: RawScanResponse | RawLegacyScanResponse,
+): ScanResponse | LegacyScanResponse {
+  if (scan.source === 'NOMIS') {
+    return {
+      ...scan,
+      // using midday in order to avoid daylight saving switches
+      scanDate: scan.scanDate ? new Date(`${scan.scanDate}T12:00:00`) : null,
+    }
+  }
   return {
     ...scan,
     // using midday in order to avoid daylight saving switches
@@ -75,13 +92,17 @@ export class XrayBodyScansApiClient extends RestClient {
     ).then(convertRawScanSummaryResponse)
   }
 
-  listScans(prisonerNumber: string, request: ListScansRequest, username: string): Promise<ScanResponse[]> {
+  listScans(
+    prisonerNumber: string,
+    request: ListScansRequest,
+    username: string,
+  ): Promise<(ScanResponse | LegacyScanResponse)[]> {
     const query: object = {
       ...request,
       fromScanDate: formatIsoDate(request?.fromScanDate),
       toScanDate: formatIsoDate(request?.toScanDate),
     }
-    return this.get<PageResponse<RawScanResponse>>(
+    return this.get<PageResponse<RawScanResponse | RawLegacyScanResponse>>(
       {
         path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan`,
         query,
@@ -97,6 +118,6 @@ export class XrayBodyScansApiClient extends RestClient {
         data: scanData,
       },
       asSystem(username),
-    ).then(convertRawScanResponse)
+    ).then(response => convertRawScanResponse(response))
   }
 }
