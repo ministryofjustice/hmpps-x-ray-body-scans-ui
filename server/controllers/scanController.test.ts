@@ -60,6 +60,7 @@ describe('getScanList', () => {
     })
     xrayBodyScansApiClient.listScans.mockResolvedValue([
       {
+        source: 'DPS',
         id: '1',
         prisonerNumber,
         prisonId: 'LEI',
@@ -134,6 +135,7 @@ describe('getCreateScan', () => {
 describe('postCreateScan', () => {
   it('creates the scan and redirects to the success page', async () => {
     xrayBodyScansApiClient.createScan.mockResolvedValue({
+      source: 'DPS',
       id: '42',
       prisonerNumber,
       prisonId: 'TODO',

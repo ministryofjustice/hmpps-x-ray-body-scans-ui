@@ -14,7 +14,15 @@ export interface CreateScanRequest extends Record<string, unknown> {
   createdBy: string
 }
 
-export interface ScanResponse {
+export interface UnifiedScanResponse {
+  source: 'DPS' | 'NOMIS'
+  id: string
+  prisonerNumber: string
+  scanDate: Date | null
+}
+
+export interface ScanResponse extends UnifiedScanResponse {
+  source: 'DPS'
   id: string
   prisonerNumber: string
   prisonId: string
@@ -32,6 +40,14 @@ export interface ScanResponse {
   createdBy: string
   lastModifiedAt: Date
   lastModifiedBy: string
+}
+
+export interface LegacyScanResponse extends UnifiedScanResponse {
+  source: 'NOMIS'
+  id: string
+  prisonerNumber: string
+  scanDate: Date | null
+  scanDetails: string | null
 }
 
 export interface ScanSummaryRequest {
