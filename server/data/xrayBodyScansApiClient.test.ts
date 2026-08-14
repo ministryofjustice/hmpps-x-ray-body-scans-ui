@@ -50,7 +50,7 @@ const legacyScanResponse: LegacyScanResponse = {
   scanDetails: null,
 }
 
-describe('XrayBodyScansApiClient', () => {
+describe('X-ray body scans API client', () => {
   let xrayBodyScansApiClient: XrayBodyScansApiClient
   let mockAuthenticationClient: jest.Mocked<AuthenticationClient>
 

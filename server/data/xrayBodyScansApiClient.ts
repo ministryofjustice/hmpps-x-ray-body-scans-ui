@@ -3,7 +3,7 @@ import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients
 import config from '../config'
 import logger from '../../logger'
 import { formatIsoDate } from '../utils/dates'
-import type { PageResponse } from './PageRequest'
+import type { PageResponse } from './interfaces/pagination'
 import type {
   CreateScanRequest,
   LegacyScanResponse,

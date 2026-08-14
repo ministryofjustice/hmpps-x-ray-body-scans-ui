@@ -1,4 +1,4 @@
-import { PageRequest } from '../PageRequest'
+import type { PageRequest } from './pagination'
 
 export interface ListScansRequest extends PageRequest<'scanDate'> {
   fromScanDate?: Date | undefined
