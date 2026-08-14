@@ -1,4 +1,5 @@
-import { HmppsUser } from '../../interfaces/hmppsUser'
+import type { HmppsUser } from '../../interfaces/hmppsUser'
+import type { Prisoner } from '../../data/interfaces/prisonerSearchApiClient'
 
 export declare module 'express-session' {
   // Declare that the session will potentially contain these additional fields
@@ -23,6 +24,7 @@ export declare global {
 
     interface Locals {
       user: HmppsUser
+      prisoner: Prisoner
       cspNonce: string
       csrfToken: string
       asset_path: string

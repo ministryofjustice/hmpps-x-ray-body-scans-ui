@@ -7,9 +7,10 @@ import nunjucksSetup from '../../utils/nunjucksSetup'
 import errorHandler from '../../errorHandler'
 import type { Services } from '../../services'
 import AuditService from '../../services/auditService'
-import { HmppsUser } from '../../interfaces/hmppsUser'
+import type { HmppsUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
 import HmppsAuditClient from '../../data/hmppsAuditClient'
+import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApiClient'
 
 jest.mock('../../services/auditService')
 
@@ -34,10 +35,12 @@ function appSetup(services: Services, production: boolean, userSupplier: () => H
   nunjucksSetup(app)
   app.use(setUpWebSession())
   app.use((req, res, next) => {
-    req.user = userSupplier() as Express.User
+    const generatedUser = userSupplier()
+    req.user = generatedUser
     req.flash = flashProvider
     res.locals = {
-      user: { ...req.user } as HmppsUser,
+      user: generatedUser,
+      prisoner: mockPrisoner('A1234AA'),
       cspNonce: '',
       csrfToken: '',
       asset_path: '',
