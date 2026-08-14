@@ -32,7 +32,7 @@ export default class ScanController {
     )
     const scans = await this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username)
 
-    const rawScanRows = scans.map(scan =>
+    const rawScanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'
         ? {
             source: scan.source,

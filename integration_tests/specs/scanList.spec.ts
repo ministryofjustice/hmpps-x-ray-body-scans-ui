@@ -1,8 +1,7 @@
 import { expect, test } from '@playwright/test'
+import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
-
-import { login, resetStubs } from '../testUtils'
 
 const prisonerNumber = 'A1234BC'
 

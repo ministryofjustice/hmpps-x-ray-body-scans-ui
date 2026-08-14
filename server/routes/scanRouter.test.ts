@@ -1,10 +1,11 @@
 import type { Express } from 'express'
 import request from 'supertest'
 import { appWithAllRoutes, user } from './testutils/appSetup'
+import createUserToken from '../testutils/createUserToken'
+import { emptyPageResponse } from '../testutils/pagination'
 import AuditService from '../services/auditService'
 import HmppsAuditClient from '../data/hmppsAuditClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import createUserToken from '../testutils/createUserToken'
 
 jest.mock('../services/auditService')
 jest.mock('../data/xrayBodyScansApiClient')
@@ -58,7 +59,7 @@ describe('scan router authorisation', () => {
       fromScanDate: new Date('2025-07-27T12:00:00'),
       toScanDate: new Date('2026-07-27T12:00:00'),
     })
-    xrayBodyScansApiClient.listScans.mockResolvedValue([])
+    xrayBodyScansApiClient.listScans.mockResolvedValue(emptyPageResponse())
 
     return request(app).get(`/prisoner/${prisonerNumber}/scans`).expect(200)
   })

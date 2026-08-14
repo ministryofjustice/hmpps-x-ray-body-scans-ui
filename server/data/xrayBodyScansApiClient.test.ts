@@ -215,8 +215,8 @@ describe('X-ray body scans API client', () => {
       })
 
       const response = await xrayBodyScansApiClient.listScans(prisonerNumber, request, username)
-      expect(response).toHaveLength(2)
-      const [dpsScan, nomisScan] = response
+      expect(response.content).toHaveLength(2)
+      const [dpsScan, nomisScan] = response.content
       expect(dpsScan.source).toEqual('DPS')
       if (dpsScan.source === 'DPS') expect(dpsScan.scanDate).toBeInstanceOf(Date)
       expect(nomisScan.source).toEqual('NOMIS')
