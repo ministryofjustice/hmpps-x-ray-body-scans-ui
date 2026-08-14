@@ -1,11 +1,13 @@
 import type { SuperAgentRequest } from 'superagent'
 import { stubFor, stubPing } from './wiremock'
+import { formatIsoDate } from '../../server/utils/dates'
 import type { ErrorResponse } from '../../server/data/interfaces/errorResponse'
 import type { PageResponse } from '../../server/data/interfaces/pagination'
 import { emptyPageResponse } from '../../server/testutils/pagination'
 import { mockScanSummaryResponse } from '../../server/testutils/mocks/xrayBodyScansApiClient'
 import type {
   LegacyScanResponse,
+  ListScansRequest,
   ScanResponse,
   ScanSummaryResponse,
 } from '../../server/data/interfaces/xrayBodyScansApiClient'
@@ -13,32 +15,71 @@ import type {
 export default {
   stubPing: (httpStatus = 200): SuperAgentRequest => stubPing('/xray-body-scans-api', httpStatus),
 
-  stubGetScanSummary: (prisonerNumber: string, response?: ScanSummaryResponse | ErrorResponse): SuperAgentRequest =>
-    stubFor({
+  stubGetScanSummary(prisonerNumber: string, response?: ScanSummaryResponse | ErrorResponse): SuperAgentRequest {
+    const jsonBody = response ?? mockScanSummaryResponse({ prisonerNumber, now: new Date() })
+    return stubFor({
       request: {
         method: 'GET',
-        urlPathPattern: `/xray-body-scans-api/prisoner/${prisonerNumber}/scan/summary`,
+        urlPath: `/xray-body-scans-api/prisoner/${prisonerNumber}/scan/summary`,
       },
       response: {
         status: response && 'userMessage' in response ? response.status : 200,
         headers: { 'Content-Type': 'application/json;charset=UTF-8' },
-        jsonBody: response ?? mockScanSummaryResponse({ prisonerNumber, now: new Date() }),
+        jsonBody:
+          'fromScanDate' in jsonBody
+            ? {
+                ...jsonBody,
+                fromScanDate: formatIsoDate(jsonBody.fromScanDate),
+                toScanDate: formatIsoDate(jsonBody.toScanDate),
+              }
+            : jsonBody,
       },
-    }),
+    })
+  },
 
-  stubListScans: (
+  stubListScans(
     prisonerNumber: string,
     response: PageResponse<ScanResponse | LegacyScanResponse> | ErrorResponse = emptyPageResponse(),
-  ): SuperAgentRequest =>
-    stubFor({
+    request?: ListScansRequest,
+  ): SuperAgentRequest {
+    const queryParameters: Record<string, { equalTo: string }> = {}
+    if (request?.fromScanDate) {
+      queryParameters.fromScanDate = { equalTo: formatIsoDate(request.fromScanDate) }
+    }
+    if (request?.toScanDate) {
+      queryParameters.toScanDate = { equalTo: formatIsoDate(request.toScanDate) }
+    }
+    const jsonBody =
+      'content' in response
+        ? {
+            ...response,
+            content: response.content.map(scan =>
+              scan.source === 'NOMIS'
+                ? {
+                    ...scan,
+                    scanDate: scan.scanDate ? formatIsoDate(scan.scanDate) : null,
+                  }
+                : {
+                    ...scan,
+                    scanDate: formatIsoDate(scan.scanDate),
+                    mergedAt: scan.mergedAt ? scan.mergedAt.toISOString() : null,
+                    createdAt: scan.createdAt.toISOString(),
+                    lastModifiedAt: scan.lastModifiedAt.toISOString(),
+                  },
+            ),
+          }
+        : response
+    return stubFor({
       request: {
         method: 'GET',
-        urlPathPattern: `/xray-body-scans-api/prisoner/${prisonerNumber}/scan`,
+        urlPath: `/xray-body-scans-api/prisoner/${prisonerNumber}/scan`,
+        queryParameters,
       },
       response: {
         status: response && 'userMessage' in response ? response.status : 200,
         headers: { 'Content-Type': 'application/json;charset=UTF-8' },
-        jsonBody: response,
+        jsonBody,
       },
-    }),
+    })
+  },
 }
