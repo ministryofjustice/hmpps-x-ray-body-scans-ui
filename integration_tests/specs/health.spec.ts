@@ -2,12 +2,13 @@ import { expect, test } from '@playwright/test'
 import hmppsAuth from '../mockApis/hmppsAuth'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import tokenVerification from '../mockApis/tokenVerification'
+import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 
 import { resetStubs } from '../testUtils'
 
 // NB: add new mock apis here:
-const mockApis = [hmppsAuth, tokenVerification, xrayBodyScansApi]
+const mockApis = [hmppsAuth, tokenVerification, prisonerSearchApi, xrayBodyScansApi]
 
 test.describe('Health', () => {
   test.beforeEach(async () => {
