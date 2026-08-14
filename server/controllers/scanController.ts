@@ -117,7 +117,7 @@ export default class ScanController {
       scanDate: scanDateValue,
       // TODO: add prisoner search service to look this up
       prisonId: 'TODO',
-      // TODO: the create-scan form does not currently collect a justification, but the API requires one
+      // TODO: the record-scan form does not currently collect a justification, but the API requires one
       justification: 'REASONABLE_SUSPICION',
       outcome: scanResult,
       typeOfFind: itemType ?? null,
@@ -125,7 +125,7 @@ export default class ScanController {
     }
     const createScanResponse = await this.xrayBodyScansApiClient.createScan(prisonerNumber, createScanRequest, username)
     res.redirect(
-      `/prisoner/${prisonerNumber}/create-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
+      `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
     )
   }
 

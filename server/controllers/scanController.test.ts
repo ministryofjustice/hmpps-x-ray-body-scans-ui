@@ -160,7 +160,7 @@ describe('postCreateScan', () => {
       username,
     )
     expect(res.redirect).toHaveBeenCalledWith(
-      `/prisoner/${prisonerNumber}/create-scan/success?scanId=42&scanDate=2026-07-27`,
+      `/prisoner/${prisonerNumber}/record-scan/success?scanId=42&scanDate=2026-07-27`,
     )
   })
 })

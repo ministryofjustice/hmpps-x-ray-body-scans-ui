@@ -11,7 +11,7 @@
 
   {{ govukButton({
     text: "Record a new scan",
-    href: "/prisoner/" + prisonerNumber + "/create-scan"
+    href: "/prisoner/" + prisonerNumber + "/record-scan"
   }) }}
 
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
@@ -39,7 +39,7 @@
         </div>
         <div class="govuk-grid-column-one-quarter">
           <div class="govuk-!-padding-3 summary-box-no-items-detected">
-            <p class="govuk-body govuk-!-margin-bottom-1">No items detected</p>
+            <p class="govuk-body govuk-!-margin-bottom-1">No item detected</p>
             <p class="govuk-heading-m">{{ noItemsDetectedCount }}</p>
           </div>
         </div>

@@ -17,7 +17,7 @@ test.describe('Create scan page', () => {
   test('Page shows', async ({ page }) => {
     await login(page, { roles: ['ROLE_DPS_APPLICATION_DEVELOPER'] })
 
-    const response = await page.goto(`/prisoner/${prisonerNumber}/create-scan`)
+    const response = await page.goto(`/prisoner/${prisonerNumber}/record-scan`)
 
     expect(response?.status()).toBe(200)
     await expect(page.getByRole('heading', { name: 'Record an x-ray body scan for', exact: false })).toBeVisible()

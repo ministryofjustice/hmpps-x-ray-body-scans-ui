@@ -9,7 +9,7 @@
 
   <h1 class="govuk-heading-l">Record an x-ray body scan for TODO</h1>
 
-  <form method="POST" action="/prisoner/{{ prisonerNumber }}/create-scan">
+  <form method="POST" action="." novalidate>
     <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
     {{ govukRadios({
