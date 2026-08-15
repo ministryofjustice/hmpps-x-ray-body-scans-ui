@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
+import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 
 import { login, resetStubs } from '../testUtils'
 
@@ -8,6 +9,7 @@ const prisonerNumber = 'A1234BC'
 test.describe('Create scan page', () => {
   test.beforeEach(async () => {
     await microFrontendComponents.stubUnavailable()
+    await prisonerSearchApi.stubGetPrisoner(prisonerNumber)
   })
 
   test.afterEach(async () => {

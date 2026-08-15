@@ -15,7 +15,7 @@ export default class ScanController {
   ) {}
 
   async getScanList(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = req.params as { prisonerNumber: string }
+    const { prisonerNumber } = res.locals.prisoner
     const { username } = res.locals.user
 
     await this.auditService.logPageView(Page.SCAN_LIST, {
@@ -65,7 +65,7 @@ export default class ScanController {
   }
 
   async getCreateScan(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = req.params as { prisonerNumber: string }
+    const { prisonerNumber } = res.locals.prisoner
     const { username } = res.locals.user
 
     await this.auditService.logPageView(Page.CREATE_SCAN, {
@@ -86,7 +86,7 @@ export default class ScanController {
   }
 
   async postCreateScan(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = req.params as { prisonerNumber: string }
+    const { prisonerNumber } = res.locals.prisoner
     const {
       scanDateOption,
       'scanDate-day': day,
@@ -130,7 +130,7 @@ export default class ScanController {
   }
 
   async getCreateScanSuccess(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = req.params as { prisonerNumber: string }
+    const { prisonerNumber } = res.locals.prisoner
     const { username } = res.locals.user
 
     await this.auditService.logPageView(Page.CREATE_SCAN_SUCCESS, {

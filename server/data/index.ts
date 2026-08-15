@@ -1,10 +1,11 @@
 import { AuthenticationClient, InMemoryTokenStore, RedisTokenStore } from '@ministryofjustice/hmpps-auth-clients'
-import { createRedisClient } from './redisClient'
 import config from '../config'
-import HmppsAuditClient from './hmppsAuditClient'
 import logger from '../../logger'
-import { XrayBodyScansApiClient } from './xrayBodyScansApiClient'
 import applicationInfoSupplier from '../applicationInfo'
+import HmppsAuditClient from './hmppsAuditClient'
+import { createRedisClient } from './redisClient'
+import { PrisonerSearchApiClient } from './prisonerSearchApiClient'
+import { XrayBodyScansApiClient } from './xrayBodyScansApiClient'
 
 const applicationInfo = applicationInfoSupplier()
 
@@ -18,8 +19,9 @@ export const dataAccess = () => {
   return {
     applicationInfo,
     hmppsAuthClient,
-    xrayBodyScansApiClient: new XrayBodyScansApiClient(hmppsAuthClient),
     hmppsAuditClient: new HmppsAuditClient(config.sqs.audit),
+    prisonerSearchApiClient: new PrisonerSearchApiClient(hmppsAuthClient),
+    xrayBodyScansApiClient: new XrayBodyScansApiClient(hmppsAuthClient),
   }
 }
 

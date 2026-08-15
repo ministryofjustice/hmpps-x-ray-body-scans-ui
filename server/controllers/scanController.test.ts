@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import { pageResponse } from '../testutils/pagination'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
 import { mockScanResponse, mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
@@ -32,7 +33,7 @@ beforeEach(() => {
   } as unknown as Request
 
   res = {
-    locals: { user: { username } },
+    locals: { user: { username }, prisoner: mockPrisoner(prisonerNumber) },
     render: jest.fn(),
     redirect: jest.fn(),
   } as unknown as Response & { render: jest.Mock; redirect: jest.Mock }

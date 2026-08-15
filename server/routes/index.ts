@@ -3,11 +3,12 @@ import { Router } from 'express'
 import type { Services } from '../services'
 import { Page } from '../services/auditService'
 import authorisationMiddleware from '../middleware/authorisationMiddleware'
+import { getPrisonerMiddleware } from '../middleware/getPrisonerMiddleware'
 import scanRouter from './scanRouter'
 
 export default function routes(services: Services): Router {
   const router = Router()
-  const { auditService, xrayBodyScansApiClient } = services
+  const { auditService, prisonerSearchApiClient, xrayBodyScansApiClient } = services
 
   router.use(authorisationMiddleware(['DPS_APPLICATION_DEVELOPER']))
 
@@ -17,7 +18,11 @@ export default function routes(services: Services): Router {
     return res.render('pages/index')
   })
 
-  router.use('/prisoner/:prisonerNumber', scanRouter(xrayBodyScansApiClient, auditService))
+  router.use(
+    '/prisoner/:prisonerNumber',
+    getPrisonerMiddleware(prisonerSearchApiClient),
+    scanRouter(xrayBodyScansApiClient, auditService),
+  )
 
   return router
 }
