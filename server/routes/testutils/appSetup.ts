@@ -10,14 +10,16 @@ import AuditService from '../../services/auditService'
 import type { HmppsUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
 import HmppsAuditClient from '../../data/hmppsAuditClient'
+import createUserToken from '../../testutils/createUserToken'
 import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApiClient'
 
 jest.mock('../../services/auditService')
 
+/** User with minimal roles to access this service */
 export const user: HmppsUser = {
   name: 'FIRST LAST',
   userId: 'id',
-  token: 'token',
+  token: createUserToken(['ROLE_DPS_APPLICATION_DEVELOPER']),
   username: 'user1',
   displayName: 'First Last',
   authSource: 'nomis',

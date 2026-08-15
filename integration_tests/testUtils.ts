@@ -4,7 +4,7 @@ import hmppsAuth, { type UserToken } from './mockApis/hmppsAuth'
 
 export { resetStubs } from './mockApis/wiremock'
 
-const DEFAULT_ROLES = ['ROLE_SOME_REQUIRED_ROLE']
+const DEFAULT_ROLES = ['ROLE_DPS_APPLICATION_DEVELOPER']
 
 export const attemptHmppsAuthLogin = async (page: Page) => {
   await page.goto('/')

@@ -2,11 +2,14 @@ import { Router } from 'express'
 
 import type { Services } from '../services'
 import { Page } from '../services/auditService'
+import authorisationMiddleware from '../middleware/authorisationMiddleware'
 import scanRouter from './scanRouter'
 
 export default function routes(services: Services): Router {
   const router = Router()
   const { auditService, xrayBodyScansApiClient } = services
+
+  router.use(authorisationMiddleware(['DPS_APPLICATION_DEVELOPER']))
 
   router.get('/', async (req, res, _next) => {
     await auditService.logPageView(Page.HOME, { who: res.locals.user.username, correlationId: req.id })

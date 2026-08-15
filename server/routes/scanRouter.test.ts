@@ -17,7 +17,6 @@ const prisonerNumber = 'A1234BC'
 
 let app: Express
 
-const authorisedUser = { ...user, token: createUserToken(['ROLE_DPS_APPLICATION_DEVELOPER']) }
 const unauthorisedUser = { ...user, token: createUserToken([]) }
 
 beforeEach(() => {
@@ -41,7 +40,6 @@ describe('scan router authorisation', () => {
   it('should allow access when the user has the DPS_APPLICATION_DEVELOPER role', () => {
     app = appWithAllRoutes({
       services: { auditService, xrayBodyScansApiClient },
-      userSupplier: () => authorisedUser,
     })
     xrayBodyScansApiClient.getScanSummary.mockResolvedValue({
       prisonerNumber,

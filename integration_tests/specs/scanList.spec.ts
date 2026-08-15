@@ -17,7 +17,7 @@ test.describe('Scan list page', () => {
   })
 
   test('Page shows', async ({ page }) => {
-    await login(page, { roles: ['ROLE_DPS_APPLICATION_DEVELOPER'] })
+    await login(page)
 
     const response = await page.goto(`/prisoner/${prisonerNumber}/scans`)
 
