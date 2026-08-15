@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 
+import type { PrisonUser } from '../interfaces/hmppsUser'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest } from '../data/interfaces/xrayBodyScansApiClient'
 import type AuditService from '../services/auditService'
@@ -112,11 +113,10 @@ export default class ScanController {
       scanDateValue = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
     }
 
-    const { username } = res.locals.user
+    const { username, activeCaseLoadId } = res.locals.user as PrisonUser
     const createScanRequest: CreateScanRequest = {
       scanDate: scanDateValue,
-      // TODO: add prisoner search service to look this up
-      prisonId: 'TODO',
+      prisonId: activeCaseLoadId!,
       // TODO: the record-scan form does not currently collect a justification, but the API requires one
       justification: 'REASONABLE_SUSPICION',
       outcome: scanResult,

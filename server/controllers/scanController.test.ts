@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express'
+import { user } from '../routes/testutils/appSetup'
 import { pageResponse } from '../testutils/pagination'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
 import { mockScanResponse, mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApiClient'
@@ -34,7 +35,7 @@ beforeEach(() => {
   } as unknown as Request
 
   res = {
-    locals: { user: { username }, prisoner },
+    locals: { user: { ...user, username }, prisoner },
     render: jest.fn(),
     redirect: jest.fn(),
   } as unknown as Response & { render: jest.Mock; redirect: jest.Mock }
@@ -125,26 +126,14 @@ describe('getCreateScan', () => {
 
 describe('postCreateScan', () => {
   it('creates the scan and redirects to the success page', async () => {
-    xrayBodyScansApiClient.createScan.mockResolvedValue({
-      source: 'DPS',
-      id: '42',
-      prisonerNumber,
-      prisonId: 'TODO',
-      scanDate: new Date('2026-07-27T12:00:00'),
-      justification: 'REASONABLE_SUSPICION',
-      justificationDescription: 'Reasonable suspicion',
+    const createdScan = {
+      ...mockScanResponse(prisonerNumber, new Date('2026-07-27T12:00:00')),
       outcome: 'NEGATIVE',
       outcomeDescription: 'No item detected',
       typeOfFind: null,
       typeOfFindDescription: null,
-      caseNoteId: null,
-      mergedFromPrisonerNumber: null,
-      mergedAt: null,
-      createdAt: new Date('2026-07-27T12:00:00'),
-      createdBy: username,
-      lastModifiedAt: new Date('2026-07-27T12:00:00'),
-      lastModifiedBy: username,
-    })
+    }
+    xrayBodyScansApiClient.createScan.mockResolvedValue(createdScan)
 
     req.body = {
       scanDateOption: 'other',
@@ -158,11 +147,15 @@ describe('postCreateScan', () => {
 
     expect(xrayBodyScansApiClient.createScan).toHaveBeenCalledWith(
       prisonerNumber,
-      expect.objectContaining({ scanDate: '2026-07-27', outcome: 'NEGATIVE' }),
+      expect.objectContaining({
+        prisonId: 'MDI',
+        scanDate: '2026-07-27',
+        outcome: 'NEGATIVE',
+      }),
       username,
     )
     expect(res.redirect).toHaveBeenCalledWith(
-      `/prisoner/${prisonerNumber}/record-scan/success?scanId=42&scanDate=2026-07-27`,
+      `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createdScan.id}&scanDate=2026-07-27`,
     )
   })
 })
