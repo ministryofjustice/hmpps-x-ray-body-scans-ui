@@ -1,3 +1,4 @@
+import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
 import type { HmppsUser } from '../../interfaces/hmppsUser'
 import type { Prisoner } from '../../data/interfaces/prisonerSearchApiClient'
 
@@ -27,6 +28,13 @@ export declare global {
       prisoner: Prisoner
       cspNonce: string
       csrfToken: string
+      feComponents: {
+        header: string
+        footer: string
+        cssIncludes: string[]
+        jsIncludes: string[]
+        sharedData: SharedData
+      }
       asset_path: string
       applicationName: string
       environmentName: string

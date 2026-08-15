@@ -8,8 +8,7 @@ const prisonerNumber = 'A1234BC'
 
 test.describe('Create scan page', () => {
   test.beforeEach(async () => {
-    await microFrontendComponents.stubUnavailable()
-    await prisonerSearchApi.stubGetPrisoner(prisonerNumber)
+    await Promise.all([microFrontendComponents.stubComponents(), prisonerSearchApi.stubGetPrisoner(prisonerNumber)])
   })
 
   test.afterEach(async () => {

@@ -8,10 +8,12 @@ const prisonerNumber = 'A1234BC'
 
 test.describe('Scan list page', () => {
   test.beforeEach(async () => {
-    await microFrontendComponents.stubUnavailable()
-    await prisonerSearchApi.stubGetPrisoner(prisonerNumber)
-    await xrayBodyScansApi.stubGetScanSummary(prisonerNumber)
-    await xrayBodyScansApi.stubListScans(prisonerNumber)
+    await Promise.all([
+      microFrontendComponents.stubComponents(),
+      prisonerSearchApi.stubGetPrisoner(prisonerNumber),
+      xrayBodyScansApi.stubGetScanSummary(prisonerNumber),
+      xrayBodyScansApi.stubListScans(prisonerNumber),
+    ])
   })
 
   test.afterEach(async () => {
