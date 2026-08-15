@@ -7,7 +7,7 @@ import nunjucksSetup from '../../utils/nunjucksSetup'
 import errorHandler from '../../errorHandler'
 import type { Services } from '../../services'
 import AuditService from '../../services/auditService'
-import type { HmppsUser } from '../../interfaces/hmppsUser'
+import type { PrisonUser, HmppsUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
 import HmppsAuditClient from '../../data/hmppsAuditClient'
 import createUserToken from '../../testutils/createUserToken'
@@ -15,15 +15,16 @@ import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApiClient'
 
 jest.mock('../../services/auditService')
 
-/** User with minimal roles to access this service */
-export const user: HmppsUser = {
+/** Prison user with minimal roles to access this service */
+export const user: PrisonUser = {
   name: 'FIRST LAST',
   userId: 'id',
-  token: createUserToken(['ROLE_DPS_APPLICATION_DEVELOPER']),
+  token: createUserToken(['ROLE_DPS_APPLICATION_DEVELOPER']), // TODO: replace with ROLE_PRISON
   username: 'user1',
   displayName: 'First Last',
   authSource: 'nomis',
   staffId: 1234,
+  activeCaseLoadId: 'MDI',
   userRoles: [],
 }
 
