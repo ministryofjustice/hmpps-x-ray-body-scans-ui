@@ -4,6 +4,11 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% set pageTitle = applicationName + " - Record Scan" %}
+{% set breadcrumbs = [
+  { text: 'Digital Prison Services', href: dpsHomeUrl },
+  { text: prisoner.lastName + ', ' + prisoner.firstName, href: prisoner | prisonerProfileUrl },
+  { text: 'X-ray body scans', href: '/prisoner/' + prisoner.prisonerNumber + '/scans' }
+] %}
 
 {% block content %}
 

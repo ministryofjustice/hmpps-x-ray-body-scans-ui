@@ -3,7 +3,11 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set pageTitle = applicationName + " - X-ray body scans" %}
+{% set pageTitle = applicationName + " – X-ray body scans" %}
+{% set breadcrumbs = [
+  { text: 'Digital Prison Services', href: dpsHomeUrl },
+  { text: prisoner.lastName + ', ' + prisoner.firstName, href: prisoner | prisonerProfileUrl }
+] %}
 
 {% block content %}
 

@@ -88,7 +88,7 @@ describe('scan router authorisation', () => {
     return request(app)
       .get(`/prisoner/${prisonerNumber}/scans`)
       .expect(302)
-      .expect('Location', 'http://localhost:3001')
+      .expect('Location', 'http://localhost:3001/dps-home')
       .expect(() => {
         expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
         expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()

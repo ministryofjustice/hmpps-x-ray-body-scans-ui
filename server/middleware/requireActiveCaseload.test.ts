@@ -29,6 +29,6 @@ describe('requireActiveCaseload', () => {
     requireActiveCaseload()(req, res, next)
 
     expect(next).not.toHaveBeenCalled()
-    expect(res.redirect).toHaveBeenCalledWith('http://localhost:3001')
+    expect(res.redirect).toHaveBeenCalledWith('http://localhost:3001/dps-home')
   })
 })
