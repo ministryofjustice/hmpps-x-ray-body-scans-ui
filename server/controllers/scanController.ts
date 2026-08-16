@@ -66,12 +66,11 @@ export default class ScanController {
   }
 
   async getCreateScan(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = res.locals.prisoner
-    const { username } = res.locals.user
+    const { prisoner, user } = res.locals
 
     await this.auditService.logPageView(Page.CREATE_SCAN, {
-      who: username,
-      subjectId: prisonerNumber,
+      who: user.username,
+      subjectId: prisoner.prisonerNumber,
       subjectType: 'PRISONER_ID',
       correlationId: req.id,
     })
@@ -80,7 +79,7 @@ export default class ScanController {
     const yesterday = new Date(today.getTime() - dayMillis)
 
     res.render('pages/createScan', {
-      prisonerNumber,
+      prisoner,
       today: formatDisplayDate(today),
       yesterday: formatDisplayDate(yesterday),
     })
@@ -93,15 +92,17 @@ export default class ScanController {
       'scanDate-day': day,
       'scanDate-month': month,
       'scanDate-year': year,
-      scanResult,
-      itemType,
+      justification,
+      outcome,
+      typeOfFind,
     } = req.body as {
-      scanDateOption: string
+      scanDateOption: 'today' | 'yesterday' | 'other'
       'scanDate-day': string
       'scanDate-month': string
       'scanDate-year': string
-      scanResult: string
-      itemType?: string
+      justification: string
+      outcome: string
+      typeOfFind?: string
     }
 
     let scanDateValue: string
@@ -117,10 +118,9 @@ export default class ScanController {
     const createScanRequest: CreateScanRequest = {
       scanDate: scanDateValue,
       prisonId: activeCaseLoadId!,
-      // TODO: the record-scan form does not currently collect a justification, but the API requires one
-      justification: 'REASONABLE_SUSPICION',
-      outcome: scanResult,
-      typeOfFind: itemType ?? null,
+      justification,
+      outcome,
+      typeOfFind: typeOfFind ?? null,
       createdBy: username,
     }
     const createScanResponse = await this.xrayBodyScansApiClient.createScan(prisonerNumber, createScanRequest, username)

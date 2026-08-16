@@ -21,6 +21,8 @@ test.describe('Create scan page', () => {
     const response = await page.goto(`/prisoner/${prisonerNumber}/record-scan`)
 
     expect(response?.status()).toBe(200)
-    await expect(page.getByRole('heading', { name: 'Record an x-ray body scan for', exact: false })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Record an X-ray body scan for John Smith', exact: false }),
+    ).toBeVisible()
   })
 })

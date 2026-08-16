@@ -3,7 +3,7 @@
 {% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set pageTitle = applicationName + " - Record Scan" %}
+{% set pageTitle = applicationName + " – Record an X-ray body scan" %}
 {% set breadcrumbs = [
   { text: 'Digital Prison Services', href: dpsHomeUrl },
   { text: prisoner.reversedDisplayName, href: prisoner | prisonerProfileUrl },
@@ -40,7 +40,6 @@
         {
           value: "other",
           text: "Another date",
-          checked: true,
           conditional: {
             html: govukDateInput({
               id: "scanDate",
@@ -60,8 +59,38 @@
     }) }}
 
     {{ govukRadios({
-      idPrefix: "scanResult",
-      name: "scanResult",
+      idPrefix: "justification",
+      name: "justification",
+      fieldset: {
+        legend: {
+          text: "Why was the scan carried out?",
+          classes: "govuk-fieldset__legend--m"
+        }
+      },
+      hint: {
+        text: "Select the option that best describes why the scan was carried out."
+      },
+      items: [
+        {
+          value: "INTELLIGENCE",
+          text: "Intelligence-led",
+          hint: {
+            text: "Based on specific information or intelligence indicating the prisoner may be concealing an item."
+          }
+        },
+        {
+          value: "REASONABLE_SUSPICION",
+          text: "Reasonable suspicion",
+          hint: {
+            text: "Based on staff judgement that the prisoner may be concealing an item. For example, behaviour during or after a visit, search or escort."
+          }
+        }
+      ]
+    }) }}
+
+    {{ govukRadios({
+      idPrefix: "outcome",
+      name: "outcome",
       fieldset: {
         legend: {
           text: "What was the result of the scan?",
@@ -85,8 +114,8 @@
           text: "Item detected",
           conditional: {
             html: govukRadios({
-              idPrefix: "itemType",
-              name: "itemType",
+              idPrefix: "typeOfFind",
+              name: "typeOfFind",
               fieldset: {
                 legend: {
                   text: "What type of item was detected?",
@@ -125,10 +154,11 @@
 
     <div class="govuk-button-group">
       {{ govukButton({
-        text: "Save"
+        text: "Save",
+        preventDoubleClick: true
       }) }}
 
-      <a class="govuk-link" href="/prisoner/{{ prisonerNumber }}/scans">Cancel</a>
+      <a href="/prisoner/{{ prisoner.prisonerNumber }}/scans">Cancel</a>
     </div>
 
   </form>
