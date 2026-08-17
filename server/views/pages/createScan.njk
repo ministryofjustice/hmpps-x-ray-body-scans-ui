@@ -4,12 +4,19 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% set pageTitle = applicationName + " - Record Scan" %}
+{% set breadcrumbs = [
+  { text: 'Digital Prison Services', href: dpsHomeUrl },
+  { text: prisoner.reversedDisplayName, href: prisoner | prisonerProfileUrl },
+  { text: 'X-ray body scans', href: '/prisoner/' + prisoner.prisonerNumber + '/scans' }
+] %}
 
 {% block content %}
 
-  <h1 class="govuk-heading-l">Record an x-ray body scan for TODO</h1>
+  <h1 class="govuk-heading-l">
+    Record an X-ray body scan for {{ prisoner.displayName }}
+  </h1>
 
-  <form method="POST" action="/prisoner/{{ prisonerNumber }}/create-scan">
+  <form method="POST" action="." novalidate>
     <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
     {{ govukRadios({

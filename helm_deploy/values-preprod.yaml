@@ -12,11 +12,18 @@ generic-service:
     ENVIRONMENT_NAME: PRE-PRODUCTION # Phase banner tag label
     SENTRY_ENVIRONMENT: preprod
     AUDIT_ENABLED: "false"
+
+    # services
     INGRESS_URL: "https://x-ray-body-scans-preprod.hmpps.service.justice.gov.uk"
+    DPS_HOME_PAGE_URL: "https://dps-preprod.prison.service.justice.gov.uk"
+    PRISONER_PROFILE_URL: "https://prisoner-preprod.digital.prison.service.justice.gov.uk"
+
+    # apis
     HMPPS_AUTH_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
     TOKEN_VERIFICATION_API_URL: "https://token-verification-api-preprod.prison.service.justice.gov.uk"
     COMPONENT_API_URL: "https://frontend-components-preprod.hmpps.service.justice.gov.uk"
-    DPS_HOME_PAGE_URL: "https://dps-preprod.prison.service.justice.gov.uk"
+    PRISON_API_URL: "https://prison-api-preprod.prison.service.justice.gov.uk"
+    PRISONER_SEARCH_API_URL: "https://prisoner-search-preprod.prison.service.justice.gov.uk"
     XRAY_BODY_SCANS_API_URL: "https://x-ray-body-scans-api-preprod.hmpps.service.justice.gov.uk"
 
   allowlist:

@@ -1,11 +1,12 @@
 /* eslint-disable no-param-reassign */
-import path from 'path'
-import nunjucks from 'nunjucks'
+import fs from 'node:fs'
+import path from 'node:path'
 import express from 'express'
-import fs from 'fs'
-import { initialiseName } from './utils'
+import nunjucks from 'nunjucks'
 import config from '../config'
 import logger from '../../logger'
+import { initialiseName } from './utils'
+import type { Prisoner } from '../data/interfaces/prisonerSearchApiClient'
 
 export default function nunjucksSetup(app: express.Express): void {
   app.set('view engine', 'njk')
@@ -39,6 +40,13 @@ export default function nunjucksSetup(app: express.Express): void {
     },
   )
 
+  njkEnv.addGlobal('dpsHomeUrl', config.serviceUrls.digitalPrison)
+  njkEnv.addGlobal('prisonerProfileUrl', config.serviceUrls.prisonerProfile)
+
   njkEnv.addFilter('initialiseName', initialiseName)
   njkEnv.addFilter('assetMap', (url: string) => assetManifest[url] || url)
+  njkEnv.addFilter(
+    'prisonerProfileUrl',
+    (prisoner: Prisoner) => `${config.serviceUrls.prisonerProfile}/prisoner/${prisoner.prisonerNumber}`,
+  )
 }

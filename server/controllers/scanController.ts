@@ -15,7 +15,7 @@ export default class ScanController {
   ) {}
 
   async getScanList(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = req.params as { prisonerNumber: string }
+    const { prisonerNumber } = res.locals.prisoner
     const { username } = res.locals.user
 
     await this.auditService.logPageView(Page.SCAN_LIST, {
@@ -32,7 +32,7 @@ export default class ScanController {
     )
     const scans = await this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username)
 
-    const rawScanRows = scans.map(scan =>
+    const rawScanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'
         ? {
             source: scan.source,
@@ -65,7 +65,7 @@ export default class ScanController {
   }
 
   async getCreateScan(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = req.params as { prisonerNumber: string }
+    const { prisonerNumber } = res.locals.prisoner
     const { username } = res.locals.user
 
     await this.auditService.logPageView(Page.CREATE_SCAN, {
@@ -86,7 +86,7 @@ export default class ScanController {
   }
 
   async postCreateScan(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = req.params as { prisonerNumber: string }
+    const { prisonerNumber } = res.locals.prisoner
     const {
       scanDateOption,
       'scanDate-day': day,
@@ -117,7 +117,7 @@ export default class ScanController {
       scanDate: scanDateValue,
       // TODO: add prisoner search service to look this up
       prisonId: 'TODO',
-      // TODO: the create-scan form does not currently collect a justification, but the API requires one
+      // TODO: the record-scan form does not currently collect a justification, but the API requires one
       justification: 'REASONABLE_SUSPICION',
       outcome: scanResult,
       typeOfFind: itemType ?? null,
@@ -125,12 +125,12 @@ export default class ScanController {
     }
     const createScanResponse = await this.xrayBodyScansApiClient.createScan(prisonerNumber, createScanRequest, username)
     res.redirect(
-      `/prisoner/${prisonerNumber}/create-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
+      `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
     )
   }
 
   async getCreateScanSuccess(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = req.params as { prisonerNumber: string }
+    const { prisonerNumber } = res.locals.prisoner
     const { username } = res.locals.user
 
     await this.auditService.logPageView(Page.CREATE_SCAN_SUCCESS, {

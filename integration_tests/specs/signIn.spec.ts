@@ -1,13 +1,17 @@
 import { expect, test } from '@playwright/test'
 import hmppsAuth from '../mockApis/hmppsAuth'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
+import prisonApi from '../mockApis/prisonApi'
 
 import { login, resetStubs } from '../testUtils'
 import HomePage from '../pages/homePage'
 
 test.describe('SignIn', () => {
   test.beforeEach(async () => {
-    await microFrontendComponents.stubUnavailable() // in order to force fallback header to show
+    await Promise.all([
+      microFrontendComponents.stubUnavailable(), // in order to force fallback header to show
+      prisonApi.stubMyCaseloads([]), // dps-components lib tries prison-api if MFE did not load shared metadata
+    ])
   })
 
   test.afterEach(async () => {

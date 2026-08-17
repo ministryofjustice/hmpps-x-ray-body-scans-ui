@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test'
-import microFrontendComponents from '../mockApis/microFrontendComponents'
-
 import { login, resetStubs } from '../testUtils'
+import microFrontendComponents from '../mockApis/microFrontendComponents'
+import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 
 const prisonerNumber = 'A1234BC'
 
 test.describe('Create scan success page', () => {
   test.beforeEach(async () => {
-    await microFrontendComponents.stubUnavailable()
+    await Promise.all([microFrontendComponents.stubComponents(), prisonerSearchApi.stubGetPrisoner(prisonerNumber)])
   })
 
   test.afterEach(async () => {
@@ -15,9 +15,9 @@ test.describe('Create scan success page', () => {
   })
 
   test('Page shows', async ({ page }) => {
-    await login(page, { roles: ['ROLE_DPS_APPLICATION_DEVELOPER'] })
+    await login(page)
 
-    const response = await page.goto(`/prisoner/${prisonerNumber}/create-scan/success`)
+    const response = await page.goto(`/prisoner/${prisonerNumber}/record-scan/success`)
 
     expect(response?.status()).toBe(200)
     await expect(page.getByRole('heading', { name: 'Scan recorded for', exact: false })).toBeVisible()

@@ -1,5 +1,10 @@
 {% extends "partials/layout.njk" %}
 
+{% set pageTitle = applicationName + " – Authorisation Error" %}
+{% set breadcrumbs = [
+  { text: 'Digital Prison Services', href: dpsHomeUrl }
+] %}
+
 {% block content %}
   <h1 class="govuk-heading-l">
     Authorisation Error

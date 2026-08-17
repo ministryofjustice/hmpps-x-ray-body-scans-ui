@@ -3,7 +3,7 @@ import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients
 import config from '../config'
 import logger from '../../logger'
 import { formatIsoDate } from '../utils/dates'
-import type { PageResponse } from './PageRequest'
+import type { PageResponse } from './interfaces/pagination'
 import type {
   CreateScanRequest,
   LegacyScanResponse,
@@ -96,7 +96,7 @@ export class XrayBodyScansApiClient extends RestClient {
     prisonerNumber: string,
     request: ListScansRequest,
     username: string,
-  ): Promise<(ScanResponse | LegacyScanResponse)[]> {
+  ): Promise<PageResponse<ScanResponse | LegacyScanResponse>> {
     const query: object = {
       ...request,
       fromScanDate: formatIsoDate(request?.fromScanDate),
@@ -108,7 +108,10 @@ export class XrayBodyScansApiClient extends RestClient {
         query,
       },
       asSystem(username),
-    ).then(response => response.content.map(convertRawScanResponse))
+    ).then(rawResponses => ({
+      ...rawResponses,
+      content: rawResponses.content.map(convertRawScanResponse),
+    }))
   }
 
   createScan(prisonerNumber: string, scanData: CreateScanRequest, username: string): Promise<ScanResponse> {

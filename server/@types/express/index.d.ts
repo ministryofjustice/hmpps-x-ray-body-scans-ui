@@ -1,4 +1,6 @@
-import { HmppsUser } from '../../interfaces/hmppsUser'
+import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
+import type { HmppsUser } from '../../interfaces/hmppsUser'
+import type { Prisoner } from '../../data/interfaces/prisonerSearchApiClient'
 
 export declare module 'express-session' {
   // Declare that the session will potentially contain these additional fields
@@ -23,8 +25,19 @@ export declare global {
 
     interface Locals {
       user: HmppsUser
+      prisoner: Prisoner & {
+        displayName: string
+        reversedDisplayName: string
+      }
       cspNonce: string
       csrfToken: string
+      feComponents: {
+        header: string
+        footer: string
+        cssIncludes: string[]
+        jsIncludes: string[]
+        sharedData: SharedData
+      }
       asset_path: string
       applicationName: string
       environmentName: string

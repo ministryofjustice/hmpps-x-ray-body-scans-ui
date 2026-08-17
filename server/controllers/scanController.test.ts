@@ -1,8 +1,11 @@
 import type { Request, Response } from 'express'
-import ScanController from './scanController'
+import { pageResponse } from '../testutils/pagination'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
+import { mockScanResponse, mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
 import HmppsAuditClient from '../data/hmppsAuditClient'
+import ScanController from './scanController'
 
 jest.mock('../services/auditService')
 jest.mock('../data/xrayBodyScansApiClient')
@@ -11,6 +14,7 @@ const auditService = new AuditService({} as HmppsAuditClient) as jest.Mocked<Aud
 const xrayBodyScansApiClient = new XrayBodyScansApiClient(undefined as never) as jest.Mocked<XrayBodyScansApiClient>
 
 const prisonerNumber = 'A1234BC'
+const prisoner = mockPrisoner(prisonerNumber)
 const username = 'user1'
 const correlationId = 'correlation-id'
 
@@ -30,7 +34,7 @@ beforeEach(() => {
   } as unknown as Request
 
   res = {
-    locals: { user: { username } },
+    locals: { user: { username }, prisoner },
     render: jest.fn(),
     redirect: jest.fn(),
   } as unknown as Response & { render: jest.Mock; redirect: jest.Mock }
@@ -42,44 +46,31 @@ afterEach(() => {
 
 describe('getScanList', () => {
   it('logs a page view and renders the scan list with scan summary and scan rows', async () => {
-    xrayBodyScansApiClient.getScanSummary.mockResolvedValue({
-      prisonerNumber,
-      nomisCount: 0,
-      dpsCount: 6,
-      totalCount: 6,
-      positiveCount: 1,
-      negativeCount: 2,
-      inconclusiveCount: 3,
-      annualLimit: 116,
-      remainingScans: 110,
-      nearingScanLimit: false,
-      atScanLimit: false,
-      relevantAlerts: [],
-      fromScanDate: new Date('2025-07-27T12:00:00'),
-      toScanDate: new Date('2026-07-27T12:00:00'),
-    })
-    xrayBodyScansApiClient.listScans.mockResolvedValue([
-      {
-        source: 'DPS',
-        id: '1',
+    const now = new Date('2026-07-27T12:00:00')
+    xrayBodyScansApiClient.getScanSummary.mockResolvedValue(
+      mockScanSummaryResponse({
         prisonerNumber,
-        prisonId: 'LEI',
-        scanDate: new Date('2026-07-27T12:00:00'),
-        justification: 'REASONABLE_SUSPICION',
-        justificationDescription: 'Reasonable suspicion',
-        outcome: 'POSITIVE',
-        outcomeDescription: 'Item detected',
-        typeOfFind: 'ORGANIC',
-        typeOfFindDescription: 'Organic',
-        caseNoteId: null,
-        mergedFromPrisonerNumber: null,
-        mergedAt: null,
-        createdAt: new Date('2026-07-27T12:00:00'),
-        createdBy: username,
-        lastModifiedAt: new Date('2026-07-27T12:00:00'),
-        lastModifiedBy: username,
-      },
-    ])
+        now,
+        nomisCount: 0,
+        dpsCount: 6,
+        positiveCount: 1,
+        negativeCount: 2,
+      }),
+    )
+    xrayBodyScansApiClient.listScans.mockResolvedValue(
+      pageResponse([
+        {
+          ...mockScanResponse(prisonerNumber, now),
+          prisonId: 'LEI',
+          justification: 'REASONABLE_SUSPICION',
+          justificationDescription: 'Reasonable suspicion',
+          outcome: 'POSITIVE',
+          outcomeDescription: 'Item detected',
+          typeOfFind: 'ORGANIC',
+          typeOfFindDescription: 'Organic',
+        },
+      ]),
+    )
 
     await scanController.getScanList(req, res)
 
@@ -171,7 +162,7 @@ describe('postCreateScan', () => {
       username,
     )
     expect(res.redirect).toHaveBeenCalledWith(
-      `/prisoner/${prisonerNumber}/create-scan/success?scanId=42&scanDate=2026-07-27`,
+      `/prisoner/${prisonerNumber}/record-scan/success?scanId=42&scanDate=2026-07-27`,
     )
   })
 })

@@ -1,5 +1,7 @@
 {% extends "govuk/template.njk" %}
 
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
 {% block head %}
   <link href="{{ '/assets/css/index.css' | assetMap }}" rel="stylesheet"/>
 
@@ -17,7 +19,14 @@
   {{ feComponents.header | safe }}
 {% endblock %}
 
-{% block bodyStart %}
+{% block containerStart %}
+  {% if breadcrumbs %}
+    {{ govukBreadcrumbs({
+      items: breadcrumbs,
+      collapseOnMobile: true,
+      classes: "govuk-!-display-none-print"
+    }) }}
+  {% endif %}
 {% endblock %}
 
 {% block footer %}

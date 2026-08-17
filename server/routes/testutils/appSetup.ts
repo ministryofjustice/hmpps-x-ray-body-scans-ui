@@ -7,20 +7,24 @@ import nunjucksSetup from '../../utils/nunjucksSetup'
 import errorHandler from '../../errorHandler'
 import type { Services } from '../../services'
 import AuditService from '../../services/auditService'
-import { HmppsUser } from '../../interfaces/hmppsUser'
+import type { PrisonUser, HmppsUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
 import HmppsAuditClient from '../../data/hmppsAuditClient'
+import createUserToken from '../../testutils/createUserToken'
+import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApiClient'
 
 jest.mock('../../services/auditService')
 
-export const user: HmppsUser = {
+/** Prison user with minimal roles to access this service */
+export const user: PrisonUser = {
   name: 'FIRST LAST',
   userId: 'id',
-  token: 'token',
+  token: createUserToken(['ROLE_DPS_APPLICATION_DEVELOPER']), // TODO: replace with ROLE_PRISON
   username: 'user1',
   displayName: 'First Last',
   authSource: 'nomis',
   staffId: 1234,
+  activeCaseLoadId: 'MDI',
   userRoles: [],
 }
 
@@ -34,12 +38,31 @@ function appSetup(services: Services, production: boolean, userSupplier: () => H
   nunjucksSetup(app)
   app.use(setUpWebSession())
   app.use((req, res, next) => {
-    req.user = userSupplier() as Express.User
+    const generatedUser = userSupplier()
+    req.user = generatedUser
     req.flash = flashProvider
     res.locals = {
-      user: { ...req.user } as HmppsUser,
+      user: generatedUser,
+      prisoner: {
+        ...mockPrisoner('A1234AA'),
+        displayName: 'John Smith',
+        reversedDisplayName: 'Smith, John',
+      },
       cspNonce: '',
       csrfToken: '',
+      feComponents: {
+        header: 'DPS header',
+        footer: 'DPS footer',
+        cssIncludes: [],
+        jsIncludes: [],
+        sharedData: {
+          caseLoads: [],
+          activeCaseLoad: {},
+          services: [],
+          allocationJobResponsibilities: [],
+          cspDirectives: {},
+        },
+      },
       asset_path: '',
       applicationName: '',
       environmentName: '',

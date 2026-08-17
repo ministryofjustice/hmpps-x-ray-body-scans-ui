@@ -9,11 +9,18 @@ generic-service:
     ENVIRONMENT: prod # k8s namespace suffix & github environment
     SENTRY_ENVIRONMENT: prod
     AUDIT_ENABLED: "false"
+
+    # services
     INGRESS_URL: "https://x-ray-body-scans.hmpps.service.justice.gov.uk"
+    DPS_HOME_PAGE_URL: "https://dps.prison.service.justice.gov.uk"
+    PRISONER_PROFILE_URL: "https://prisoner.digital.prison.service.justice.gov.uk"
+
+    # apis
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     TOKEN_VERIFICATION_API_URL: "https://token-verification-api.prison.service.justice.gov.uk"
     COMPONENT_API_URL: "https://frontend-components.hmpps.service.justice.gov.uk"
-    DPS_HOME_PAGE_URL: "https://dps.prison.service.justice.gov.uk"
+    PRISON_API_URL: "https://prison-api.prison.service.justice.gov.uk"
+    PRISONER_SEARCH_API_URL: "https://prisoner-search.prison.service.justice.gov.uk"
     XRAY_BODY_SCANS_API_URL: "https://x-ray-body-scans-api.hmpps.service.justice.gov.uk"
 
   allowlist:

@@ -1,6 +1,6 @@
 import express from 'express'
 import { NotFound } from 'http-errors'
-import { getFrontendComponents } from '@ministryofjustice/hmpps-connect-dps-components'
+import { getFrontendComponents, retrieveCaseLoadData } from '@ministryofjustice/hmpps-connect-dps-components'
 
 import logger from '../logger'
 import config from './config'
@@ -49,6 +49,7 @@ export default function createApp(services: Services): express.Application {
       requestOptions: { includeSharedData: true, environmentName: config.environmentName },
     }),
   )
+  app.use(retrieveCaseLoadData({ logger, prisonApiConfig: config.apis.prisonApi }))
 
   app.use(addUserMetadataToLogs())
 
