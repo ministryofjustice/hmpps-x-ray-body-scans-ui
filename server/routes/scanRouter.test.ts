@@ -78,4 +78,21 @@ describe('scan router authorisation', () => {
         expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
       })
   })
+
+  it('should redirect to DPS home page when user has no active caseload', () => {
+    app = appWithAllRoutes({
+      services: { auditService, prisonerSearchApiClient, xrayBodyScansApiClient },
+      userSupplier: () => ({ ...user, activeCaseLoadId: undefined }),
+    })
+
+    return request(app)
+      .get(`/prisoner/${prisonerNumber}/scans`)
+      .expect(302)
+      .expect('Location', 'http://localhost:3001')
+      .expect(() => {
+        expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
+        expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
+        expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
+      })
+  })
 })

@@ -4,6 +4,7 @@ import type { Services } from '../services'
 import { Page } from '../services/auditService'
 import authorisationMiddleware from '../middleware/authorisationMiddleware'
 import { getPrisonerMiddleware } from '../middleware/getPrisonerMiddleware'
+import { requireActiveCaseload } from '../middleware/requireActiveCaseload'
 import scanRouter from './scanRouter'
 
 export default function routes(services: Services): Router {
@@ -20,6 +21,7 @@ export default function routes(services: Services): Router {
 
   router.use(
     '/prisoner/:prisonerNumber',
+    requireActiveCaseload(),
     getPrisonerMiddleware(prisonerSearchApiClient),
     scanRouter(xrayBodyScansApiClient, auditService),
   )
