@@ -3,8 +3,8 @@ import type { Prisoner } from '../../data/interfaces/prisonerSearchApiClient'
 // eslint-disable-next-line import/prefer-default-export
 export function mockPrisoner(prisonerNumber: string, overrides?: Partial<Prisoner>): Prisoner {
   return {
-    firstName: 'John',
-    lastName: 'Smith',
+    firstName: 'JOHN',
+    lastName: 'SMITH',
 
     inOutStatus: 'IN',
     status: 'ACTIVE IN',

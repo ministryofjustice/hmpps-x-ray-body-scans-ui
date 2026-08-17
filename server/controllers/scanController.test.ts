@@ -14,6 +14,7 @@ const auditService = new AuditService({} as HmppsAuditClient) as jest.Mocked<Aud
 const xrayBodyScansApiClient = new XrayBodyScansApiClient(undefined as never) as jest.Mocked<XrayBodyScansApiClient>
 
 const prisonerNumber = 'A1234BC'
+const prisoner = mockPrisoner(prisonerNumber)
 const username = 'user1'
 const correlationId = 'correlation-id'
 
@@ -33,7 +34,7 @@ beforeEach(() => {
   } as unknown as Request
 
   res = {
-    locals: { user: { username }, prisoner: mockPrisoner(prisonerNumber) },
+    locals: { user: { username }, prisoner },
     render: jest.fn(),
     redirect: jest.fn(),
   } as unknown as Response & { render: jest.Mock; redirect: jest.Mock }

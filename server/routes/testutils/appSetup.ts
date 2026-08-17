@@ -43,7 +43,11 @@ function appSetup(services: Services, production: boolean, userSupplier: () => H
     req.flash = flashProvider
     res.locals = {
       user: generatedUser,
-      prisoner: mockPrisoner('A1234AA'),
+      prisoner: {
+        ...mockPrisoner('A1234AA'),
+        displayName: 'John Smith',
+        reversedDisplayName: 'Smith, John',
+      },
       cspNonce: '',
       csrfToken: '',
       feComponents: {

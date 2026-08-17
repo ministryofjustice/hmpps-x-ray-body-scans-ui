@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express'
 import { NotFound } from 'http-errors'
+import { convertToTitleCase } from '../utils/utils'
 import type { PrisonerSearchApiClient } from '../data/prisonerSearchApiClient'
 
 // eslint-disable-next-line import/prefer-default-export
@@ -11,7 +12,12 @@ export function getPrisonerMiddleware(prisonerSearchApiClient: PrisonerSearchApi
     if (!prisoner) {
       next(new NotFound())
     } else {
-      res.locals.prisoner = prisoner
+      const name = [prisoner.firstName, prisoner.lastName].filter(Boolean).map(convertToTitleCase)
+      res.locals.prisoner = {
+        ...prisoner,
+        displayName: name.join(' '),
+        reversedDisplayName: name.toReversed().join(', '),
+      }
       next()
     }
   }

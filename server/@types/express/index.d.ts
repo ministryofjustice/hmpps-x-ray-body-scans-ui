@@ -25,7 +25,10 @@ export declare global {
 
     interface Locals {
       user: HmppsUser
-      prisoner: Prisoner
+      prisoner: Prisoner & {
+        displayName: string
+        reversedDisplayName: string
+      }
       cspNonce: string
       csrfToken: string
       feComponents: {

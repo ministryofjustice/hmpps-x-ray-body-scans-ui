@@ -6,7 +6,7 @@
 {% set pageTitle = applicationName + " – X-ray body scans" %}
 {% set breadcrumbs = [
   { text: 'Digital Prison Services', href: dpsHomeUrl },
-  { text: prisoner.lastName + ', ' + prisoner.firstName, href: prisoner | prisonerProfileUrl }
+  { text: prisoner.reversedDisplayName, href: prisoner | prisonerProfileUrl }
 ] %}
 
 {% block content %}
@@ -104,6 +104,6 @@
 
   <p class="govuk-body">TODO show page / scan numbers</p>
 
-  <p><a class="govuk-link" href="#">TODO profile link</a></p>
+  <p><a href="{{ prisoner | prisonerProfileUrl }}">Return to the prisoner’s profile</a></p>
 
 {% endblock %}
