@@ -4,6 +4,11 @@
 {% set breadcrumbs = [
   { text: 'Digital Prison Services', href: dpsHomeUrl }
 ] %}
+{% if prisoner %}
+  {% set _ = breadcrumbs.push(
+    { text: prisoner.reversedDisplayName, href: prisoner | prisonerProfileUrl }
+  ) %}
+{% endif %}
 
 {% block content %}
 

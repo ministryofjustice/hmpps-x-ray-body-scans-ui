@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
-
 import { login, resetStubs } from '../testUtils'
+import CreateScanPage from '../pages/createScanPage'
 
 const prisonerNumber = 'A1234BC'
 
@@ -19,10 +19,13 @@ test.describe('Create scan page', () => {
     await login(page)
 
     const response = await page.goto(`/prisoner/${prisonerNumber}/record-scan`)
-
     expect(response?.status()).toBe(200)
-    await expect(
-      page.getByRole('heading', { name: 'Record an X-ray body scan for John Smith', exact: false }),
-    ).toBeVisible()
+
+    const createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
+    expect(await createScanPage.getBreadcrumbs()).toEqual([
+      { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
+      { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
+      { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scans` },
+    ])
   })
 })
