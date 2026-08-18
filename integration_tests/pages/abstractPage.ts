@@ -26,20 +26,17 @@ export default class AbstractPage {
     return expect(this.page.getByRole('heading', { name: text })).toBeVisible()
   }
 
-  async getBreadcrumbs(): Promise<Breadcrumb[]> {
-    const handles = await this.page.locator('.govuk-breadcrumbs a').elementHandles()
-    return Promise.all(
-      handles.map(handle =>
-        handle.evaluate<Breadcrumb, HTMLAnchorElement>(element => ({
-          text: element.textContent!,
-          href: element.getAttribute('href')!,
-        })),
-      ),
+  getBreadcrumbs(): Promise<Breadcrumb[]> {
+    return this.page.locator('.govuk-breadcrumbs a').evaluateAll(anchors =>
+      anchors.map(anchor => ({
+        text: anchor.textContent,
+        href: anchor.getAttribute('href'),
+      })),
     )
   }
 }
 
 interface Breadcrumb {
-  href: string
   text: string
+  href: string | null
 }

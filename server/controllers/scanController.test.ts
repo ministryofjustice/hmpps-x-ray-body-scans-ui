@@ -237,6 +237,6 @@ describe('getCreateScanSuccess', () => {
       subjectType: 'PRISONER_ID',
       correlationId,
     })
-    expect(res.render).toHaveBeenCalledWith('pages/createScanSuccess', { prisonerNumber })
+    expect(res.render).toHaveBeenCalledWith('pages/createScanSuccess', { prisoner })
   })
 })

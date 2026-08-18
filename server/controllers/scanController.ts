@@ -130,16 +130,16 @@ export default class ScanController {
   }
 
   async getCreateScanSuccess(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = res.locals.prisoner
+    const { prisoner } = res.locals
     const { username } = res.locals.user
 
     await this.auditService.logPageView(Page.CREATE_SCAN_SUCCESS, {
       who: username,
-      subjectId: prisonerNumber,
+      subjectId: prisoner.prisonerNumber,
       subjectType: 'PRISONER_ID',
       correlationId: req.id,
     })
 
-    res.render('pages/createScanSuccess', { prisonerNumber })
+    res.render('pages/createScanSuccess', { prisoner })
   }
 }
