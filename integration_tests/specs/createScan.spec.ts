@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { login, resetStubs } from '../testUtils'
 import { formatIsoDate } from '../../server/utils/dates'
+import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApiClient'
 import { mockScanResponse } from '../../server/testutils/mocks/xrayBodyScansApiClient'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
@@ -66,7 +67,7 @@ test.describe('Create scan page', () => {
       }),
     )
 
-    const response = {
+    const response: ScanResponse = {
       ...mockScanResponse(prisonerNumber, now),
       justification: 'INTELLIGENCE',
       justificationDescription: 'INTELLIGENCE',

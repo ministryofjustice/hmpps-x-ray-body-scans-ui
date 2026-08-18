@@ -2,7 +2,7 @@ import type { Request, Response } from 'express'
 
 import type { PrisonUser } from '../interfaces/hmppsUser'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import type { CreateScanRequest } from '../data/interfaces/xrayBodyScansApiClient'
+import type { CreateScanRequest, Justification, Outcome, TypeOfFind } from '../data/interfaces/xrayBodyScansApiClient'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 import { formatDisplayDate, formatIsoDate } from '../utils/dates'
@@ -100,9 +100,9 @@ export default class ScanController {
       'scanDate-day': string
       'scanDate-month': string
       'scanDate-year': string
-      justification: string
-      outcome: string
-      typeOfFind?: string
+      justification: Justification
+      outcome: Outcome
+      typeOfFind?: TypeOfFind
     }
 
     let scanDateValue: string
