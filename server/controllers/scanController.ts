@@ -1,11 +1,13 @@
 import type { Request, Response } from 'express'
 
+import { formatDisplayDate, formatIsoDate } from '../utils/dates'
+import type { ZodErrorTree } from '../forms/formErrors'
+import { createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
 import type { PrisonUser } from '../interfaces/hmppsUser'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import type { CreateScanRequest, Justification, Outcome, TypeOfFind } from '../data/interfaces/xrayBodyScansApiClient'
+import type { CreateScanRequest } from '../data/interfaces/xrayBodyScansApiClient'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
-import { formatDisplayDate, formatIsoDate } from '../utils/dates'
 
 const dayMillis = 24 * 60 * 60 * 1000
 
@@ -75,6 +77,12 @@ export default class ScanController {
       correlationId: req.id,
     })
 
+    this.renderCreateScanForm(res)
+  }
+
+  private renderCreateScanForm<T>(res: Response, errors?: ZodErrorTree<T>): void {
+    const { prisoner } = res.locals
+
     const today = new Date()
     const yesterday = new Date(today.getTime() - dayMillis)
 
@@ -82,45 +90,24 @@ export default class ScanController {
       prisoner,
       today: formatDisplayDate(today),
       yesterday: formatDisplayDate(yesterday),
+      errors,
     })
   }
 
   async postCreateScan(req: Request, res: Response): Promise<void> {
     const { prisonerNumber } = res.locals.prisoner
-    const {
-      scanDateOption,
-      'scanDate-day': day,
-      'scanDate-month': month,
-      'scanDate-year': year,
-      justification,
-      outcome,
-      typeOfFind,
-    } = req.body as {
-      scanDateOption: 'today' | 'yesterday' | 'other'
-      'scanDate-day': string
-      'scanDate-month': string
-      'scanDate-year': string
-      justification: Justification
-      outcome: Outcome
-      typeOfFind?: TypeOfFind
-    }
-
-    let scanDateValue: string
-    if (scanDateOption === 'today') {
-      scanDateValue = formatIsoDate(new Date())
-    } else if (scanDateOption === 'yesterday') {
-      scanDateValue = formatIsoDate(new Date(Date.now() - dayMillis))
-    } else {
-      scanDateValue = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-    }
-
     const { username, activeCaseLoadId } = res.locals.user as PrisonUser
+
+    const result = createScanForm.safeParse(req.body)
+    if (!result.success) {
+      const errors = treeifyCreateScanFormErrors(result.error)
+      this.renderCreateScanForm(res, errors)
+      return
+    }
+
     const createScanRequest: CreateScanRequest = {
-      scanDate: scanDateValue,
+      ...result.data,
       prisonId: activeCaseLoadId!,
-      justification,
-      outcome,
-      typeOfFind: typeOfFind ?? null,
       createdBy: username,
     }
     const createScanResponse = await this.xrayBodyScansApiClient.createScan(prisonerNumber, createScanRequest, username)

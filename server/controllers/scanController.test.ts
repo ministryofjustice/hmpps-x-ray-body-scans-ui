@@ -123,6 +123,7 @@ describe('getCreateScan', () => {
         prisoner,
         today: expect.any(String),
         yesterday: expect.any(String),
+        errors: undefined,
       }),
     )
   })
@@ -224,6 +225,67 @@ describe('postCreateScan', () => {
     expect(res.redirect).toHaveBeenCalledWith(
       `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createdScan.id}&scanDate=2026-07-23`,
     )
+  })
+
+  it.each([
+    {
+      scenario: 'scan date option not selected',
+      body: {
+        scanDateOption: '',
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+      },
+      expectedErrors: {
+        errors: [],
+        properties: { scanDateOption: { errors: ['Select when the scan happened'] } },
+      },
+    },
+    {
+      scenario: 'type of find is not selected',
+      body: {
+        scanDateOption: 'today',
+        justification: 'INTELLIGENCE',
+        outcome: 'POSITIVE',
+        typeOfFind: '',
+      },
+      expectedErrors: {
+        errors: [],
+        properties: { typeOfFind: { errors: ['Select the type of item that was detected'] } },
+      },
+    },
+    {
+      scenario: 'scan date is invalid',
+      body: {
+        scanDateOption: 'other',
+        'scanDate-day': '',
+        'scanDate-month': '7',
+        'scanDate-year': '2026',
+        justification: 'INTELLIGENCE',
+        outcome: 'POSITIVE',
+        typeOfFind: 'NOT_KNOWN',
+      },
+      expectedErrors: {
+        errors: [],
+        properties: { scanDate: { errors: ['Enter a valid date'] } },
+      },
+    },
+    // NB: other scenarios are covered by createScanForm.test.ts
+  ])('shows errors when $scenario', async ({ body, expectedErrors }) => {
+    req.body = body
+
+    await scanController.postCreateScan(req, res)
+
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/createScan',
+      expect.objectContaining({
+        prisoner,
+        today: expect.any(String),
+        yesterday: expect.any(String),
+        errors: expectedErrors,
+      }),
+    )
+    expect(res.redirect).not.toHaveBeenCalled()
+    expect(xrayBodyScansApiClient.createScan).not.toHaveBeenCalled()
   })
 })
 
