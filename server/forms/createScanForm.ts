@@ -40,6 +40,7 @@ export const createScanForm = baseCreateScanForm
           // check whether year, month or day wrapped around
           return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
           // TODO: forbid future
+          // TODO: forbid “very” old dates?
         }
         return false
       }
@@ -66,14 +67,17 @@ export const createScanForm = baseCreateScanForm
       typeOfFind,
     } = form
 
-    let scanDate: string = ''
+    let scanDate: string
     if (scanDateOption === 'today') {
       scanDate = formatIsoDate(new Date())
     } else if (scanDateOption === 'yesterday') {
       scanDate = formatIsoDate(new Date(Date.now() - dayMillis))
-    } else if (year && month && day && year >= 2000) {
+    } else if (year && month && day) {
       const date = new Date(year, month - 1, day, 12)
       scanDate = formatIsoDate(date)
+    } else {
+      // NB: unreachable because of previous refinement but needed to convince typescript
+      scanDate = ''
     }
 
     return {
