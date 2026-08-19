@@ -1,7 +1,7 @@
 import * as z from 'zod'
 import { justifications, outcomes, typesOfFind } from '../data/interfaces/xrayBodyScansApiClient'
 import { fixedClock } from '../testutils/fixedClock'
-import { createScanForm } from './createScanForm'
+import { createScanForm, treeifyCreateScanFormErrors } from './createScanForm'
 
 type FormInput = z.input<typeof createScanForm>
 
@@ -96,10 +96,10 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = z.treeifyError(result.error!)
+      const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
-        properties: { 'scanDate-day': { errors: ['Enter a valid date'] } },
+        properties: { scanDate: { errors: ['Enter a valid date'] } },
       })
     })
 
@@ -115,10 +115,11 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = z.treeifyError(result.error!)
-      expect(errors).toEqual(expect.objectContaining({ errors: [] }))
-      expect(Object.keys(errors.properties!)).toEqual([expect.stringMatching(/scanDate-day|scanDate-month/)])
-      expect(Object.values(errors.properties!)).toEqual([{ errors: ['Enter a valid date'] }])
+      const errors = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: { scanDate: { errors: ['Enter a valid date'] } },
+      })
     })
 
     it.each(['', 'last', '0', '-1', '13'])('invalid scan date with year %j', year => {
@@ -133,10 +134,33 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = z.treeifyError(result.error!)
+      const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
-        properties: { 'scanDate-year': { errors: ['Enter a valid date'] } },
+        properties: { scanDate: { errors: ['Enter a valid date'] } },
+      })
+    })
+
+    it.each([
+      { scenario: 'missing', date: undefined },
+      { scenario: 'blank', date: '' },
+      { scenario: 'invalid', date: 'one' },
+    ])('$scenario scan date', date => {
+      const result = createScanForm.safeParse({
+        scanDateOption: 'other',
+        'scanDate-day': date,
+        'scanDate-month': date,
+        'scanDate-year': date,
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+      } satisfies FormInput)
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const errors = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: { scanDate: { errors: ['Enter a valid date'] } },
       })
     })
 
@@ -154,7 +178,7 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = z.treeifyError(result.error!)
+      const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { justification: { errors: ['Select why the scan was carried out'] } },
@@ -175,7 +199,7 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = z.treeifyError(result.error!)
+      const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { outcome: { errors: ['Select the result of the scan'] } },
@@ -197,7 +221,7 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = z.treeifyError(result.error!)
+      const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { typeOfFind: { errors: ['Select the type of item that was detected'] } },

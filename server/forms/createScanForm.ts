@@ -80,4 +80,20 @@ export const createScanForm = z
     }
   })
 
-export type CreateScanForm = z.infer<typeof createScanForm>
+export function treeifyCreateScanFormErrors<S extends Record<string, unknown>>(error: z.ZodError<S>) {
+  const errors = z.treeifyError(error)
+  const scanDateErrors = new Set<string>()
+  errors.properties = Object.fromEntries(
+    Object.entries(errors.properties ?? {}).filter(([field, fieldErrors]) => {
+      if (field.startsWith('scanDate-') && fieldErrors) {
+        fieldErrors.errors.forEach(fieldError => scanDateErrors.add(fieldError))
+        return false
+      }
+      return true
+    }),
+  )
+  if (scanDateErrors.size > 0) {
+    errors.properties.scanDate = { errors: [...scanDateErrors] }
+  }
+  return errors
+}
