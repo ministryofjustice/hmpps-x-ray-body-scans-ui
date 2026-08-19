@@ -174,6 +174,9 @@ describe('createScanForm', () => {
         justification,
         outcome: 'NEGATIVE',
       }
+      if (justification === undefined) {
+        delete form.justification
+      }
       const result = createScanForm.safeParse(form)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
@@ -194,6 +197,9 @@ describe('createScanForm', () => {
         scanDateOption: 'today',
         justification: 'INTELLIGENCE',
         outcome,
+      }
+      if (outcome === undefined) {
+        delete form.outcome
       }
       const result = createScanForm.safeParse(form)
       expect(result.success).toBe(false)
@@ -217,6 +223,9 @@ describe('createScanForm', () => {
         outcome: 'POSITIVE',
         typeOfFind,
       }
+      if (typeOfFind === undefined) {
+        delete form.typeOfFind
+      }
       const result = createScanForm.safeParse(form)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
@@ -225,6 +234,50 @@ describe('createScanForm', () => {
       expect(errors).toEqual({
         errors: [],
         properties: { typeOfFind: { errors: ['Select the type of item that was detected'] } },
+      })
+    })
+
+    it('form with many errors', () => {
+      const result = createScanForm.safeParse({
+        scanDateOption: 'tomorrow',
+        justification: 'intel',
+        outcome: 'item found',
+        typeOfFind: 'unclear',
+      })
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const errors = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: {
+          scanDateOption: { errors: ['Select when the scan happened'] },
+          justification: { errors: ['Select why the scan was carried out'] },
+          outcome: { errors: ['Select the result of the scan'] },
+          typeOfFind: { errors: ['Select the type of item that was detected'] },
+        },
+      })
+    })
+
+    it('form with dependent errors', () => {
+      const result = createScanForm.safeParse({
+        scanDateOption: 'other',
+        'scanDate-day': '',
+        'scanDate-month': '',
+        'scanDate-year': '',
+        justification: 'INTELLIGENCE',
+        outcome: '',
+      })
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const errors = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: {
+          scanDate: { errors: ['Enter a valid date'] },
+          outcome: { errors: ['Select the result of the scan'] },
+        },
       })
     })
   })

@@ -12,20 +12,49 @@ const messages = {
   selectTypeOfFind: 'Select the type of item that was detected',
 }
 
-export const createScanForm = z
-  .object({
-    scanDateOption: z.enum(['today', 'yesterday', 'other'], messages.selectScanDateOption),
-    'scanDate-day': z.coerce.number(messages.enterDate).optional(),
-    'scanDate-month': z.coerce.number(messages.enterDate).optional(),
-    'scanDate-year': z.coerce.number(messages.enterDate).min(2000, messages.enterDate).optional(),
-    justification: z.enum(justifications, messages.selectJustification),
-    outcome: z.enum(outcomes, messages.selectOutcome),
-    typeOfFind: z
-      .enum(typesOfFind, messages.selectTypeOfFind)
-      .optional()
-      .transform(typeOfFind => typeOfFind ?? null),
+const baseCreateScanForm = z.object({
+  scanDateOption: z.enum(['today', 'yesterday', 'other'], messages.selectScanDateOption),
+  'scanDate-day': z.coerce.number(messages.enterDate).optional(),
+  'scanDate-month': z.coerce.number(messages.enterDate).optional(),
+  'scanDate-year': z.coerce.number(messages.enterDate).optional(),
+  justification: z.enum(justifications, messages.selectJustification),
+  outcome: z.enum(outcomes, messages.selectOutcome),
+  typeOfFind: z.enum(typesOfFind, messages.selectTypeOfFind).optional(),
+})
+
+export const createScanForm = baseCreateScanForm
+  .refine(({ outcome, typeOfFind }) => outcome !== 'POSITIVE' || typeOfFind, {
+    when(payload) {
+      return baseCreateScanForm.pick({ outcome: true, typeOfFind: true }).safeParse(payload.value).success
+    },
+    error: messages.selectTypeOfFind,
+    path: ['typeOfFind'],
   })
-  .transform((form, ctx) => {
+  .refine(
+    form => {
+      const { scanDateOption, 'scanDate-day': day, 'scanDate-month': month, 'scanDate-year': year } = form
+      if (scanDateOption === 'other') {
+        if (year && month && day && year >= 2000) {
+          const date = new Date(year, month - 1, day, 12)
+          // check whether year, month or day wrapped around
+          return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+          // TODO: forbid future
+        }
+        return false
+      }
+      return true
+    },
+    {
+      when(payload) {
+        return baseCreateScanForm
+          .pick({ scanDateOption: true, 'scanDate-day': true, 'scanDate-month': true, 'scanDate-year': true })
+          .safeParse(payload.value).success
+      },
+      error: messages.enterDate,
+      path: ['scanDate-day'],
+    },
+  )
+  .transform(form => {
     const {
       scanDateOption,
       'scanDate-day': day,
@@ -36,47 +65,21 @@ export const createScanForm = z
       typeOfFind,
     } = form
 
-    let scanDate: string
+    let scanDate: string = ''
     if (scanDateOption === 'today') {
       scanDate = formatIsoDate(new Date())
     } else if (scanDateOption === 'yesterday') {
       scanDate = formatIsoDate(new Date(Date.now() - dayMillis))
-    } else if (year && month && day) {
+    } else if (year && month && day && year >= 2000) {
       const date = new Date(year, month - 1, day, 12)
-      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-        // year, month or day wrapped around
-        ctx.addIssue({
-          code: 'custom',
-          message: messages.enterDate,
-          path: ['scanDate-day'],
-        })
-        return z.NEVER
-      }
-      // TODO: forbid future
       scanDate = formatIsoDate(date)
-    } else {
-      ctx.addIssue({
-        code: 'custom',
-        message: messages.enterDate,
-        path: ['scanDate-day'],
-      })
-      return z.NEVER
-    }
-
-    if (outcome === 'POSITIVE' && !typeOfFind) {
-      ctx.addIssue({
-        code: 'custom',
-        message: messages.selectTypeOfFind,
-        path: ['typeOfFind'],
-      })
-      return z.NEVER
     }
 
     return {
       scanDate,
       outcome,
       justification,
-      typeOfFind: outcome === 'POSITIVE' ? typeOfFind : null,
+      typeOfFind: outcome === 'POSITIVE' ? (typeOfFind ?? null) : null,
     }
   })
 
@@ -93,7 +96,10 @@ export function treeifyCreateScanFormErrors<S extends Record<string, unknown>>(e
     }),
   )
   if (scanDateErrors.size > 0) {
-    errors.properties.scanDate = { errors: [...scanDateErrors] }
+    errors.properties = {
+      scanDate: { errors: [...scanDateErrors] },
+      ...errors.properties,
+    }
   }
   return errors
 }
