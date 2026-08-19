@@ -18,7 +18,7 @@
         Record an X-ray body scan for {{ prisoner.displayName }}
       </h1>
 
-      <form method="POST" novalidate>
+      <form id="form" method="POST" novalidate>
         <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
         {{ govukRadios({

@@ -1,6 +1,7 @@
 import * as z from 'zod'
 import { formatIsoDate } from '../utils/dates'
 import { justifications, outcomes, typesOfFind } from '../data/interfaces/xrayBodyScansApiClient'
+import type { ZodErrorTree } from './formErrors'
 
 const dayMillis = 24 * 60 * 60 * 1000
 
@@ -83,7 +84,9 @@ export const createScanForm = baseCreateScanForm
     }
   })
 
-export function treeifyCreateScanFormErrors<S extends Record<string, unknown>>(error: z.ZodError<S>) {
+export type CreateScanForm = z.infer<typeof createScanForm>
+
+export function treeifyCreateScanFormErrors(error: z.ZodError<CreateScanForm>): ZodErrorTree<CreateScanForm> {
   const errors = z.treeifyError(error)
   const scanDateErrors = new Set<string>()
   errors.properties = Object.fromEntries(
