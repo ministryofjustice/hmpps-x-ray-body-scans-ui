@@ -16,8 +16,12 @@ export default class CreateScanPage extends AbstractPage {
     return this.page.getByRole('link', { name: 'Cancel' })
   }
 
-  checkRadioButton(label: string): Promise<void> {
-    return this.page.getByLabel(label).check()
+  checkRadioButton(label: string, { exact = true }: { exact?: boolean } = {}): Promise<void> {
+    return this.page.getByLabel(label, { exact }).check()
+  }
+
+  typeScanDateComponent(label: string, text: string): Promise<void> {
+    return this.page.getByLabel(label, { exact: true }).fill(text)
   }
 
   getFormValues<T = Record<string, string>>(): Promise<T> {
