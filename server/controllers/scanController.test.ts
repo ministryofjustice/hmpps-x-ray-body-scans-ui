@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express'
+import logger from '../../logger'
 import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now, yesterday } from '../testutils/fixedClock'
 import { pageResponse } from '../testutils/pagination'
+import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
 import { mockScanResponse, mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
@@ -9,6 +11,7 @@ import AuditService, { Page } from '../services/auditService'
 import HmppsAuditClient from '../data/hmppsAuditClient'
 import ScanController from './scanController'
 
+jest.mock('../../logger')
 jest.mock('../services/auditService')
 jest.mock('../data/xrayBodyScansApiClient')
 
@@ -206,7 +209,7 @@ describe('postCreateScan', () => {
       typeOfFind: body.typeOfFind ?? null,
       typeOfFindDescription: body.typeOfFind ?? null,
     }
-    xrayBodyScansApiClient.createScan.mockResolvedValue(createdScan)
+    xrayBodyScansApiClient.createScan.mockResolvedValueOnce(createdScan)
 
     req.body = body
 
@@ -227,6 +230,7 @@ describe('postCreateScan', () => {
       `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createdScan.id}&scanDate=2026-07-23`,
     )
     expect(res.render).not.toHaveBeenCalled()
+    expect(logger.info).toHaveBeenCalledWith(`Scan ${createdScan.id} recorded`)
   })
 
   it.each([
@@ -289,6 +293,27 @@ describe('postCreateScan', () => {
     )
     expect(res.redirect).not.toHaveBeenCalled()
     expect(xrayBodyScansApiClient.createScan).not.toHaveBeenCalled()
+  })
+
+  it('shows an error when api throws one', async () => {
+    xrayBodyScansApiClient.createScan.mockRejectedValueOnce(mockThrownError(internalServerErrorResponse))
+
+    req.body = {
+      scanDateOption: 'today',
+      justification: 'REASONABLE_SUSPICION',
+      outcome: 'NEGATIVE',
+    }
+
+    await scanController.postCreateScan(req, res)
+
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/createScan',
+      expect.objectContaining({
+        errors: { errors: ['The details could not be recorded. Try again later'] },
+      }),
+    )
+    expect(res.redirect).not.toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ responseStatus: 500 }))
   })
 })
 

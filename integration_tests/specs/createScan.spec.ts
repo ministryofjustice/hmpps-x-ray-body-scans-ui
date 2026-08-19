@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { login, resetStubs } from '../testUtils'
 import { formatIsoDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApiClient'
+import { badRequestErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { mockScanResponse } from '../../server/testutils/mocks/xrayBodyScansApiClient'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
@@ -214,5 +215,39 @@ test.describe('Create scan page', () => {
         outcome: 'POSITIVE',
       }),
     )
+  })
+
+  test('Shows an error message when api call fails', async ({ page }) => {
+    await login(page)
+
+    await page.goto(`/prisoner/${prisonerNumber}/record-scan`)
+    let createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
+
+    await createScanPage.checkRadioButton('Today', { exact: false })
+    await createScanPage.checkRadioButton('Intelligence-led')
+    await createScanPage.checkRadioButton('No item detected')
+
+    // simulate 400 bad response (eg. if api contract changed but ui has not been updated)
+    await xrayBodyScansApi.stubCreateScan(
+      prisonerNumber,
+      {
+        prisonId: 'LEI',
+        scanDate: formatIsoDate(new Date()),
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+        typeOfFind: null,
+        createdBy: 'USER1',
+      },
+      badRequestErrorResponse,
+    )
+
+    await createScanPage.saveButton.click()
+
+    createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
+
+    // errors summary shows, but cannot point to a specific field
+    await expect(createScanPage.getErrorSummary()).resolves.toEqual([
+      { text: 'The details could not be recorded. Try again later', href: '#form' },
+    ])
   })
 })

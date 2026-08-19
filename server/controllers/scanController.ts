@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 
+import logger from '../../logger'
 import { formatDisplayDate, formatIsoDate } from '../utils/dates'
 import type { ZodErrorTree } from '../forms/formErrors'
 import { createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
@@ -111,10 +112,22 @@ export default class ScanController {
       prisonId: activeCaseLoadId!,
       createdBy: username,
     }
-    const createScanResponse = await this.xrayBodyScansApiClient.createScan(prisonerNumber, createScanRequest, username)
-    res.redirect(
-      `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
-    )
+
+    try {
+      const createScanResponse = await this.xrayBodyScansApiClient.createScan(
+        prisonerNumber,
+        createScanRequest,
+        username,
+      )
+      logger.info(`Scan ${createScanResponse.id} recorded`)
+
+      res.redirect(
+        `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
+      )
+    } catch (error) {
+      logger.error(error)
+      this.renderCreateScanForm(req, res, { errors: ['The details could not be recorded. Try again later'] })
+    }
   }
 
   async getCreateScanSuccess(req: Request, res: Response): Promise<void> {
