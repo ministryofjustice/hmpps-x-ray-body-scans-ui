@@ -231,6 +231,14 @@ describe('postCreateScan', () => {
     )
     expect(res.render).not.toHaveBeenCalled()
     expect(logger.info).toHaveBeenCalledWith(`Scan ${createdScan.id} recorded`)
+    expect(auditService.logAuditEvent).toHaveBeenCalledWith({
+      what: 'CREATE_XRAY_BODY_SCAN',
+      who: username,
+      subjectId: prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId: req.id,
+      details: { scanId: createdScan.id },
+    })
   })
 
   it.each([
@@ -293,6 +301,7 @@ describe('postCreateScan', () => {
     )
     expect(res.redirect).not.toHaveBeenCalled()
     expect(xrayBodyScansApiClient.createScan).not.toHaveBeenCalled()
+    expect(auditService.logAuditEvent).not.toHaveBeenCalled()
   })
 
   it('shows an error when api throws one', async () => {
@@ -314,6 +323,7 @@ describe('postCreateScan', () => {
     )
     expect(res.redirect).not.toHaveBeenCalled()
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ responseStatus: 500 }))
+    expect(auditService.logAuditEvent).not.toHaveBeenCalled()
   })
 })
 

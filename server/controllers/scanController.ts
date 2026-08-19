@@ -121,6 +121,16 @@ export default class ScanController {
       )
       logger.info(`Scan ${createScanResponse.id} recorded`)
 
+      // TODO: confirm required audit event info
+      await this.auditService.logAuditEvent({
+        what: 'CREATE_XRAY_BODY_SCAN',
+        who: username,
+        subjectId: prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+        details: { scanId: createScanResponse.id },
+      })
+
       res.redirect(
         `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
       )
