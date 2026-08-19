@@ -164,9 +164,19 @@ test.describe('Create scan page', () => {
     await createScanPage.saveButton.click()
 
     createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
+
+    // errors summary shows
     await expect(createScanPage.getErrorSummary()).resolves.toEqual([
       { text: 'Select the result of the scan', href: '#outcome' },
     ])
+
+    // user-entered details reappear
+    await expect(createScanPage.getFormValues()).resolves.toEqual(
+      expect.objectContaining({
+        scanDateOption: 'today',
+        justification: 'INTELLIGENCE',
+      }),
+    )
   })
 
   test('Shows a error messages when there are several errors', async ({ page }) => {
@@ -179,16 +189,30 @@ test.describe('Create scan page', () => {
     await createScanPage.typeScanDateComponent('Month', 'July')
     await createScanPage.typeScanDateComponent('Year', '2026')
     // invalid date
-    await createScanPage.checkRadioButton('Intelligence-led')
+    await createScanPage.checkRadioButton('Reasonable suspicion')
     await createScanPage.checkRadioButton('Item detected')
     // type of find not selected
 
     await createScanPage.saveButton.click()
 
     createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
+
+    // errors summary shows
     await expect(createScanPage.getErrorSummary()).resolves.toEqual([
       { text: 'Enter a valid date', href: '#scanDate' },
       { text: 'Select the type of item that was detected', href: '#typeOfFind' },
     ])
+
+    // user-entered details reappear, even if invalid
+    await expect(createScanPage.getFormValues()).resolves.toEqual(
+      expect.objectContaining({
+        scanDateOption: 'other',
+        'scanDate-day': '',
+        'scanDate-month': 'July',
+        'scanDate-year': '2026',
+        justification: 'REASONABLE_SUSPICION',
+        outcome: 'POSITIVE',
+      }),
+    )
   })
 })

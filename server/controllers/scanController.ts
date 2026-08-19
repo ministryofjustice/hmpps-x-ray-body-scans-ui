@@ -77,10 +77,10 @@ export default class ScanController {
       correlationId: req.id,
     })
 
-    this.renderCreateScanForm(res)
+    this.renderCreateScanForm(req, res)
   }
 
-  private renderCreateScanForm<T>(res: Response, errors?: ZodErrorTree<T>): void {
+  private renderCreateScanForm<T>(req: Request, res: Response, errors?: ZodErrorTree<T>): void {
     const { prisoner } = res.locals
 
     const today = new Date()
@@ -91,6 +91,7 @@ export default class ScanController {
       today: formatDisplayDate(today),
       yesterday: formatDisplayDate(yesterday),
       errors,
+      formValues: errors ? req.body : undefined,
     })
   }
 
@@ -101,7 +102,7 @@ export default class ScanController {
     const result = createScanForm.safeParse(req.body)
     if (!result.success) {
       const errors = treeifyCreateScanFormErrors(result.error)
-      this.renderCreateScanForm(res, errors)
+      this.renderCreateScanForm(req, res, errors)
       return
     }
 

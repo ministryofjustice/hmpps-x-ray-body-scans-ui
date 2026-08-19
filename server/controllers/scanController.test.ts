@@ -124,6 +124,7 @@ describe('getCreateScan', () => {
         today: expect.any(String),
         yesterday: expect.any(String),
         errors: undefined,
+        formValues: undefined,
       }),
     )
   })
@@ -225,6 +226,7 @@ describe('postCreateScan', () => {
     expect(res.redirect).toHaveBeenCalledWith(
       `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createdScan.id}&scanDate=2026-07-23`,
     )
+    expect(res.render).not.toHaveBeenCalled()
   })
 
   it.each([
@@ -282,6 +284,7 @@ describe('postCreateScan', () => {
         today: expect.any(String),
         yesterday: expect.any(String),
         errors: expectedErrors,
+        formValues: body,
       }),
     )
     expect(res.redirect).not.toHaveBeenCalled()

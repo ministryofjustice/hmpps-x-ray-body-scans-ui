@@ -47,30 +47,33 @@
           items: [
             {
               value: "today",
-              text: "Today (" + today + ")"
+              text: "Today (" + today + ")",
+              checked: formValues.scanDateOption === "today"
             },
             {
               value: "yesterday",
-              text: "Yesterday (" + yesterday + ")"
+              text: "Yesterday (" + yesterday + ")",
+              checked: formValues.scanDateOption === "yesterday"
             },
             {
               value: "other",
               text: "Another date",
+              checked: formValues.scanDateOption === "other",
               conditional: {
-              html: govukDateInput({
-                id: "scanDate",
-                namePrefix: "scanDate",
-                hint: {
-                  text: "For example, 23 7 2026"
-                },
-                errorMessage: errorMessageForField("scanDate", errors),
-                items: [
-                  { name: "day", classes: "govuk-input--width-2" },
-                  { name: "month", classes: "govuk-input--width-2" },
-                  { name: "year", classes: "govuk-input--width-4" }
-                ]
-              })
-            }
+                html: govukDateInput({
+                  id: "scanDate",
+                  namePrefix: "scanDate",
+                  hint: {
+                    text: "For example, 23 7 2026"
+                  },
+                  errorMessage: errorMessageForField("scanDate", errors),
+                  items: [
+                    { name: "day", classes: "govuk-input--width-2", value: formValues["scanDate-day"]  },
+                    { name: "month", classes: "govuk-input--width-2", value: formValues["scanDate-month"] },
+                    { name: "year", classes: "govuk-input--width-4", value: formValues["scanDate-year"] }
+                  ]
+                })
+              }
             }
           ]
         }) }}
@@ -92,16 +95,18 @@
             {
               value: "INTELLIGENCE",
               text: "Intelligence-led",
+              checked: formValues.justification === "INTELLIGENCE",
               hint: {
-              text: "Based on specific information or intelligence indicating the prisoner may be concealing an item."
-            }
+                text: "Based on specific information or intelligence indicating the prisoner may be concealing an item."
+              }
             },
             {
               value: "REASONABLE_SUSPICION",
               text: "Reasonable suspicion",
+              checked: formValues.justification === "REASONABLE_SUSPICION",
               hint: {
-              text: "Based on staff judgement that the prisoner may be concealing an item. For example, behaviour during or after a visit, search or escort."
-            }
+                text: "Based on staff judgement that the prisoner may be concealing an item. For example, behaviour during or after a visit, search or escort."
+              }
             }
           ]
         }) }}
@@ -119,55 +124,62 @@
           items: [
             {
               value: "NEGATIVE",
-              text: "No item detected"
+              text: "No item detected",
+              checked: formValues.outcome === "NEGATIVE"
             },
             {
               value: "INCONCLUSIVE",
               text: "Inconclusive",
+              checked: formValues.outcome === "INCONCLUSIVE",
               hint: {
-              text: "The scan did not clearly show if an item was present."
-            }
+                text: "The scan did not clearly show if an item was present."
+              }
             },
             {
               value: "POSITIVE",
               text: "Item detected",
+              checked: formValues.outcome === "POSITIVE",
               conditional: {
-              html: govukRadios({
-                idPrefix: "typeOfFind",
-                name: "typeOfFind",
-                fieldset: {
-                  legend: {
-                    text: "What type of item was detected?",
-                    classes: "govuk-fieldset__legend--s"
-                  }
-                },
-                hint: {
-                  text: "Select the suspected item shown by the scan."
-                },
-                errorMessage: errorMessageForField("typeOfFind", errors),
-                items: [
-                  {
-                    value: "ORGANIC",
-                    text: "Organic",
-                    hint: { text: "For example, drugs." }
+                html: govukRadios({
+                  idPrefix: "typeOfFind",
+                  name: "typeOfFind",
+                  fieldset: {
+                    legend: {
+                      text: "What type of item was detected?",
+                      classes: "govuk-fieldset__legend--s"
+                    }
                   },
-                  {
-                    value: "INORGANIC",
-                    text: "Inorganic",
-                    hint: { text: "For example, a mobile phone, SIM card or other object." }
+                  hint: {
+                    text: "Select the suspected item shown by the scan."
                   },
-                  {
-                    value: "ORGANIC_AND_INORGANIC",
-                    text: "Organic and inorganic"
-                  },
-                  { divider: "or" },
-                  {
-                    value: "NOT_KNOWN",
-                    text: "Not known"
-                  }
-                ]
-              })
-            }
+                  errorMessage: errorMessageForField("typeOfFind", errors),
+                  items: [
+                    {
+                      value: "ORGANIC",
+                      text: "Organic",
+                      checked: formValues.typeOfFind === "ORGANIC",
+                      hint: { text: "For example, drugs." }
+                    },
+                    {
+                      value: "INORGANIC",
+                      text: "Inorganic",
+                      checked: formValues.typeOfFind === "INORGANIC",
+                      hint: { text: "For example, a mobile phone, SIM card or other object." }
+                    },
+                    {
+                      value: "ORGANIC_AND_INORGANIC",
+                      text: "Organic and inorganic",
+                      checked: formValues.typeOfFind === "ORGANIC_AND_INORGANIC"
+                    },
+                    { divider: "or" },
+                    {
+                      value: "NOT_KNOWN",
+                      text: "Not known",
+                      checked: formValues.typeOfFind === "NOT_KNOWN"
+                    }
+                  ]
+                })
+              }
             }
           ]
         }) }}
