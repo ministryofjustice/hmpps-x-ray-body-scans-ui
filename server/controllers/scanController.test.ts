@@ -264,7 +264,7 @@ describe('postCreateScan', () => {
       },
       expectedErrors: {
         errors: [],
-        properties: { typeOfFind: { errors: ['Select the type of item that was detected'] } },
+        properties: { typeOfFind: { errors: ['Select type of item detected'] } },
       },
     },
     {
@@ -280,7 +280,7 @@ describe('postCreateScan', () => {
       },
       expectedErrors: {
         errors: [],
-        properties: { scanDate: { errors: ['Enter a valid date'] } },
+        properties: { scanDate: { errors: ['Enter a real date'] } },
       },
     },
     // NB: other scenarios are covered by createScanForm.test.ts

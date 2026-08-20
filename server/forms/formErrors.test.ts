@@ -91,7 +91,7 @@ describe('create scan form errors', () => {
     const summary = errorSummary(treeifiedErrors)
     expect(summary).toEqual([
       {
-        text: 'Enter a valid date',
+        text: 'Enter a real date',
         href: '#scanDate',
       },
       {
@@ -103,7 +103,7 @@ describe('create scan form errors', () => {
         href: '#outcome',
       },
       {
-        text: 'Select the type of item that was detected',
+        text: 'Select type of item detected',
         href: '#typeOfFind',
       },
     ])
@@ -111,7 +111,7 @@ describe('create scan form errors', () => {
 
   it('should find errors for specific fields', () => {
     let fieldMessage = errorMessageForField('scanDate', treeifiedErrors)
-    expect(fieldMessage).toEqual({ text: 'Enter a valid date' })
+    expect(fieldMessage).toEqual({ text: 'Enter a real date' })
 
     fieldMessage = errorMessageForField('outcome', treeifiedErrors)
     expect(fieldMessage).toEqual({ text: 'Select the result of the scan' })

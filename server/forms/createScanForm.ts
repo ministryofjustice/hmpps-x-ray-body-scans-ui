@@ -7,10 +7,11 @@ const dayMillis = 24 * 60 * 60 * 1000
 
 const messages = {
   selectScanDateOption: 'Select when the scan happened',
-  enterDate: 'Enter a valid date',
+  enterDate: 'Enter a real date',
+  futureDate: 'The scan date cannot be in the future',
   selectJustification: 'Select why the scan was carried out',
   selectOutcome: 'Select the result of the scan',
-  selectTypeOfFind: 'Select the type of item that was detected',
+  selectTypeOfFind: 'Select type of item detected',
 }
 
 const baseCreateScanForm = z.object({
@@ -24,6 +25,7 @@ const baseCreateScanForm = z.object({
 })
 
 export const createScanForm = baseCreateScanForm
+  // check type of find when required
   .refine(({ outcome, typeOfFind }) => outcome !== 'POSITIVE' || typeOfFind, {
     when(payload) {
       return baseCreateScanForm.pick({ outcome: true, typeOfFind: true }).safeParse(payload.value).success
@@ -31,20 +33,46 @@ export const createScanForm = baseCreateScanForm
     error: messages.selectTypeOfFind,
     path: ['typeOfFind'],
   })
-  .refine(
-    form => {
+  // check custom scan date
+  .superRefine(
+    (form, ctx) => {
       const { scanDateOption, 'scanDate-day': day, 'scanDate-month': month, 'scanDate-year': year } = form
       if (scanDateOption === 'other') {
-        if (year && month && day && year >= 2000) {
-          const date = new Date(year, month - 1, day, 12)
-          // check whether year, month or day wrapped around
-          return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
-          // TODO: forbid future
-          // TODO: forbid “very” old dates?
+        if (year === undefined || month === undefined || day === undefined || year < 2000) {
+          // some date component was not set or year is 2-digit
+          ctx.addIssue({
+            code: 'custom',
+            message: messages.enterDate,
+            path: ['scanDate-day'],
+          })
+          return
         }
-        return false
+
+        const date = new Date(year, month - 1, day, 12)
+
+        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+          // year, month or day wrapped around
+          ctx.addIssue({
+            code: 'custom',
+            message: messages.enterDate,
+            path: ['scanDate-day'],
+          })
+          return
+        }
+
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        if (formatIsoDate(date) >= formatIsoDate(tomorrow)) {
+          // future date
+          ctx.addIssue({
+            code: 'custom',
+            message: messages.futureDate,
+            path: ['scanDate-day'],
+          })
+        }
+
+        // TODO: forbid “very” old dates?
       }
-      return true
     },
     {
       when(payload) {
@@ -52,10 +80,9 @@ export const createScanForm = baseCreateScanForm
           .pick({ scanDateOption: true, 'scanDate-day': true, 'scanDate-month': true, 'scanDate-year': true })
           .safeParse(payload.value).success
       },
-      error: messages.enterDate,
-      path: ['scanDate-day'],
     },
   )
+  // calculate scan date and clear type of find when not needed
   .transform(form => {
     const {
       scanDateOption,

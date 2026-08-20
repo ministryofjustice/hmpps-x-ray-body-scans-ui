@@ -99,7 +99,7 @@ describe('createScanForm', () => {
       const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
-        properties: { scanDate: { errors: ['Enter a valid date'] } },
+        properties: { scanDate: { errors: ['Enter a real date'] } },
       })
     })
 
@@ -118,7 +118,7 @@ describe('createScanForm', () => {
       const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
-        properties: { scanDate: { errors: ['Enter a valid date'] } },
+        properties: { scanDate: { errors: ['Enter a real date'] } },
       })
     })
 
@@ -137,7 +137,7 @@ describe('createScanForm', () => {
       const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
-        properties: { scanDate: { errors: ['Enter a valid date'] } },
+        properties: { scanDate: { errors: ['Enter a real date'] } },
       })
     })
 
@@ -160,7 +160,26 @@ describe('createScanForm', () => {
       const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
-        properties: { scanDate: { errors: ['Enter a valid date'] } },
+        properties: { scanDate: { errors: ['Enter a real date'] } },
+      })
+    })
+
+    it('future scan date', () => {
+      const result = createScanForm.safeParse({
+        scanDateOption: 'other',
+        'scanDate-day': '25',
+        'scanDate-month': '7',
+        'scanDate-year': '2026',
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+      } satisfies FormInput)
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const errors = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: { scanDate: { errors: ['The scan date cannot be in the future'] } },
       })
     })
 
@@ -233,7 +252,7 @@ describe('createScanForm', () => {
       const errors = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
-        properties: { typeOfFind: { errors: ['Select the type of item that was detected'] } },
+        properties: { typeOfFind: { errors: ['Select type of item detected'] } },
       })
     })
 
@@ -254,7 +273,7 @@ describe('createScanForm', () => {
           scanDateOption: { errors: ['Select when the scan happened'] },
           justification: { errors: ['Select why the scan was carried out'] },
           outcome: { errors: ['Select the result of the scan'] },
-          typeOfFind: { errors: ['Select the type of item that was detected'] },
+          typeOfFind: { errors: ['Select type of item detected'] },
         },
       })
     })
@@ -275,7 +294,7 @@ describe('createScanForm', () => {
       expect(errors).toEqual({
         errors: [],
         properties: {
-          scanDate: { errors: ['Enter a valid date'] },
+          scanDate: { errors: ['Enter a real date'] },
           outcome: { errors: ['Select the result of the scan'] },
         },
       })

@@ -200,8 +200,8 @@ test.describe('Create scan page', () => {
 
     // errors summary shows
     await expect(createScanPage.getErrorSummary()).resolves.toEqual([
-      { text: 'Enter a valid date', href: '#scanDate' },
-      { text: 'Select the type of item that was detected', href: '#typeOfFind' },
+      { text: 'Enter a real date', href: '#scanDate' },
+      { text: 'Select type of item detected', href: '#typeOfFind' },
     ])
 
     // user-entered details reappear, even if invalid
