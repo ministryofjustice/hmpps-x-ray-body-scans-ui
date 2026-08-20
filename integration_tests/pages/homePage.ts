@@ -1,14 +1,10 @@
-import { expect, type Locator, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import AbstractPage from './abstractPage'
 
 export default class HomePage extends AbstractPage {
   static async verifyOnPage(page: Page): Promise<HomePage> {
-    const homePage = new HomePage(page)
-    await expect(homePage.heading).toBeVisible()
+    const homePage = new this(page)
+    await homePage.expectHeading('This site is under construction...')
     return homePage
-  }
-
-  get heading(): Locator {
-    return this.page.locator('h1', { hasText: 'This site is under construction...' })
   }
 }

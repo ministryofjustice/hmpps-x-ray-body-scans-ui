@@ -1,6 +1,6 @@
-import { Page } from '@playwright/test'
-import tokenVerification from './mockApis/tokenVerification'
+import type { Page } from '@playwright/test'
 import hmppsAuth, { type UserToken } from './mockApis/hmppsAuth'
+import tokenVerification from './mockApis/tokenVerification'
 
 export { resetStubs } from './mockApis/wiremock'
 

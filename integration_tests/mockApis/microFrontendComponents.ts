@@ -57,6 +57,12 @@ export default {
                 navEnabled: true,
               },
             ],
+            cspDirectives: Object.fromEntries(
+              ['font-src', 'form-action', 'img-src', 'script-src', 'style-src'].map(directive => [
+                directive,
+                ['http://localhost:9091'],
+              ]),
+            ),
           },
         },
       },

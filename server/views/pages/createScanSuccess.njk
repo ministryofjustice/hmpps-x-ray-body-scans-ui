@@ -9,7 +9,7 @@
 {% block content %}
 
   {{ govukPanel({
-    titleText: "Scan recorded for",
+    titleText: "Scan recorded",
     html: "TODO"
   }) }}
 
@@ -47,9 +47,9 @@
   <div class="govuk-button-group">
     {{ govukButton({
       text: "Return to body scans",
-      href: "/prisoner/" + prisonerNumber + "/scans"
+      href: "/prisoner/" + prisoner.prisonerNumber + "/scans"
     }) }}
-    <a class="govuk-link" href="#">TODO: profile link</a>
+    <a class="govuk-link" href="{{ prisoner | prisonerProfileUrl }}">View this person’s profile</a>
   </div>
 
 {% endblock %}

@@ -6,6 +6,7 @@ import type { PageResponse } from '../../server/data/interfaces/pagination'
 import { emptyPageResponse } from '../../server/testutils/pagination'
 import { mockScanSummaryResponse } from '../../server/testutils/mocks/xrayBodyScansApiClient'
 import type {
+  CreateScanRequest,
   LegacyScanResponse,
   ListScansRequest,
   ScanResponse,
@@ -53,20 +54,7 @@ export default {
       'content' in response
         ? {
             ...response,
-            content: response.content.map(scan =>
-              scan.source === 'NOMIS'
-                ? {
-                    ...scan,
-                    scanDate: scan.scanDate ? formatIsoDate(scan.scanDate) : null,
-                  }
-                : {
-                    ...scan,
-                    scanDate: formatIsoDate(scan.scanDate),
-                    mergedAt: scan.mergedAt ? scan.mergedAt.toISOString() : null,
-                    createdAt: scan.createdAt.toISOString(),
-                    lastModifiedAt: scan.lastModifiedAt.toISOString(),
-                  },
-            ),
+            content: response.content.map(scanToRawScan),
           }
         : response
     return stubFor({
@@ -82,4 +70,39 @@ export default {
       },
     })
   },
+
+  stubCreateScan(
+    prisonerNumber: string,
+    request: CreateScanRequest,
+    response: ScanResponse | ErrorResponse,
+  ): SuperAgentRequest {
+    const jsonBody = 'userMessage' in response ? response : scanToRawScan(response)
+    return stubFor({
+      request: {
+        method: 'POST',
+        urlPath: `/xray-body-scans-api/prisoner/${prisonerNumber}/scan`,
+        bodyPatterns: [{ equalToJson: request }],
+      },
+      response: {
+        status: 'userMessage' in response ? response.status : 201,
+        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+        jsonBody,
+      },
+    })
+  },
+}
+
+function scanToRawScan(scan: ScanResponse | LegacyScanResponse) {
+  return scan.source === 'NOMIS'
+    ? {
+        ...scan,
+        scanDate: scan.scanDate ? formatIsoDate(scan.scanDate) : null,
+      }
+    : {
+        ...scan,
+        scanDate: formatIsoDate(scan.scanDate),
+        mergedAt: scan.mergedAt ? scan.mergedAt.toISOString() : null,
+        createdAt: scan.createdAt.toISOString(),
+        lastModifiedAt: scan.lastModifiedAt.toISOString(),
+      }
 }

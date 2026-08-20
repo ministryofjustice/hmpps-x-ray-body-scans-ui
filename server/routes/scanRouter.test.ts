@@ -33,7 +33,7 @@ afterEach(() => {
   jest.resetAllMocks()
 })
 
-describe('scan router authorisation', () => {
+describe('scan router', () => {
   it('should redirect to authError when the user does not have the DPS_APPLICATION_DEVELOPER role', () => {
     app = appWithAllRoutes({
       services: { auditService, prisonerSearchApiClient, xrayBodyScansApiClient },
@@ -74,6 +74,7 @@ describe('scan router authorisation', () => {
       .get(`/prisoner/${prisonerNumber}/scans`)
       .expect(404)
       .expect(() => {
+        expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
         expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
         expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
       })
@@ -91,6 +92,22 @@ describe('scan router authorisation', () => {
       .expect('Location', 'http://localhost:3001/dps-home')
       .expect(() => {
         expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
+        expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
+        expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
+      })
+  })
+
+  it('should redirect to scans list when trying to go to person’s link', () => {
+    app = appWithAllRoutes({
+      services: { auditService, prisonerSearchApiClient, xrayBodyScansApiClient },
+    })
+
+    return request(app)
+      .get(`/prisoner/${prisonerNumber}`)
+      .expect(302)
+      .expect('Location', `/prisoner/${prisonerNumber}/scans`)
+      .expect(() => {
+        expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
         expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
         expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
       })

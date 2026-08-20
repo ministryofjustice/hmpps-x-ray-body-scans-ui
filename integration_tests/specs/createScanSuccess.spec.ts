@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
+import CreateScanSuccessPage from '../pages/createScanSuccessPage'
 
 const prisonerNumber = 'A1234BC'
 
@@ -18,8 +19,8 @@ test.describe('Create scan success page', () => {
     await login(page)
 
     const response = await page.goto(`/prisoner/${prisonerNumber}/record-scan/success`)
-
     expect(response?.status()).toBe(200)
-    await expect(page.getByRole('heading', { name: 'Scan recorded for', exact: false })).toBeVisible()
+
+    await CreateScanSuccessPage.verifyOnPage(page)
   })
 })

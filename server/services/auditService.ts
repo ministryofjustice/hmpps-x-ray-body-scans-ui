@@ -1,7 +1,6 @@
-import HmppsAuditClient, { AuditEvent } from '../data/hmppsAuditClient'
+import HmppsAuditClient, { type AuditEvent } from '../data/hmppsAuditClient'
 
 export enum Page {
-  /** TODO: will become something like RECENT_SCANS? */
   HOME = 'HOME',
   SCAN_LIST = 'SCAN_LIST',
   CREATE_SCAN = 'CREATE_SCAN',

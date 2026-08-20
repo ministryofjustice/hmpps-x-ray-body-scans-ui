@@ -7,6 +7,7 @@ import config from '../config'
 import logger from '../../logger'
 import { initialiseName } from './utils'
 import type { Prisoner } from '../data/interfaces/prisonerSearchApiClient'
+import { errorMessageForField, errorSummary } from '../forms/formErrors'
 
 export default function nunjucksSetup(app: express.Express): void {
   app.set('view engine', 'njk')
@@ -42,6 +43,9 @@ export default function nunjucksSetup(app: express.Express): void {
 
   njkEnv.addGlobal('dpsHomeUrl', config.serviceUrls.digitalPrison)
   njkEnv.addGlobal('prisonerProfileUrl', config.serviceUrls.prisonerProfile)
+
+  njkEnv.addGlobal('errorMessageForField', errorMessageForField)
+  njkEnv.addGlobal('errorSummary', errorSummary)
 
   njkEnv.addFilter('initialiseName', initialiseName)
   njkEnv.addFilter('assetMap', (url: string) => assetManifest[url] || url)

@@ -1,3 +1,5 @@
+// TODO: move to Temporal.PlainDate once on node26?
+
 const shortDateFormatter = new Intl.DateTimeFormat('en-GB', {
   // NB: 'numeric' for day or month always produces leading zeroes so might as well make it explicit
   day: '2-digit',

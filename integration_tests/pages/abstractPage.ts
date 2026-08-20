@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 export default class AbstractPage {
   protected constructor(protected readonly page: Page) {}
@@ -21,4 +21,41 @@ export default class AbstractPage {
   async signOut() {
     return this.signoutLink.first().click()
   }
+
+  protected expectHeading(text: string): Promise<void> {
+    return expect(this.page.getByRole('heading', { name: text })).toBeVisible()
+  }
+
+  async getBreadcrumbs(): Promise<Anchor[] | null> {
+    const breadcrumbs = this.page.locator('.govuk-breadcrumbs')
+    if ((await breadcrumbs.count()) === 0) {
+      return null
+    }
+    return breadcrumbs.getByRole('link').evaluateAll(anchors =>
+      anchors.map(anchor => ({
+        text: anchor.textContent,
+        href: anchor.getAttribute('href'),
+      })),
+    )
+  }
+
+  async getErrorSummary(): Promise<Anchor[] | null> {
+    const errorSummary = this.page.locator('.govuk-error-summary')
+    if ((await errorSummary.count()) === 0) {
+      return null
+    }
+    // a page with an error summary should have a prefix in the title
+    await expect(this.page.title()).resolves.toMatch(/^\s*Error:\s+/)
+    return errorSummary.locator('.govuk-error-summary__list a').evaluateAll(anchors =>
+      anchors.map(anchor => ({
+        text: anchor.textContent,
+        href: anchor.getAttribute('href'),
+      })),
+    )
+  }
+}
+
+interface Anchor {
+  text: string
+  href: string | null
 }

@@ -1,9 +1,15 @@
 {% extends "partials/layout.njk" %}
-{% from "govuk/components/radios/macro.njk" import govukRadios %}
-{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
-{% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set pageTitle = applicationName + " - Record Scan" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% set pageTitle = applicationName + " – Record an X-ray body scan" %}
+{% if errors %}
+  {% set pageTitle = "Error: " + pageTitle %}
+{% endif %}
+
 {% set breadcrumbs = [
   { text: 'Digital Prison Services', href: dpsHomeUrl },
   { text: prisoner.reversedDisplayName, href: prisoner | prisonerProfileUrl },
@@ -11,126 +17,185 @@
 ] %}
 
 {% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
 
-  <h1 class="govuk-heading-l">
-    Record an X-ray body scan for {{ prisoner.displayName }}
-  </h1>
+      {% if errors %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary(errors)
+        }) }}
+      {% endif %}
 
-  <form method="POST" action="." novalidate>
-    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <h1 class="govuk-heading-l">
+        Record an X-ray body scan for {{ prisoner.displayName }}
+      </h1>
 
-    {{ govukRadios({
-      idPrefix: "scanDateOption",
-      name: "scanDateOption",
-      fieldset: {
-        legend: {
-          text: "When did the scan happen?",
-          classes: "govuk-fieldset__legend--m"
-        }
-      },
-      items: [
-        {
-          value: "today",
-          text: "Today (" + today + ")"
-        },
-        {
-          value: "yesterday",
-          text: "Yesterday (" + yesterday + ")"
-        },
-        {
-          value: "other",
-          text: "Another date",
-          checked: true,
-          conditional: {
-            html: govukDateInput({
-              id: "scanDate",
-              namePrefix: "scanDate",
-              hint: {
-                text: "For example, 23 7 2026"
-              },
-              items: [
-                { name: "day", classes: "govuk-input--width-2" },
-                { name: "month", classes: "govuk-input--width-2" },
-                { name: "year", classes: "govuk-input--width-4" }
-              ]
-            })
-          }
-        }
-      ]
-    }) }}
+      <form id="form" method="POST" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
-    {{ govukRadios({
-      idPrefix: "scanResult",
-      name: "scanResult",
-      fieldset: {
-        legend: {
-          text: "What was the result of the scan?",
-          classes: "govuk-fieldset__legend--m"
-        }
-      },
-      items: [
-        {
-          value: "NEGATIVE",
-          text: "No item detected"
-        },
-        {
-          value: "INCONCLUSIVE",
-          text: "Inconclusive",
+        {{ govukRadios({
+          idPrefix: "scanDateOption",
+          name: "scanDateOption",
+          fieldset: {
+            legend: {
+              text: "When did the scan happen?",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          errorMessage: errorMessageForField("scanDateOption", errors),
+          items: [
+            {
+              value: "today",
+              text: "Today (" + today + ")",
+              checked: formValues.scanDateOption === "today"
+            },
+            {
+              value: "yesterday",
+              text: "Yesterday (" + yesterday + ")",
+              checked: formValues.scanDateOption === "yesterday"
+            },
+            {
+              value: "other",
+              text: "Another date",
+              checked: formValues.scanDateOption === "other",
+              conditional: {
+                html: govukDateInput({
+                  id: "scanDate",
+                  namePrefix: "scanDate",
+                  hint: {
+                    text: "For example, 23 7 2026"
+                  },
+                  errorMessage: errorMessageForField("scanDate", errors),
+                  items: [
+                    { name: "day", classes: "govuk-input--width-2", value: formValues["scanDate-day"]  },
+                    { name: "month", classes: "govuk-input--width-2", value: formValues["scanDate-month"] },
+                    { name: "year", classes: "govuk-input--width-4", value: formValues["scanDate-year"] }
+                  ]
+                })
+              }
+            }
+          ]
+        }) }}
+
+        {{ govukRadios({
+          idPrefix: "justification",
+          name: "justification",
+          fieldset: {
+            legend: {
+              text: "Why was the scan carried out?",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
           hint: {
-            text: "The scan did not clearly show if an item was present."
-          }
-        },
-        {
-          value: "POSITIVE",
-          text: "Item detected",
-          conditional: {
-            html: govukRadios({
-              idPrefix: "itemType",
-              name: "itemType",
-              fieldset: {
-                legend: {
-                  text: "What type of item was detected?",
-                  classes: "govuk-fieldset__legend--s"
-                }
-              },
+            text: "Select the option that best describes why the scan was carried out."
+          },
+          errorMessage: errorMessageForField("justification", errors),
+          items: [
+            {
+              value: "INTELLIGENCE",
+              text: "Intelligence-led",
+              checked: formValues.justification === "INTELLIGENCE",
               hint: {
-                text: "Select the suspected item shown by the scan."
-              },
-              items: [
-                {
-                  value: "ORGANIC",
-                  text: "Organic",
-                  hint: { text: "For example, drugs." }
-                },
-                {
-                  value: "INORGANIC",
-                  text: "Inorganic",
-                  hint: { text: "For example, a mobile phone, SIM card or other object." }
-                },
-                {
-                  value: "ORGANIC_AND_INORGANIC",
-                  text: "Organic and inorganic"
-                },
-                { divider: "or" },
-                {
-                  value: "NOT_KNOWN",
-                  text: "Not known"
-                }
-              ]
-            })
-          }
-        }
-      ]
-    }) }}
+                text: "Based on specific information or intelligence indicating the prisoner may be concealing an item."
+              }
+            },
+            {
+              value: "REASONABLE_SUSPICION",
+              text: "Reasonable suspicion",
+              checked: formValues.justification === "REASONABLE_SUSPICION",
+              hint: {
+                text: "Based on staff judgement that the prisoner may be concealing an item. For example, behaviour during or after a visit, search or escort."
+              }
+            }
+          ]
+        }) }}
 
-    <div class="govuk-button-group">
-      {{ govukButton({
-        text: "Save"
-      }) }}
+        {{ govukRadios({
+          idPrefix: "outcome",
+          name: "outcome",
+          fieldset: {
+            legend: {
+              text: "What was the result of the scan?",
+              classes: "govuk-fieldset__legend--s"
+            }
+          },
+          errorMessage: errorMessageForField("outcome", errors),
+          items: [
+            {
+              value: "NEGATIVE",
+              text: "No item detected",
+              checked: formValues.outcome === "NEGATIVE"
+            },
+            {
+              value: "INCONCLUSIVE",
+              text: "Inconclusive",
+              checked: formValues.outcome === "INCONCLUSIVE",
+              hint: {
+                text: "The scan did not clearly show if an item was present."
+              }
+            },
+            {
+              value: "POSITIVE",
+              text: "Item detected",
+              checked: formValues.outcome === "POSITIVE",
+              conditional: {
+                html: govukRadios({
+                  idPrefix: "typeOfFind",
+                  name: "typeOfFind",
+                  fieldset: {
+                    legend: {
+                      text: "What type of item was detected?",
+                      classes: "govuk-fieldset__legend--s"
+                    }
+                  },
+                  hint: {
+                    text: "Select the suspected item shown by the scan."
+                  },
+                  errorMessage: errorMessageForField("typeOfFind", errors),
+                  items: [
+                    {
+                      value: "ORGANIC",
+                      text: "Organic",
+                      checked: formValues.typeOfFind === "ORGANIC",
+                      hint: { text: "For example, drugs." }
+                    },
+                    {
+                      value: "INORGANIC",
+                      text: "Inorganic",
+                      checked: formValues.typeOfFind === "INORGANIC",
+                      hint: { text: "For example, a mobile phone, SIM card or other object." }
+                    },
+                    {
+                      value: "ORGANIC_AND_INORGANIC",
+                      text: "Organic and inorganic",
+                      checked: formValues.typeOfFind === "ORGANIC_AND_INORGANIC"
+                    },
+                    { divider: "or" },
+                    {
+                      value: "NOT_KNOWN",
+                      text: "Not known",
+                      checked: formValues.typeOfFind === "NOT_KNOWN"
+                    }
+                  ]
+                })
+              }
+            }
+          ]
+        }) }}
 
-      <a class="govuk-link" href="/prisoner/{{ prisonerNumber }}/scans">Cancel</a>
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Save",
+            preventDoubleClick: true
+          }) }}
+
+          <a href="/prisoner/{{ prisoner.prisonerNumber }}/scans" class="govuk-link">Cancel</a>
+        </div>
+
+      </form>
+
     </div>
-
-  </form>
+  </div>
 
 {% endblock %}

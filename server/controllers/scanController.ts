@@ -1,10 +1,14 @@
 import type { Request, Response } from 'express'
 
+import logger from '../../logger'
+import { formatDisplayDate, formatIsoDate } from '../utils/dates'
+import type { ZodErrorTree } from '../forms/formErrors'
+import { createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
+import type { PrisonUser } from '../interfaces/hmppsUser'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest } from '../data/interfaces/xrayBodyScansApiClient'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
-import { formatDisplayDate, formatIsoDate } from '../utils/dates'
 
 const dayMillis = 24 * 60 * 60 * 1000
 
@@ -65,81 +69,88 @@ export default class ScanController {
   }
 
   async getCreateScan(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = res.locals.prisoner
-    const { username } = res.locals.user
+    const { prisoner, user } = res.locals
 
     await this.auditService.logPageView(Page.CREATE_SCAN, {
-      who: username,
-      subjectId: prisonerNumber,
+      who: user.username,
+      subjectId: prisoner.prisonerNumber,
       subjectType: 'PRISONER_ID',
       correlationId: req.id,
     })
+
+    this.renderCreateScanForm(req, res)
+  }
+
+  private renderCreateScanForm<T>(req: Request, res: Response, errors?: ZodErrorTree<T>): void {
+    const { prisoner } = res.locals
 
     const today = new Date()
     const yesterday = new Date(today.getTime() - dayMillis)
 
     res.render('pages/createScan', {
-      prisonerNumber,
+      prisoner,
       today: formatDisplayDate(today),
       yesterday: formatDisplayDate(yesterday),
+      errors,
+      formValues: errors ? req.body : undefined,
     })
   }
 
   async postCreateScan(req: Request, res: Response): Promise<void> {
     const { prisonerNumber } = res.locals.prisoner
-    const {
-      scanDateOption,
-      'scanDate-day': day,
-      'scanDate-month': month,
-      'scanDate-year': year,
-      scanResult,
-      itemType,
-    } = req.body as {
-      scanDateOption: string
-      'scanDate-day': string
-      'scanDate-month': string
-      'scanDate-year': string
-      scanResult: string
-      itemType?: string
+    const { username, activeCaseLoadId } = res.locals.user as PrisonUser
+
+    const result = createScanForm.safeParse(req.body)
+    if (!result.success) {
+      const errors = treeifyCreateScanFormErrors(result.error)
+      this.renderCreateScanForm(req, res, errors)
+      return
     }
 
-    let scanDateValue: string
-    if (scanDateOption === 'today') {
-      scanDateValue = formatIsoDate(new Date())
-    } else if (scanDateOption === 'yesterday') {
-      scanDateValue = formatIsoDate(new Date(Date.now() - dayMillis))
-    } else {
-      scanDateValue = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-    }
-
-    const { username } = res.locals.user
     const createScanRequest: CreateScanRequest = {
-      scanDate: scanDateValue,
-      // TODO: add prisoner search service to look this up
-      prisonId: 'TODO',
-      // TODO: the record-scan form does not currently collect a justification, but the API requires one
-      justification: 'REASONABLE_SUSPICION',
-      outcome: scanResult,
-      typeOfFind: itemType ?? null,
+      ...result.data,
+      prisonId: activeCaseLoadId!,
       createdBy: username,
     }
-    const createScanResponse = await this.xrayBodyScansApiClient.createScan(prisonerNumber, createScanRequest, username)
-    res.redirect(
-      `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
-    )
+
+    try {
+      const createScanResponse = await this.xrayBodyScansApiClient.createScan(
+        prisonerNumber,
+        createScanRequest,
+        username,
+      )
+      logger.info(`Scan ${createScanResponse.id} recorded`)
+
+      // TODO: confirm required audit event info
+      await this.auditService.logAuditEvent({
+        what: 'CREATE_XRAY_BODY_SCAN',
+        who: username,
+        subjectId: prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+        details: { scanId: createScanResponse.id },
+      })
+
+      res.redirect(
+        `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
+      )
+    } catch (error) {
+      logger.error(error)
+      this.renderCreateScanForm(req, res, { errors: ['The details could not be recorded. Try again later'] })
+    }
   }
 
   async getCreateScanSuccess(req: Request, res: Response): Promise<void> {
-    const { prisonerNumber } = res.locals.prisoner
+    const { prisoner } = res.locals
     const { username } = res.locals.user
 
     await this.auditService.logPageView(Page.CREATE_SCAN_SUCCESS, {
       who: username,
-      subjectId: prisonerNumber,
+      subjectId: prisoner.prisonerNumber,
       subjectType: 'PRISONER_ID',
       correlationId: req.id,
     })
 
-    res.render('pages/createScanSuccess', { prisonerNumber })
+    res.render('pages/createScanSuccess', { prisoner })
   }
 }
