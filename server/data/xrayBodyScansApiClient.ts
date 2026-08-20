@@ -92,6 +92,22 @@ export class XrayBodyScansApiClient extends RestClient {
     ).then(convertRawScanSummaryResponse)
   }
 
+  async getScan(id: string, username: string): Promise<ScanResponse | null> {
+    const scan = await this.get<RawScanResponse | null>(
+      {
+        path: `/scans/${id}`,
+        errorHandler: (path, method, error) => {
+          if (error?.responseStatus === 404) {
+            return null
+          }
+          return this.handleError(path, method, error)
+        },
+      },
+      asSystem(username),
+    )
+    return scan ? convertRawScanResponse(scan) : null
+  }
+
   listScans(
     prisonerNumber: string,
     request: ListScansRequest,
