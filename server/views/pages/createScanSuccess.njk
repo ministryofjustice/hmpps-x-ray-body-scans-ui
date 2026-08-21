@@ -1,55 +1,77 @@
 {% extends "partials/layout.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/panel/macro.njk" import govukPanel %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-{% from "govuk/components/tag/macro.njk" import govukTag %}
-{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "macros/resultTag.njk" import resultTag %}
 
 {% set pageTitle = applicationName + " – Scan recorded" %}
 
 {% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
 
-  {{ govukPanel({
-    titleText: "Scan recorded",
-    html: "TODO"
-  }) }}
+      {% set prisonerDetailsHtml %}
+        <div class="govuk-!-font-size-48">
+          <strong>Name:</strong> {{ prisoner.displayName }}
+          <br />
+          <strong>Prison number:</strong> {{ prisoner.prisonerNumber }}
+        </div>
+      {% endset %}
+      {{ govukPanel({
+        titleText: "Scan recorded",
+        html: prisonerDetailsHtml
+      }) }}
 
-  <h2 class="govuk-heading-m">Scan details</h2>
+      <h2 class="govuk-heading-m">Scan details</h2>
 
-  {{ govukSummaryList({
-    rows: [
-      {
-        key: { text: "Date" },
-        value: { text: "TODO" }
-      },
-      {
-        key: { text: "Reason" },
-        value: { text: "TODO" }
-      },
-      {
-        key: { text: "Result" },
-        value: { html: govukTag({ text: "TODO", classes: "govuk-tag--red" }) }
-      },
-      {
-        key: { text: "Items found" },
-        value: { text: "TODO" }
-      }
-    ]
-  }) }}
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: { text: "Date" },
+            value: { text: scan.scanDate | formatDisplayDate }
+          },
+          {
+            key: { text: "Reason" },
+            value: { text: scan.justificationDescription }
+          },
+          {
+            key: { text: "Result" },
+            value: { html: resultTag(scan) }
+          },
+          {
+            key: { text: "Items found" },
+            value: { text: scan.typeOfFindDescription or "None" }
+          }
+        ]
+      }) }}
 
-  <p>TODO: content, conditional rendering + links</p>
+      {#
+      <p>An internal secretor alert already exists for this person.</p>
+      <p>Update the alert if this scan changes the level of risk, <a href="#">Update internal secretor alert</a>.</p>
+      #}
 
-  {{ govukButton({
-    text: "Add a case note",
-    classes: "govuk-button--secondary",
-    href: "TODO"
-  }) }}
+      {#
+      <p>An internal secretor alert has been added to this person’s profile.</p>
+      #}
 
-  <div class="govuk-button-group">
-    {{ govukButton({
-      text: "Return to body scans",
-      href: "/prisoner/" + prisoner.prisonerNumber + "/scans"
-    }) }}
-    <a class="govuk-link" href="{{ prisoner | prisonerProfileUrl }}">View this person’s profile</a>
+      {#
+      <p>You can create a case note if you need to record additional information about this scan.</p>
+      {{ govukButton({
+        text: "Add a case note",
+        classes: "govuk-button--secondary",
+        href: "TODO"
+      }) }}
+      #}
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Return to body scans",
+          href: "/prisoner/" + prisoner.prisonerNumber + "/scans"
+        }) }}
+        <a class="govuk-link" href="{{ prisoner | prisonerProfileUrl }}">View this person’s profile</a>
+      </div>
+
+    </div>
   </div>
-
 {% endblock %}

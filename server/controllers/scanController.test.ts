@@ -6,9 +6,9 @@ import { pageResponse } from '../testutils/pagination'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
 import { mockScanResponse, mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApiClient'
+import HmppsAuditClient from '../data/hmppsAuditClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
-import HmppsAuditClient from '../data/hmppsAuditClient'
 import ScanController from './scanController'
 
 jest.mock('../../logger')
@@ -98,11 +98,11 @@ describe('getScanList', () => {
         noItemsDetectedCount: 2,
         rawScanRows: [
           expect.objectContaining({
-            date: '24 July 2026',
-            establishment: 'LEI',
-            reason: 'Reasonable suspicion',
-            result: 'Item detected',
-            itemsFound: 'Organic',
+            scanDateDescription: '24 July 2026',
+            prisonDescription: 'LEI',
+            justificationDescription: 'Reasonable suspicion',
+            outcomeDescription: 'Item detected',
+            typeOfFindDescription: 'Organic',
           }),
         ],
       }),
@@ -200,7 +200,7 @@ describe('postCreateScan', () => {
       expectedScanDate: '2026-07-21',
     },
   ])('creates $scenario and redirects to the success page', async ({ body, expectedScanDate }) => {
-    const createdScan = {
+    const scan = {
       ...mockScanResponse(prisonerNumber, yesterday),
       justification: body.justification,
       justificationDescription: body.justification,
@@ -209,7 +209,7 @@ describe('postCreateScan', () => {
       typeOfFind: body.typeOfFind ?? null,
       typeOfFindDescription: body.typeOfFind ?? null,
     }
-    xrayBodyScansApiClient.createScan.mockResolvedValueOnce(createdScan)
+    xrayBodyScansApiClient.createScan.mockResolvedValueOnce(scan)
 
     req.body = body
 
@@ -226,18 +226,22 @@ describe('postCreateScan', () => {
       }),
       username,
     )
-    expect(res.redirect).toHaveBeenCalledWith(
-      `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createdScan.id}&scanDate=2026-07-23`,
-    )
-    expect(res.render).not.toHaveBeenCalled()
-    expect(logger.info).toHaveBeenCalledWith(`Scan ${createdScan.id} recorded`)
+    expect(res.render).toHaveBeenCalledWith('pages/createScanSuccess', { prisoner, scan })
+    expect(res.redirect).not.toHaveBeenCalled()
+    expect(logger.info).toHaveBeenCalledWith(`Scan ${scan.id} recorded`)
     expect(auditService.logAuditEvent).toHaveBeenCalledWith({
       what: 'CREATE_XRAY_BODY_SCAN',
       who: username,
       subjectId: prisonerNumber,
       subjectType: 'PRISONER_ID',
       correlationId: req.id,
-      details: { scanId: createdScan.id },
+      details: { scanId: scan.id },
+    })
+    expect(auditService.logPageView).toHaveBeenCalledWith(Page.CREATE_SCAN_SUCCESS, {
+      who: username,
+      subjectId: prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId,
     })
   })
 
@@ -324,19 +328,5 @@ describe('postCreateScan', () => {
     expect(res.redirect).not.toHaveBeenCalled()
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ responseStatus: 500 }))
     expect(auditService.logAuditEvent).not.toHaveBeenCalled()
-  })
-})
-
-describe('getCreateScanSuccess', () => {
-  it('logs a page view and renders the success page', async () => {
-    await scanController.getCreateScanSuccess(req, res)
-
-    expect(auditService.logPageView).toHaveBeenCalledWith(Page.CREATE_SCAN_SUCCESS, {
-      who: username,
-      subjectId: prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId,
-    })
-    expect(res.render).toHaveBeenCalledWith('pages/createScanSuccess', { prisoner })
   })
 })

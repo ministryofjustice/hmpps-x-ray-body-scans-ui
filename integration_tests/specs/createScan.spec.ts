@@ -71,9 +71,9 @@ test.describe('Create scan page', () => {
     const response: ScanResponse = {
       ...mockScanResponse(prisonerNumber, now),
       justification: 'INTELLIGENCE',
-      justificationDescription: 'INTELLIGENCE',
+      justificationDescription: 'Intelligence-led',
       outcome: 'NEGATIVE',
-      outcomeDescription: 'NEGATIVE',
+      outcomeDescription: 'Negative',
       typeOfFind: null,
       typeOfFindDescription: null,
     }
@@ -91,7 +91,15 @@ test.describe('Create scan page', () => {
     )
 
     await createScanPage.saveButton.click()
-    await CreateScanSuccessPage.verifyOnPage(page)
+
+    const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
+    await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
+    await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
+      { key: 'Date', value: expect.stringContaining(String(now.getFullYear())) },
+      { key: 'Reason', value: 'Intelligence-led' },
+      { key: 'Result', value: 'Negative' },
+      { key: 'Items found', value: 'None' },
+    ])
   })
 
   test('Can record a positive scan on another date', async ({ page }) => {
@@ -129,11 +137,11 @@ test.describe('Create scan page', () => {
     const response: ScanResponse = {
       ...mockScanResponse(prisonerNumber, yesterday),
       justification: 'REASONABLE_SUSPICION',
-      justificationDescription: 'REASONABLE_SUSPICION',
+      justificationDescription: 'Reasonable suspicion',
       outcome: 'POSITIVE',
-      outcomeDescription: 'POSITIVE',
+      outcomeDescription: 'Positive',
       typeOfFind: 'INORGANIC',
-      typeOfFindDescription: 'INORGANIC',
+      typeOfFindDescription: 'Inorganic',
     }
     await xrayBodyScansApi.stubCreateScan(
       prisonerNumber,
@@ -149,7 +157,15 @@ test.describe('Create scan page', () => {
     )
 
     await createScanPage.saveButton.click()
-    await CreateScanSuccessPage.verifyOnPage(page)
+
+    const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
+    await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
+    await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
+      { key: 'Date', value: expect.stringContaining(String(yesterday.getFullYear())) },
+      { key: 'Reason', value: 'Reasonable suspicion' },
+      { key: 'Result', value: 'Positive' },
+      { key: 'Items found', value: 'Inorganic' },
+    ])
   })
 
   test('Shows an error message when one required field was not selected', async ({ page }) => {

@@ -23,11 +23,4 @@ export default class CreateScanPage extends AbstractPage {
   typeScanDateComponent(label: string, text: string): Promise<void> {
     return this.page.getByLabel(label, { exact: true }).fill(text)
   }
-
-  getFormValues<T = Record<string, string>>(): Promise<T> {
-    return this.page.locator('form').evaluate<T, void, HTMLFormElement>(form => {
-      const data = new FormData(form)
-      return Object.fromEntries(data.entries()) as T
-    })
-  }
 }
