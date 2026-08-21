@@ -2,6 +2,7 @@ import nock from 'nock'
 import type { Interceptor } from 'nock'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
+import { internalServerErrorResponse, notFoundErrorResponse } from '../testutils/mocks/errorResponse'
 import { convertRawScanResponse, convertRawScanSummaryResponse, XrayBodyScansApiClient } from './xrayBodyScansApiClient'
 import type {
   CreateScanRequest,
@@ -160,6 +161,27 @@ describe('X-ray body scans API client', () => {
 
       const response = await xrayBodyScansApiClient.getScanSummary(prisonerNumber, { includeAlerts }, username)
       expect(response.fromScanDate).toBeInstanceOf(Date)
+    })
+  })
+
+  describe('getScan', () => {
+    it('should return a scan', async () => {
+      nock(config.apis.xrayBodyScansApi.url)
+        .get(`/scans/${sampleId}`)
+        .reply(200, { ...scanResponse, scanDate: scanDateString, createdAt: nowString, lastModifiedAt: nowString })
+      const response = await xrayBodyScansApiClient.getScan(sampleId, username)
+      expect(response).toEqual(scanResponse)
+    })
+
+    it('should return null instead of a 404', async () => {
+      nock(config.apis.xrayBodyScansApi.url).get(`/scans/${sampleId}`).reply(404, notFoundErrorResponse)
+      const response = await xrayBodyScansApiClient.getScan(sampleId, username)
+      expect(response).toBeNull()
+    })
+
+    it('should throw for non-404 errors', async () => {
+      nock(config.apis.xrayBodyScansApi.url).get(`/scans/${sampleId}`).times(5).reply(500, internalServerErrorResponse)
+      await expect(xrayBodyScansApiClient.getScan(sampleId, username)).rejects.toThrow('Internal Server Error')
     })
   })
 

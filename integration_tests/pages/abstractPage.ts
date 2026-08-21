@@ -22,6 +22,13 @@ export default class AbstractPage {
     return this.signoutLink.first().click()
   }
 
+  getFormValues<T = Record<string, string>>(): Promise<T> {
+    return this.page.locator('form').evaluate<T, void, HTMLFormElement>(form => {
+      const data = new FormData(form)
+      return Object.fromEntries(data.entries()) as T
+    })
+  }
+
   protected expectHeading(text: string): Promise<void> {
     return expect(this.page.getByRole('heading', { name: text })).toBeVisible()
   }

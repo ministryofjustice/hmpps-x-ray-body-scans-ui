@@ -38,6 +38,21 @@ export default {
     })
   },
 
+  stubGetScan(id: string, response: ScanResponse | ErrorResponse) {
+    const jsonBody = 'userMessage' in response ? response : scanToRawScan(response)
+    return stubFor({
+      request: {
+        method: 'GET',
+        urlPath: `/xray-body-scans-api/scans/${id}`,
+      },
+      response: {
+        status: 'userMessage' in response ? response.status : 200,
+        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+        jsonBody,
+      },
+    })
+  },
+
   stubListScans(
     prisonerNumber: string,
     response: PageResponse<ScanResponse | LegacyScanResponse> | ErrorResponse = emptyPageResponse(),

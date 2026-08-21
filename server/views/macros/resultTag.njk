@@ -1,0 +1,14 @@
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{# Result of ScanResponse or LegacyScanResponse details #}
+{% macro resultTag(scan) %}
+  {% if scan.outcome === "NEGATIVE" %}
+    {{ govukTag({ text: scan.outcomeDescription, classes: "govuk-tag--blue" }) }}
+  {% elseif scan.outcome === "INCONCLUSIVE" %}
+    {{ govukTag({ text: scan.outcomeDescription, classes: "govuk-tag--grey" }) }}
+  {% elseif scan.outcome === "POSITIVE" %}
+    {{ govukTag({ text: scan.outcomeDescription, classes: "govuk-tag--red" }) }}
+  {% elseif scan.scanDetails %}
+    {{ scan.scanDetails }}
+  {% endif %}
+{% endmacro %}

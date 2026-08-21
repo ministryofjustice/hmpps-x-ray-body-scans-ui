@@ -108,3 +108,18 @@ export function mockScanSummaryResponse({
     toScanDate: today,
   }
 }
+
+export const mockInternalSecretorAlert: AlertResponse = {
+  id: '44ed8220-a899-4847-93de-95e1ffae2997',
+  type: 'X',
+  typeDescription: 'Security',
+  code: 'XIS',
+  codeDescription: 'Internal Secretor',
+}
+export const mockDoNotScanAlert: AlertResponse = {
+  id: '5a2d75f1-25ff-43b6-96a2-cf8d82e2e14e',
+  type: 'X',
+  typeDescription: 'Security',
+  code: 'XXRAY',
+  codeDescription: 'Do Not X-Ray Body Scan',
+}

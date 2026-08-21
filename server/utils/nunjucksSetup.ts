@@ -5,6 +5,7 @@ import express from 'express'
 import nunjucks from 'nunjucks'
 import config from '../config'
 import logger from '../../logger'
+import { formatDisplayDate } from './dates'
 import { initialiseName } from './utils'
 import type { Prisoner } from '../data/interfaces/prisonerSearchApiClient'
 import { errorMessageForField, errorSummary } from '../forms/formErrors'
@@ -53,4 +54,5 @@ export default function nunjucksSetup(app: express.Express): void {
     'prisonerProfileUrl',
     (prisoner: Prisoner) => `${config.serviceUrls.prisonerProfile}/prisoner/${prisoner.prisonerNumber}`,
   )
+  njkEnv.addFilter('formatDisplayDate', formatDisplayDate)
 }

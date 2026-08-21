@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express'
 
 import logger from '../../logger'
-import { formatDisplayDate, formatIsoDate } from '../utils/dates'
+import { formatDisplayDate } from '../utils/dates'
 import type { ZodErrorTree } from '../forms/formErrors'
 import { createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
 import type { PrisonUser } from '../interfaces/hmppsUser'
+import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import type { CreateScanRequest } from '../data/interfaces/xrayBodyScansApiClient'
+import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApiClient'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 
@@ -21,6 +22,8 @@ export default class ScanController {
   async getScanList(req: Request, res: Response): Promise<void> {
     const { prisonerNumber } = res.locals.prisoner
     const { username } = res.locals.user
+
+    // TODO: determine if user can see list
 
     await this.auditService.logPageView(Page.SCAN_LIST, {
       who: username,
@@ -39,18 +42,14 @@ export default class ScanController {
     const rawScanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'
         ? {
-            source: scan.source,
-            date: scan.scanDate ? formatDisplayDate(scan.scanDate) : 'Not recorded',
-            result: scan.scanDetails || 'Not recorded',
+            ...scan,
+            scanDateDescription: scan.scanDate ? formatDisplayDate(scan.scanDate) : 'Not recorded',
             action: null,
           }
         : {
-            source: scan.source,
-            date: formatDisplayDate(scan.scanDate),
-            establishment: scan.prisonId,
-            reason: scan.justificationDescription,
-            result: scan.outcomeDescription,
-            itemsFound: scan.typeOfFindDescription ?? 'None',
+            ...scan,
+            scanDateDescription: formatDisplayDate(scan.scanDate),
+            prisonDescription: scan.prisonId, // TODO: lookup in prison-register or prison-api
             action: 'TODO: link based on scan.caseNoteId',
           },
     )
@@ -70,6 +69,8 @@ export default class ScanController {
 
   async getCreateScan(req: Request, res: Response): Promise<void> {
     const { prisoner, user } = res.locals
+
+    // TODO: determine if user can create scan
 
     await this.auditService.logPageView(Page.CREATE_SCAN, {
       who: user.username,
@@ -99,6 +100,8 @@ export default class ScanController {
   async postCreateScan(req: Request, res: Response): Promise<void> {
     const { prisonerNumber } = res.locals.prisoner
     const { username, activeCaseLoadId } = res.locals.user as PrisonUser
+
+    // TODO: determine if user can create scan
 
     const result = createScanForm.safeParse(req.body)
     if (!result.success) {
@@ -131,18 +134,23 @@ export default class ScanController {
         details: { scanId: createScanResponse.id },
       })
 
-      res.redirect(
-        `/prisoner/${prisonerNumber}/record-scan/success?scanId=${createScanResponse.id}&scanDate=${formatIsoDate(createScanResponse.scanDate)}`,
-      )
+      await this.renderCreateScanSuccess(req, res, createScanResponse)
     } catch (error) {
       logger.error(error)
       this.renderCreateScanForm(req, res, { errors: ['The details could not be recorded. Try again later'] })
     }
   }
 
-  async getCreateScanSuccess(req: Request, res: Response): Promise<void> {
+  private async renderCreateScanSuccess(req: Request, res: Response, scan: ScanResponse): Promise<void> {
     const { prisoner } = res.locals
     const { username } = res.locals.user
+
+    const { relevantAlerts } = await this.xrayBodyScansApiClient.getScanSummary(
+      prisoner.prisonerNumber,
+      { includeAlerts: true },
+      username,
+    )
+    const internalSecretorAlert = relevantAlerts.find(alert => alert.code === internalSecretorCode)
 
     await this.auditService.logPageView(Page.CREATE_SCAN_SUCCESS, {
       who: username,
@@ -151,6 +159,11 @@ export default class ScanController {
       correlationId: req.id,
     })
 
-    res.render('pages/createScanSuccess', { prisoner })
+    res.render('pages/createScanSuccess', {
+      prisoner,
+      scan,
+      internalSecretorAlert,
+      internalSecretorAlertCreated: false,
+    })
   }
 }

@@ -17,7 +17,6 @@ export default function scanRouter(xrayBodyScansApiClient: XrayBodyScansApiClien
   router.get('/scans', (req, res, next) => scanController.getScanList(req, res).catch(next))
   router.get('/record-scan', (req, res, next) => scanController.getCreateScan(req, res).catch(next))
   router.post('/record-scan', (req, res, next) => scanController.postCreateScan(req, res).catch(next))
-  router.get('/record-scan/success', (req, res, next) => scanController.getCreateScanSuccess(req, res).catch(next))
 
   return router
 }
