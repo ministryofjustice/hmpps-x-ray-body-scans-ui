@@ -1,8 +1,8 @@
 import type { SuperAgentRequest } from 'superagent'
 import { stubFor, stubPing } from './wiremock'
 import type { ErrorResponse } from '../../server/data/interfaces/errorResponse'
-import type { Prisoner } from '../../server/data/interfaces/prisonerSearchApiClient'
-import { mockPrisoner } from '../../server/testutils/mocks/prisonerSearchApiClient'
+import type { Prisoner } from '../../server/data/interfaces/prisonerSearchApi'
+import { mockPrisoner } from '../../server/testutils/mocks/prisonerSearchApi'
 
 export default {
   stubPing: (httpStatus = 200): SuperAgentRequest => stubPing('/prisoner-search', httpStatus),

@@ -7,7 +7,7 @@ import { createScanForm, treeifyCreateScanFormErrors } from '../forms/createScan
 import type { PrisonUser } from '../interfaces/hmppsUser'
 import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApiClient'
+import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 

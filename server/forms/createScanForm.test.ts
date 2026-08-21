@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { justifications, outcomes, typesOfFind } from '../data/interfaces/xrayBodyScansApiClient'
+import { justifications, outcomes, typesOfFind } from '../data/interfaces/xrayBodyScansApi'
 import { fixedClock } from '../testutils/fixedClock'
 import { createScanForm, treeifyCreateScanFormErrors } from './createScanForm'
 

@@ -1,6 +1,6 @@
 import * as z from 'zod'
 import { formatIsoDate } from '../utils/dates'
-import { justifications, outcomes, typesOfFind } from '../data/interfaces/xrayBodyScansApiClient'
+import { justifications, outcomes, typesOfFind } from '../data/interfaces/xrayBodyScansApi'
 import type { ZodErrorTree } from './formErrors'
 
 const dayMillis = 24 * 60 * 60 * 1000

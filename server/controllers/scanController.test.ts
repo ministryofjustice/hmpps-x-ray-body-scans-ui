@@ -4,13 +4,13 @@ import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now, yesterday } from '../testutils/fixedClock'
 import { pageResponse } from '../testutils/pagination'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
-import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
   mockScanResponse,
   mockScanSummaryResponse,
-} from '../testutils/mocks/xrayBodyScansApiClient'
+} from '../testutils/mocks/xrayBodyScansApi'
 import HmppsAuditClient from '../data/hmppsAuditClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'

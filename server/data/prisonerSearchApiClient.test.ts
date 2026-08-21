@@ -3,7 +3,7 @@ import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients
 import config from '../config'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../testutils/mocks/errorResponse'
 import { PrisonerSearchApiClient } from './prisonerSearchApiClient'
-import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 
 describe('Prisoner search API client', () => {
   let prisonerSearchApiClient: PrisonerSearchApiClient
