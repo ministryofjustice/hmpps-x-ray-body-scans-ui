@@ -5,6 +5,7 @@ import { formatDisplayDate } from '../utils/dates'
 import type { ZodErrorTree } from '../forms/formErrors'
 import { createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
 import type { PrisonUser } from '../interfaces/hmppsUser'
+import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApiClient'
 import type AuditService from '../services/auditService'
@@ -144,6 +145,13 @@ export default class ScanController {
     const { prisoner } = res.locals
     const { username } = res.locals.user
 
+    const { relevantAlerts } = await this.xrayBodyScansApiClient.getScanSummary(
+      prisoner.prisonerNumber,
+      { includeAlerts: true },
+      username,
+    )
+    const internalSecretorAlert = relevantAlerts.find(alert => alert.code === internalSecretorCode)
+
     await this.auditService.logPageView(Page.CREATE_SCAN_SUCCESS, {
       who: username,
       subjectId: prisoner.prisonerNumber,
@@ -151,6 +159,11 @@ export default class ScanController {
       correlationId: req.id,
     })
 
-    res.render('pages/createScanSuccess', { prisoner, scan })
+    res.render('pages/createScanSuccess', {
+      prisoner,
+      scan,
+      internalSecretorAlert,
+      internalSecretorAlertCreated: false,
+    })
   }
 }

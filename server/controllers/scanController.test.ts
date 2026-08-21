@@ -5,7 +5,12 @@ import { fixedClock, now, yesterday } from '../testutils/fixedClock'
 import { pageResponse } from '../testutils/pagination'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
-import { mockScanResponse, mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApiClient'
+import {
+  mockDoNotScanAlert,
+  mockInternalSecretorAlert,
+  mockScanResponse,
+  mockScanSummaryResponse,
+} from '../testutils/mocks/xrayBodyScansApiClient'
 import HmppsAuditClient from '../data/hmppsAuditClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
@@ -199,7 +204,7 @@ describe('postCreateScan', () => {
       },
       expectedScanDate: '2026-07-21',
     },
-  ])('creates $scenario and redirects to the success page', async ({ body, expectedScanDate }) => {
+  ])('creates $scenario and shows the success page', async ({ body, expectedScanDate }) => {
     const scan = {
       ...mockScanResponse(prisonerNumber, yesterday),
       justification: body.justification,
@@ -210,6 +215,9 @@ describe('postCreateScan', () => {
       typeOfFindDescription: body.typeOfFind ?? null,
     }
     xrayBodyScansApiClient.createScan.mockResolvedValueOnce(scan)
+    xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
+      mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+    )
 
     req.body = body
 
@@ -226,7 +234,20 @@ describe('postCreateScan', () => {
       }),
       username,
     )
-    expect(res.render).toHaveBeenCalledWith('pages/createScanSuccess', { prisoner, scan })
+    expect(xrayBodyScansApiClient.getScanSummary).toHaveBeenCalledWith(
+      prisoner.prisonerNumber,
+      { includeAlerts: true },
+      username,
+    )
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/createScanSuccess',
+      expect.objectContaining({
+        prisoner,
+        scan,
+        internalSecretorAlert: undefined,
+        internalSecretorAlertCreated: false,
+      }),
+    )
     expect(res.redirect).not.toHaveBeenCalled()
     expect(logger.info).toHaveBeenCalledWith(`Scan ${scan.id} recorded`)
     expect(auditService.logAuditEvent).toHaveBeenCalledWith({
@@ -243,6 +264,32 @@ describe('postCreateScan', () => {
       subjectType: 'PRISONER_ID',
       correlationId,
     })
+  })
+
+  it('shows an update link if an internal secretor alert already exists', async () => {
+    xrayBodyScansApiClient.createScan.mockResolvedValueOnce(mockScanResponse(prisonerNumber, yesterday))
+    xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
+      mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert] }),
+    )
+
+    req.body = {
+      scanDateOption: 'yesterday',
+      justification: 'REASONABLE_SUSPICION' as const,
+      outcome: 'POSITIVE' as const,
+      typeOfFind: 'INORGANIC' as const,
+    }
+    await scanController.postCreateScan(req, res)
+
+    expect(xrayBodyScansApiClient.createScan).toHaveBeenCalled()
+    expect(xrayBodyScansApiClient.getScanSummary).toHaveBeenCalled()
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/createScanSuccess',
+      expect.objectContaining({
+        internalSecretorAlert: mockInternalSecretorAlert,
+        internalSecretorAlertCreated: false,
+      }),
+    )
+    expect(res.redirect).not.toHaveBeenCalled()
   })
 
   it.each([

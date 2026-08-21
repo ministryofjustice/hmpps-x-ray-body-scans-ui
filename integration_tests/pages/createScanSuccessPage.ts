@@ -21,6 +21,14 @@ export default class CreateScanSuccessPage extends AbstractPage {
       }),
     )
   }
+
+  get internalSecretorAlertCreatedNote(): Locator {
+    return this.page.getByText('An internal secretor alert has been added')
+  }
+
+  get updateInternalSecretorAlertLink(): Locator {
+    return this.page.getByText('Update internal secretor alert')
+  }
 }
 
 interface SummaryListItem {

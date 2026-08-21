@@ -46,14 +46,22 @@
         ]
       }) }}
 
-      {#
-      <p>An internal secretor alert already exists for this person.</p>
-      <p>Update the alert if this scan changes the level of risk, <a href="#">Update internal secretor alert</a>.</p>
-      #}
+      {% if internalSecretorAlert %}
 
-      {#
-      <p>An internal secretor alert has been added to this person’s profile.</p>
-      #}
+        <p>An internal secretor alert already exists for this person.</p>
+        {# TODO: what are the permissions rules to update an alert? #}
+        <p>
+          Update the alert if this scan changes the level of risk,
+          <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisoner.prisonerNumber }}/alerts/{{ internalSecretorAlert.id }}/add-more-details">
+            Update internal secretor alert
+          </a>.
+        </p>
+
+      {% elseif internalSecretorAlertCreated %}
+
+        <p>An internal secretor alert has been added to this person’s profile.</p>
+
+      {% endif %}
 
       {#
       <p>You can create a case note if you need to record additional information about this scan.</p>

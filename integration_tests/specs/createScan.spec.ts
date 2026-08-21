@@ -3,7 +3,12 @@ import { login, resetStubs } from '../testUtils'
 import { formatIsoDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApiClient'
 import { badRequestErrorResponse } from '../../server/testutils/mocks/errorResponse'
-import { mockScanResponse } from '../../server/testutils/mocks/xrayBodyScansApiClient'
+import {
+  mockDoNotScanAlert,
+  mockInternalSecretorAlert,
+  mockScanResponse,
+  mockScanSummaryResponse,
+} from '../../server/testutils/mocks/xrayBodyScansApiClient'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
@@ -77,22 +82,33 @@ test.describe('Create scan page', () => {
       typeOfFind: null,
       typeOfFindDescription: null,
     }
-    await xrayBodyScansApi.stubCreateScan(
-      prisonerNumber,
-      {
-        prisonId: 'LEI',
-        scanDate: formatIsoDate(now),
-        justification: 'INTELLIGENCE',
-        outcome: 'NEGATIVE',
-        typeOfFind: null,
-        createdBy: 'USER1',
-      },
-      response,
-    )
+    await Promise.all([
+      xrayBodyScansApi.stubCreateScan(
+        prisonerNumber,
+        {
+          prisonId: 'LEI',
+          scanDate: formatIsoDate(now),
+          justification: 'INTELLIGENCE',
+          outcome: 'NEGATIVE',
+          typeOfFind: null,
+          createdBy: 'USER1',
+        },
+        response,
+      ),
+      xrayBodyScansApi.stubGetScanSummary(
+        prisonerNumber,
+        mockScanSummaryResponse({
+          prisonerNumber,
+          now,
+          relevantAlerts: [],
+        }),
+      ),
+    ])
 
     await createScanPage.saveButton.click()
 
     const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
+
     await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
     await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
       { key: 'Date', value: expect.stringContaining(String(now.getFullYear())) },
@@ -100,6 +116,8 @@ test.describe('Create scan page', () => {
       { key: 'Result', value: 'Negative' },
       { key: 'Items found', value: 'None' },
     ])
+    await expect(createScanSuccessPage.internalSecretorAlertCreatedNote).not.toBeVisible()
+    await expect(createScanSuccessPage.updateInternalSecretorAlertLink).not.toBeVisible()
   })
 
   test('Can record a positive scan on another date', async ({ page }) => {
@@ -143,22 +161,33 @@ test.describe('Create scan page', () => {
       typeOfFind: 'INORGANIC',
       typeOfFindDescription: 'Inorganic',
     }
-    await xrayBodyScansApi.stubCreateScan(
-      prisonerNumber,
-      {
-        prisonId: 'LEI',
-        scanDate: yesterdayString,
-        justification: 'REASONABLE_SUSPICION',
-        outcome: 'POSITIVE',
-        typeOfFind: 'INORGANIC',
-        createdBy: 'USER1',
-      },
-      response,
-    )
+    await Promise.all([
+      xrayBodyScansApi.stubCreateScan(
+        prisonerNumber,
+        {
+          prisonId: 'LEI',
+          scanDate: yesterdayString,
+          justification: 'REASONABLE_SUSPICION',
+          outcome: 'POSITIVE',
+          typeOfFind: 'INORGANIC',
+          createdBy: 'USER1',
+        },
+        response,
+      ),
+      xrayBodyScansApi.stubGetScanSummary(
+        prisonerNumber,
+        mockScanSummaryResponse({
+          prisonerNumber,
+          now: new Date(),
+          relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert],
+        }),
+      ),
+    ])
 
     await createScanPage.saveButton.click()
 
     const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
+
     await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
     await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
       { key: 'Date', value: expect.stringContaining(String(yesterday.getFullYear())) },
@@ -166,6 +195,11 @@ test.describe('Create scan page', () => {
       { key: 'Result', value: 'Positive' },
       { key: 'Items found', value: 'Inorganic' },
     ])
+    await expect(createScanSuccessPage.internalSecretorAlertCreatedNote).not.toBeVisible()
+    await expect(createScanSuccessPage.updateInternalSecretorAlertLink).toHaveAttribute(
+      'href',
+      `http://localhost:9091/profile/prisoner/${prisonerNumber}/alerts/${mockInternalSecretorAlert.id}/add-more-details`,
+    )
   })
 
   test('Shows an error message when one required field was not selected', async ({ page }) => {
