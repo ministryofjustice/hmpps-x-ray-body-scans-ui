@@ -2,7 +2,7 @@ import { asSystem, RestClient } from '@ministryofjustice/hmpps-rest-client'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import logger from '../../logger'
-import type { Prisoner } from './interfaces/prisonerSearchApiClient'
+import type { Prisoner } from './interfaces/prisonerSearchApi'
 
 // eslint-disable-next-line import/prefer-default-export
 export class PrisonerSearchApiClient extends RestClient {

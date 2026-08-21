@@ -7,8 +7,8 @@ import AuditService from '../services/auditService'
 import HmppsAuditClient from '../data/hmppsAuditClient'
 import { PrisonerSearchApiClient } from '../data/prisonerSearchApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
-import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApiClient'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
+import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApi'
 
 jest.mock('../services/auditService')
 jest.mock('../data/prisonerSearchApiClient')

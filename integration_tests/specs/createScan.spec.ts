@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test'
 import { login, resetStubs } from '../testUtils'
 import { formatIsoDate } from '../../server/utils/dates'
-import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApiClient'
+import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { badRequestErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
   mockScanResponse,
   mockScanSummaryResponse,
-} from '../../server/testutils/mocks/xrayBodyScansApiClient'
+} from '../../server/testutils/mocks/xrayBodyScansApi'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'

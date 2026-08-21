@@ -1,4 +1,4 @@
-import type { Prisoner } from '../../data/interfaces/prisonerSearchApiClient'
+import type { Prisoner } from '../../data/interfaces/prisonerSearchApi'
 
 // eslint-disable-next-line import/prefer-default-export
 export function mockPrisoner(prisonerNumber: string, overrides?: Partial<Prisoner>): Prisoner {

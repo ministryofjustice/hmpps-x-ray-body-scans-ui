@@ -11,7 +11,7 @@ import type { PrisonUser, HmppsUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
 import HmppsAuditClient from '../../data/hmppsAuditClient'
 import createUserToken from '../../testutils/createUserToken'
-import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApiClient'
+import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApi'
 
 jest.mock('../../services/auditService')
 

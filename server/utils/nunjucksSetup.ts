@@ -7,7 +7,7 @@ import config from '../config'
 import logger from '../../logger'
 import { formatDisplayDate } from './dates'
 import { initialiseName } from './utils'
-import type { Prisoner } from '../data/interfaces/prisonerSearchApiClient'
+import type { Prisoner } from '../data/interfaces/prisonerSearchApi'
 import { errorMessageForField, errorSummary } from '../forms/formErrors'
 
 export default function nunjucksSetup(app: express.Express): void {
