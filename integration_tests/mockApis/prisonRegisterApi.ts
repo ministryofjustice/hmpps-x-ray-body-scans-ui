@@ -1,12 +1,12 @@
 import type { SuperAgentRequest } from 'superagent'
 import { stubFor, stubPing } from './wiremock'
 import type { Prison } from '../../server/data/interfaces/prisonRegisterApi'
-import { mockPrisonLEI, mockPrisonMDI } from '../../server/testutils/mocks/prisonRegister'
+import { mockPrisons } from '../../server/testutils/mocks/prisonRegister'
 
 export default {
   stubPing: (httpStatus = 200): SuperAgentRequest => stubPing('/prison-register', httpStatus),
 
-  stubAllPrisons: (prisons: Prison[] = [mockPrisonLEI, mockPrisonMDI]): SuperAgentRequest =>
+  stubAllPrisons: (prisons: Prison[] = mockPrisons): SuperAgentRequest =>
     stubFor({
       request: {
         method: 'GET',
