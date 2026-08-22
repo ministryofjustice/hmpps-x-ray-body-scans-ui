@@ -4,6 +4,7 @@ import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now, yesterday } from '../testutils/fixedClock'
 import { pageResponse } from '../testutils/pagination'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
+import { mockPrisonNamesImpl } from '../testutils/mocks/prisonService'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
@@ -11,17 +12,19 @@ import {
   mockScanResponse,
   mockScanSummaryResponse,
 } from '../testutils/mocks/xrayBodyScansApi'
-import HmppsAuditClient from '../data/hmppsAuditClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
+import { PrisonService } from '../services/prisonService'
 import ScanController from './scanController'
 
 jest.mock('../../logger')
 jest.mock('../services/auditService')
+jest.mock('../services/prisonService')
 jest.mock('../data/xrayBodyScansApiClient')
 
-const auditService = new AuditService({} as HmppsAuditClient) as jest.Mocked<AuditService>
-const xrayBodyScansApiClient = new XrayBodyScansApiClient(undefined as never) as jest.Mocked<XrayBodyScansApiClient>
+const auditService = jest.mocked(new AuditService({} as never))
+const prisonService = jest.mocked(new PrisonService({} as never, {} as never))
+const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as never))
 
 const prisonerNumber = 'A1234BC'
 const prisoner = mockPrisoner(prisonerNumber)
@@ -37,8 +40,8 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
-  scanController = new ScanController(xrayBodyScansApiClient, auditService)
-  auditService.logPageView.mockResolvedValue(undefined)
+  scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
+  prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
 
   req = {
     params: { prisonerNumber },

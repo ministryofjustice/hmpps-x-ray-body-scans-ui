@@ -1,12 +1,17 @@
 import { Router } from 'express'
 
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import ScanController from '../controllers/scanController'
 import type AuditService from '../services/auditService'
+import type { PrisonService } from '../services/prisonService'
+import ScanController from '../controllers/scanController'
 
-export default function scanRouter(xrayBodyScansApiClient: XrayBodyScansApiClient, auditService: AuditService): Router {
+export default function scanRouter(
+  auditService: AuditService,
+  prisonService: PrisonService,
+  xrayBodyScansApiClient: XrayBodyScansApiClient,
+): Router {
   const router = Router({ mergeParams: true })
-  const scanController = new ScanController(xrayBodyScansApiClient, auditService)
+  const scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
 
   router.get('/', (_req, res) => {
     const { prisonerNumber } = res.locals.prisoner

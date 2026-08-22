@@ -1,4 +1,4 @@
-import { asUser, RestClient } from '@ministryofjustice/hmpps-rest-client'
+import { asSystem, RestClient } from '@ministryofjustice/hmpps-rest-client'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import logger from '../../logger'
@@ -10,7 +10,7 @@ export class PrisonRegisterApiClient extends RestClient {
     super('Prison Register API', config.apis.prisonerSearchApi, logger, authenticationClient)
   }
 
-  getAllPrisons(token: string): Promise<readonly Prison[]> {
-    return this.get({ path: '/prisons' }, asUser(token))
+  getAllPrisons(): Promise<readonly Prison[]> {
+    return this.get({ path: '/prisons' }, asSystem('hmpps-x-ray-body-scans-ui'))
   }
 }

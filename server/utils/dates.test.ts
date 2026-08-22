@@ -41,3 +41,27 @@ describe('formatDisplayDate', () => {
     expect(formatDisplayDate(date)).toEqual(expected)
   })
 })
+
+// describe('today', () => {
+//   it.each([
+//     { now: '', expected: '' },
+//     { now: '', expected: '' },
+//     { now: '', expected: '' },
+//     { now: '', expected: '' },
+//   ])('should ', ({ now, expected }) => {
+//     jest.setSystemTime(new Date(now))
+//     expect(today()).toEqual(new Date(expected))
+//   })
+// })
+//
+// describe('yesterday', () => {
+//   it.each([
+//     { now: '', expected: '' },
+//     { now: '', expected: '' },
+//     { now: '', expected: '' },
+//     { now: '', expected: '' },
+//   ])('should ', ({ now, expected }) => {
+//     jest.setSystemTime(new Date(now))
+//     expect(yesterday()).toEqual(new Date(expected))
+//   })
+// })

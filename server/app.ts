@@ -51,6 +51,11 @@ export default function createApp(services: Services): express.Application {
   )
   app.use(retrieveCaseLoadData({ logger, prisonApiConfig: config.apis.prisonApi }))
 
+  app.use((_req, res, next) => {
+    res.removeHeader('content-security-policy')
+    next()
+  })
+
   app.use(addUserMetadataToLogs())
 
   app.use(routes(services))

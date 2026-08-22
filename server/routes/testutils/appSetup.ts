@@ -7,9 +7,9 @@ import nunjucksSetup from '../../utils/nunjucksSetup'
 import errorHandler from '../../errorHandler'
 import type { Services } from '../../services'
 import AuditService from '../../services/auditService'
+import { PrisonService } from '../../services/prisonService'
 import type { PrisonUser, HmppsUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
-import HmppsAuditClient from '../../data/hmppsAuditClient'
 import createUserToken from '../../testutils/createUserToken'
 import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApi'
 
@@ -86,7 +86,8 @@ function appSetup(services: Services, production: boolean, userSupplier: () => H
 export function appWithAllRoutes({
   production = false,
   services = {
-    auditService: new AuditService({} as HmppsAuditClient) as jest.Mocked<AuditService>,
+    auditService: jest.mocked(new AuditService({} as never)),
+    prisonService: jest.mocked(new PrisonService({} as never, {} as never)),
   },
   userSupplier = () => user,
 }: {

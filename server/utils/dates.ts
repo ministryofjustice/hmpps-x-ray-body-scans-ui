@@ -43,3 +43,18 @@ export function formatIsoDate(dateTime: Date | null | undefined): string | undef
 export function formatDisplayDate(dateTime: Date): string {
   return longDateFormatter.format(dateTime)
 }
+
+// /** Today at midday (could be in the future); midday to avoid clock changes/DST when formatting */
+// export function today(): Date {
+//   const date = new Date()
+//   date.setHours(12, 0, 0, 0)
+//   return date
+// }
+//
+// /** Yesterday at midday; midday to avoid clock changes/DST when formatting */
+// export function yesterday(): Date {
+//   const date = new Date()
+//   date.setDate(date.getDate() - 1)
+//   date.setHours(12, 0, 0, 0)
+//   return date
+// }

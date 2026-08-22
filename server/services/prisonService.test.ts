@@ -17,7 +17,7 @@ describe('PrisonService', () => {
 
   beforeEach(() => {
     redisClient = {
-      hGet: jest.fn(),
+      hmGet: jest.fn(),
       hSet: jest.fn(),
     } as unknown as jest.Mocked<RedisClientType>
 
@@ -26,32 +26,53 @@ describe('PrisonService', () => {
     } as unknown as AuthenticationClient
     prisonRegisterApiClient = jest.mocked(new PrisonRegisterApiClient(mockAuthenticationClient))
 
-    prisonService = new PrisonService(prisonRegisterApiClient, redisClient, 'token4')
+    prisonService = new PrisonService(prisonRegisterApiClient, redisClient)
   })
 
   afterEach(() => {
     jest.resetAllMocks()
   })
 
-  it('should lookup the name of a known prison from redis cache', async () => {
-    redisClient.hGet.mockResolvedValueOnce('Moorland (HMP & YOI)')
+  it('should fetch prisons from redis cache when available', async () => {
+    redisClient.hmGet.mockResolvedValueOnce(['Leeds (HMP & YOI)', 'Moorland (HMP & YOI)'])
 
-    await expect(prisonService.getPrisonName('MDI')).resolves.toEqual('Moorland (HMP & YOI)')
+    await expect(prisonService.getPrisonNames(['LEI', 'MDI'])).resolves.toEqual(
+      new Map([
+        ['LEI', 'Leeds (HMP & YOI)'],
+        ['MDI', 'Moorland (HMP & YOI)'],
+      ]),
+    )
 
-    expect(redisClient.hGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, 'MDI')
+    expect(redisClient.hmGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, ['LEI', 'MDI'])
     expect(prisonRegisterApiClient.getAllPrisons).not.toHaveBeenCalled()
     expect(redisClient.hSet).not.toHaveBeenCalled()
     expect(logger.error).not.toHaveBeenCalled()
   })
 
-  it('should lookup the name of a known prison from prison register when not in redis cache', async () => {
-    redisClient.hGet.mockResolvedValueOnce(null)
+  it.each([
+    {
+      scenario: 'cache is empty',
+      // simulate first lookup
+      redisCache: [null, null],
+    },
+    {
+      scenario: 'cache is missing an item',
+      // simulate a renamed and a new prison
+      redisCache: ['Leeds (HMP)', null],
+    },
+  ])('should refresh redis cache from prison register when $scenario', async ({ redisCache }) => {
+    redisClient.hmGet.mockResolvedValueOnce(redisCache)
     prisonRegisterApiClient.getAllPrisons.mockResolvedValueOnce([mockPrisonLEI, mockPrisonMDI])
 
-    await expect(prisonService.getPrisonName('MDI')).resolves.toEqual('Moorland (HMP & YOI)')
+    await expect(prisonService.getPrisonNames(['LEI', 'MDI'])).resolves.toEqual(
+      new Map([
+        ['LEI', 'Leeds (HMP & YOI)'],
+        ['MDI', 'Moorland (HMP & YOI)'],
+      ]),
+    )
 
-    expect(redisClient.hGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, 'MDI')
-    expect(prisonRegisterApiClient.getAllPrisons).toHaveBeenCalledWith('token4')
+    expect(redisClient.hmGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, ['LEI', 'MDI'])
+    expect(prisonRegisterApiClient.getAllPrisons).toHaveBeenCalledWith()
     expect(redisClient.hSet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, {
       LEI: 'Leeds (HMP & YOI)',
       MDI: 'Moorland (HMP & YOI)',
@@ -59,32 +80,56 @@ describe('PrisonService', () => {
     expect(logger.error).not.toHaveBeenCalled()
   })
 
-  it('should simply return prison ID when code was not found in prison register', async () => {
-    redisClient.hGet.mockResolvedValueOnce(null)
+  it('should return prison ID for those missing from cache and prison register', async () => {
+    redisClient.hmGet.mockResolvedValueOnce([null, 'Moorland (HMP & YOI)'])
     prisonRegisterApiClient.getAllPrisons.mockResolvedValueOnce([mockPrisonLEI, mockPrisonMDI])
 
-    await expect(prisonService.getPrisonName('BXI')).resolves.toEqual('BXI')
+    await expect(prisonService.getPrisonNames(['BXI', 'MDI'])).resolves.toEqual(
+      new Map([
+        ['BXI', 'BXI'],
+        ['MDI', 'Moorland (HMP & YOI)'],
+      ]),
+    )
 
-    expect(redisClient.hGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, 'BXI')
-    expect(prisonRegisterApiClient.getAllPrisons).toHaveBeenCalledWith('token4')
+    expect(redisClient.hmGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, ['BXI', 'MDI'])
+    expect(prisonRegisterApiClient.getAllPrisons).toHaveBeenCalledWith()
     expect(redisClient.hSet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, {
       LEI: 'Leeds (HMP & YOI)',
       MDI: 'Moorland (HMP & YOI)',
     })
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Prison “BXI” not found in prison register' }),
-    )
+    expect(logger.error).not.toHaveBeenCalled()
   })
 
-  it('should simply return prison ID when prison register returns an error', async () => {
-    redisClient.hGet.mockResolvedValueOnce(null)
+  it('should simply return all prison IDs when redis throws an error', async () => {
+    redisClient.hmGet.mockRejectedValueOnce(new Error('Disconnected'))
+
+    await expect(prisonService.getPrisonNames(['LEI', 'MDI'])).resolves.toEqual(
+      new Map([
+        ['LEI', 'LEI'],
+        ['MDI', 'MDI'],
+      ]),
+    )
+
+    expect(redisClient.hmGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, ['LEI', 'MDI'])
+    expect(prisonRegisterApiClient.getAllPrisons).not.toHaveBeenCalledWith()
+    expect(redisClient.hSet).not.toHaveBeenCalledWith()
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Disconnected' }))
+  })
+
+  it('should simply return all prison IDs when prison-register throws an error', async () => {
+    redisClient.hmGet.mockResolvedValueOnce([null, null])
     prisonRegisterApiClient.getAllPrisons.mockRejectedValueOnce(mockThrownError(internalServerErrorResponse))
 
-    await expect(prisonService.getPrisonName('BXI')).resolves.toEqual('BXI')
+    await expect(prisonService.getPrisonNames(['LEI', 'MDI'])).resolves.toEqual(
+      new Map([
+        ['LEI', 'LEI'],
+        ['MDI', 'MDI'],
+      ]),
+    )
 
-    expect(redisClient.hGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, 'BXI')
-    expect(prisonRegisterApiClient.getAllPrisons).toHaveBeenCalledWith('token4')
-    expect(redisClient.hSet).not.toHaveBeenCalled()
+    expect(redisClient.hmGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, ['LEI', 'MDI'])
+    expect(prisonRegisterApiClient.getAllPrisons).toHaveBeenCalledWith()
+    expect(redisClient.hSet).not.toHaveBeenCalledWith()
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Internal Server Error' }))
   })
 })

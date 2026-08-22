@@ -1,4 +1,5 @@
 import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
+import type { CaseLoad } from '@ministryofjustice/hmpps-connect-dps-components/dist/types/CaseLoad'
 import type { HmppsUser } from '../../interfaces/hmppsUser'
 import type { Prisoner } from '../../data/interfaces/prisonerSearchApi'
 
@@ -24,7 +25,12 @@ export declare global {
     }
 
     interface Locals {
-      user: HmppsUser
+      user: HmppsUser &
+        Partial<{
+          caseLoads: CaseLoad[]
+          activeCaseLoad: CaseLoad
+          activeCaseLoadId: string
+        }>
       prisoner: Prisoner & {
         displayName: string
         reversedDisplayName: string

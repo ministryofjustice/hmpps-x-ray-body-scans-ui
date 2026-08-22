@@ -14,6 +14,27 @@ export interface ListScansRequest extends PageRequest<'scanDate'> {
   toScanDate?: Date | undefined
 }
 
+/*
+interface BaseCreateScanRequest extends Record<string, unknown> {
+  createdBy: string
+  scanDate: string
+  prisonId: string
+  justification: Justification
+}
+
+export type CreateScanRequest = BaseCreateScanRequest &
+  (
+    | {
+        outcome: Exclude<Outcome, 'POSITIVE'>
+        typeOfFind?: null
+      }
+    | {
+        outcome: Extract<Outcome, 'POSITIVE'>
+        typeOfFind: TypeOfFind
+      }
+  )
+*/
+
 export interface CreateScanRequest extends Record<string, unknown> {
   scanDate: string
   prisonId: string
