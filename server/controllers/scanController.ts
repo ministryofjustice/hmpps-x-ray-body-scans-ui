@@ -44,7 +44,7 @@ export default class ScanController {
     )
     const prisonNames = await this.prisonService.getPrisonNames([...prisonIds])
 
-    const rawScanRows = scans.content.map(scan =>
+    const scanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'
         ? {
             ...scan,
@@ -68,7 +68,7 @@ export default class ScanController {
       noItemsDetectedCount: scanSummary.negativeCount,
       // TODO: Get scanAlerts from soon-to-be xrbs endpoint
       scanAlerts: ['Some alert', 'Some other alert'],
-      rawScanRows,
+      scanRows,
     })
   }
 

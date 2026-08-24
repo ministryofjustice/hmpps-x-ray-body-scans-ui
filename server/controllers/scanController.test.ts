@@ -104,7 +104,7 @@ describe('getScanList', () => {
         itemsDetectedCount: 1,
         inconclusiveCount: 3,
         noItemsDetectedCount: 2,
-        rawScanRows: [
+        scanRows: [
           expect.objectContaining({
             scanDateDescription: '24 July 2026',
             prisonDescription: 'Leeds (HMP & YOI)',

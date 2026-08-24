@@ -70,16 +70,18 @@
   <h3 class="govuk-heading-s">All scans</h3>
 
   {% set rows = [] %}
-  {% for scan in rawScanRows %}
-    {% set actionLink = { html: '<a class="govuk-link" href="#">' + scan.action + '</a>' } %}
-    {% set rows = (rows.push([
+  {% for scan in scanRows %}
+    {% set actionLink %}
+      <a class="govuk-link" href="#">{{ scan.action }}</a>
+    {% endset %}
+    {% set _ = rows.push([
       { text: scan.scanDateDescription },
       { text: scan.prisonDescription },
       { text: scan.justificationDescription },
       { html: resultTag(scan) },
       { text: scan.typeOfFindDescription },
-      actionLink
-    ]), rows) %}
+      { html: actionLink, classes: "scan-list-table__action-td" }
+    ]) %}
   {% endfor %}
 
   <p class="govuk-body">TODO show page / scan numbers</p>
@@ -89,11 +91,12 @@
       { text: "Date" },
       { text: "Establishment" },
       { text: "Reason" },
-      { text: "Result" },
+      { text: "Scan details", classes: "scan-list-table__details-th" },
       { text: "Items found" },
-      { text: "Action", format: "numeric" }
+      { text: "Action", classes: "scan-list-table__action-th" }
     ],
-    rows: rows
+    rows: rows,
+    classes: "scan-list-table"
   }) }}
 
   <p class="govuk-body">TODO show page / scan numbers</p>
