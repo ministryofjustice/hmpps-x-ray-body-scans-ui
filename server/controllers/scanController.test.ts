@@ -4,6 +4,7 @@ import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now, yesterday } from '../testutils/fixedClock'
 import { pageResponse } from '../testutils/pagination'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
+import { mockPrisonNamesImpl } from '../testutils/mocks/prisonService'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
@@ -13,13 +14,16 @@ import {
 } from '../testutils/mocks/xrayBodyScansApi'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
+import { PrisonService } from '../services/prisonService'
 import ScanController from './scanController'
 
 jest.mock('../../logger')
 jest.mock('../services/auditService')
+jest.mock('../services/prisonService')
 jest.mock('../data/xrayBodyScansApiClient')
 
 const auditService = jest.mocked(new AuditService({} as never))
+const prisonService = jest.mocked(new PrisonService({} as never, {} as never))
 const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as never))
 
 const prisonerNumber = 'A1234BC'
@@ -36,7 +40,8 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
-  scanController = new ScanController(xrayBodyScansApiClient, auditService)
+  scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
+  prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
 
   req = {
     params: { prisonerNumber },
@@ -102,7 +107,7 @@ describe('getScanList', () => {
         rawScanRows: [
           expect.objectContaining({
             scanDateDescription: '24 July 2026',
-            prisonDescription: 'LEI',
+            prisonDescription: 'Leeds (HMP & YOI)',
             justificationDescription: 'Reasonable suspicion',
             outcomeDescription: 'Item detected',
             typeOfFindDescription: 'Organic',

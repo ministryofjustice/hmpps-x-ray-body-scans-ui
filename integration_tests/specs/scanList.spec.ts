@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
+import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 
@@ -10,6 +11,7 @@ test.describe('Scan list page', () => {
   test.beforeEach(async () => {
     await Promise.all([
       microFrontendComponents.stubComponents(),
+      prisonRegisterApi.stubAllPrisons(),
       prisonerSearchApi.stubGetPrisoner(prisonerNumber),
       xrayBodyScansApi.stubGetScanSummary(prisonerNumber),
       xrayBodyScansApi.stubListScans(prisonerNumber),

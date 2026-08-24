@@ -10,13 +10,15 @@ import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
+import { PrisonService } from '../services/prisonService'
 
 const dayMillis = 24 * 60 * 60 * 1000
 
 export default class ScanController {
   constructor(
-    private readonly xrayBodyScansApiClient: XrayBodyScansApiClient,
     private readonly auditService: AuditService,
+    private readonly prisonService: PrisonService,
+    private readonly xrayBodyScansApiClient: XrayBodyScansApiClient,
   ) {}
 
   async getScanList(req: Request, res: Response): Promise<void> {
@@ -32,12 +34,15 @@ export default class ScanController {
       correlationId: req.id,
     })
 
-    const scanSummary = await this.xrayBodyScansApiClient.getScanSummary(
-      prisonerNumber,
-      { includeAlerts: true },
-      username,
+    const [scanSummary, scans] = await Promise.all([
+      this.xrayBodyScansApiClient.getScanSummary(prisonerNumber, { includeAlerts: true }, username),
+      this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username),
+    ])
+
+    const prisonIds = new Set(
+      scans.content.map(scan => ('prisonId' in scan ? scan.prisonId : undefined)).filter(Boolean) as string[],
     )
-    const scans = await this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username)
+    const prisonNames = await this.prisonService.getPrisonNames([...prisonIds])
 
     const rawScanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'
@@ -49,7 +54,7 @@ export default class ScanController {
         : {
             ...scan,
             scanDateDescription: formatDisplayDate(scan.scanDate),
-            prisonDescription: scan.prisonId, // TODO: lookup in prison-register or prison-api
+            prisonDescription: prisonNames.get(scan.prisonId),
             action: 'TODO: link based on scan.caseNoteId',
           },
     )
