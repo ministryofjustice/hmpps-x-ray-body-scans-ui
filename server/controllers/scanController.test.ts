@@ -11,7 +11,6 @@ import {
   mockScanResponse,
   mockScanSummaryResponse,
 } from '../testutils/mocks/xrayBodyScansApi'
-import HmppsAuditClient from '../data/hmppsAuditClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
 import ScanController from './scanController'
@@ -20,8 +19,8 @@ jest.mock('../../logger')
 jest.mock('../services/auditService')
 jest.mock('../data/xrayBodyScansApiClient')
 
-const auditService = new AuditService({} as HmppsAuditClient) as jest.Mocked<AuditService>
-const xrayBodyScansApiClient = new XrayBodyScansApiClient(undefined as never) as jest.Mocked<XrayBodyScansApiClient>
+const auditService = jest.mocked(new AuditService({} as never))
+const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as never))
 
 const prisonerNumber = 'A1234BC'
 const prisoner = mockPrisoner(prisonerNumber)
@@ -38,7 +37,6 @@ beforeAll(() => {
 
 beforeEach(() => {
   scanController = new ScanController(xrayBodyScansApiClient, auditService)
-  auditService.logPageView.mockResolvedValue(undefined)
 
   req = {
     params: { prisonerNumber },

@@ -3,20 +3,26 @@ import request from 'supertest'
 import { appWithAllRoutes, user } from './testutils/appSetup'
 import createUserToken from '../testutils/createUserToken'
 import { emptyPageResponse } from '../testutils/pagination'
+import type { Services } from '../services'
 import AuditService from '../services/auditService'
-import HmppsAuditClient from '../data/hmppsAuditClient'
 import { PrisonerSearchApiClient } from '../data/prisonerSearchApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApi'
 
-jest.mock('../services/auditService')
 jest.mock('../data/prisonerSearchApiClient')
 jest.mock('../data/xrayBodyScansApiClient')
+jest.mock('../services/auditService')
 
-const auditService = new AuditService({} as HmppsAuditClient) as jest.Mocked<AuditService>
-const prisonerSearchApiClient = new PrisonerSearchApiClient(undefined as never) as jest.Mocked<PrisonerSearchApiClient>
-const xrayBodyScansApiClient = new XrayBodyScansApiClient(undefined as never) as jest.Mocked<XrayBodyScansApiClient>
+const auditService = jest.mocked(new AuditService({} as never))
+const prisonerSearchApiClient = jest.mocked(new PrisonerSearchApiClient({} as never))
+const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as never))
+const services: Services = {
+  applicationInfo: {} as never,
+  auditService,
+  prisonerSearchApiClient,
+  xrayBodyScansApiClient,
+}
 
 const prisonerNumber = 'A1234BC'
 
@@ -36,7 +42,7 @@ afterEach(() => {
 describe('scan router', () => {
   it('should redirect to authError when the user does not have the DPS_APPLICATION_DEVELOPER role', () => {
     app = appWithAllRoutes({
-      services: { auditService, prisonerSearchApiClient, xrayBodyScansApiClient },
+      services,
       userSupplier: () => unauthorisedUser,
     })
 
@@ -52,9 +58,7 @@ describe('scan router', () => {
   })
 
   it('should allow access when the user has the DPS_APPLICATION_DEVELOPER role', () => {
-    app = appWithAllRoutes({
-      services: { auditService, prisonerSearchApiClient, xrayBodyScansApiClient },
-    })
+    app = appWithAllRoutes({ services })
     xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
       mockScanSummaryResponse({ prisonerNumber, now: new Date() }),
     )
@@ -64,9 +68,7 @@ describe('scan router', () => {
   })
 
   it('should show 404 page when prisoner is not found', () => {
-    app = appWithAllRoutes({
-      services: { auditService, prisonerSearchApiClient, xrayBodyScansApiClient },
-    })
+    app = appWithAllRoutes({ services })
     prisonerSearchApiClient.getPrisoner.mockReset()
     prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce(null)
 
@@ -82,7 +84,7 @@ describe('scan router', () => {
 
   it('should redirect to DPS home page when user has no active caseload', () => {
     app = appWithAllRoutes({
-      services: { auditService, prisonerSearchApiClient, xrayBodyScansApiClient },
+      services,
       userSupplier: () => ({ ...user, activeCaseLoadId: undefined }),
     })
 
@@ -98,9 +100,7 @@ describe('scan router', () => {
   })
 
   it('should redirect to scans list when trying to go to person’s link', () => {
-    app = appWithAllRoutes({
-      services: { auditService, prisonerSearchApiClient, xrayBodyScansApiClient },
-    })
+    app = appWithAllRoutes({ services })
 
     return request(app)
       .get(`/prisoner/${prisonerNumber}`)
