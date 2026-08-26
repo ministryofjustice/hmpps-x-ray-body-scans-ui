@@ -253,6 +253,14 @@ test.describe('Create scan page', () => {
       { text: 'Enter a real date', href: '#scanDate' },
       { text: 'Select type of item detected', href: '#typeOfFind' },
     ])
+    // errors messages show
+    await expect(createScanPage.scanDateConditional).toContainText('Enter a real date')
+    await expect(createScanPage.getScanDateComponentErrors()).resolves.toEqual({
+      day: true,
+      month: true,
+      year: false,
+    })
+    await expect(createScanPage.outcomeConditional).toContainText('Select type of item detected')
 
     // user-entered details reappear, even if invalid
     await expect(createScanPage.getFormValues()).resolves.toEqual(

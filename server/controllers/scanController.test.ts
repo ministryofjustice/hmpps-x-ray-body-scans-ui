@@ -132,6 +132,7 @@ describe('getCreateScan', () => {
         today: expect.any(String),
         yesterday: expect.any(String),
         errors: undefined,
+        scanDateComponentsWithErrors: new Set(),
         formValues: undefined,
       }),
     )
@@ -304,6 +305,7 @@ describe('postCreateScan', () => {
         errors: [],
         properties: { scanDateOption: { errors: ['Select when the scan happened'] } },
       },
+      expectedScanDateComponentsWithErrors: [],
     },
     {
       scenario: 'type of find is not selected',
@@ -317,6 +319,7 @@ describe('postCreateScan', () => {
         errors: [],
         properties: { typeOfFind: { errors: ['Select type of item detected'] } },
       },
+      expectedScanDateComponentsWithErrors: [],
     },
     {
       scenario: 'scan date is invalid',
@@ -331,11 +334,12 @@ describe('postCreateScan', () => {
       },
       expectedErrors: {
         errors: [],
-        properties: { scanDate: { errors: ['Enter a real date'] } },
+        properties: { scanDate: { errors: ['The scan date must include a day'] } },
       },
+      expectedScanDateComponentsWithErrors: ['scanDate-day'],
     },
     // NB: other scenarios are covered by createScanForm.test.ts
-  ])('shows errors when $scenario', async ({ body, expectedErrors }) => {
+  ])('shows errors when $scenario', async ({ body, expectedErrors, expectedScanDateComponentsWithErrors }) => {
     req.body = body
 
     await scanController.postCreateScan(req, res)
@@ -347,6 +351,7 @@ describe('postCreateScan', () => {
         today: expect.any(String),
         yesterday: expect.any(String),
         errors: expectedErrors,
+        scanDateComponentsWithErrors: new Set(expectedScanDateComponentsWithErrors),
         formValues: body,
       }),
     )
@@ -370,6 +375,7 @@ describe('postCreateScan', () => {
       'pages/createScan',
       expect.objectContaining({
         errors: { errors: ['The details could not be recorded. Try again later'] },
+        scanDateComponentsWithErrors: new Set(),
       }),
     )
     expect(res.redirect).not.toHaveBeenCalled()

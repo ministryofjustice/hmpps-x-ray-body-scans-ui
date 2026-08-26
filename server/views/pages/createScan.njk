@@ -68,9 +68,24 @@
                   },
                   errorMessage: errorMessageForField("scanDate", errors),
                   items: [
-                    { name: "day", classes: "govuk-input--width-2", value: formValues["scanDate-day"]  },
-                    { name: "month", classes: "govuk-input--width-2", value: formValues["scanDate-month"] },
-                    { name: "year", classes: "govuk-input--width-4", value: formValues["scanDate-year"] }
+                    {
+                      name: "day",
+                      classes: "govuk-input--width-2",
+                      value: formValues["scanDate-day"],
+                      error: scanDateComponentsWithErrors.has("scanDate-day")
+                    },
+                    {
+                      name: "month",
+                      classes: "govuk-input--width-2",
+                      value: formValues["scanDate-month"],
+                      error: scanDateComponentsWithErrors.has("scanDate-month")
+                    },
+                    {
+                      name: "year",
+                      classes: "govuk-input--width-4",
+                      value: formValues["scanDate-year"],
+                      error: scanDateComponentsWithErrors.has("scanDate-year")
+                    }
                   ]
                 })
               }

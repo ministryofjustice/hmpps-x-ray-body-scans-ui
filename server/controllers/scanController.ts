@@ -2,8 +2,7 @@ import type { Request, Response } from 'express'
 
 import logger from '../../logger'
 import { formatDisplayDate } from '../utils/dates'
-import type { ZodErrorTree } from '../forms/formErrors'
-import { createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
+import { type CreateScanFormErrors, createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
 import type { PrisonUser } from '../interfaces/hmppsUser'
 import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
@@ -82,8 +81,9 @@ export default class ScanController {
     this.renderCreateScanForm(req, res)
   }
 
-  private renderCreateScanForm<T>(req: Request, res: Response, errors?: ZodErrorTree<T>): void {
+  private renderCreateScanForm(req: Request, res: Response, createScanFormErrors?: CreateScanFormErrors): void {
     const { prisoner } = res.locals
+    const { errors, scanDateComponentsWithErrors } = createScanFormErrors ?? {}
 
     const today = new Date()
     const yesterday = new Date(today.getTime() - dayMillis)
@@ -93,6 +93,7 @@ export default class ScanController {
       today: formatDisplayDate(today),
       yesterday: formatDisplayDate(yesterday),
       errors,
+      scanDateComponentsWithErrors: scanDateComponentsWithErrors ?? new Set(),
       formValues: errors ? req.body : undefined,
     })
   }
@@ -137,7 +138,10 @@ export default class ScanController {
       await this.renderCreateScanSuccess(req, res, createScanResponse)
     } catch (error) {
       logger.error(error)
-      this.renderCreateScanForm(req, res, { errors: ['The details could not be recorded. Try again later'] })
+      this.renderCreateScanForm(req, res, {
+        errors: { errors: ['The details could not be recorded. Try again later'] },
+        scanDateComponentsWithErrors: new Set(),
+      })
     }
   }
 

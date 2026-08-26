@@ -85,7 +85,7 @@ describe('create scan form errors', () => {
     typeOfFind: 'unclear',
   }
   const result = createScanForm.safeParse(badForm)
-  const treeifiedErrors = treeifyCreateScanFormErrors(result.error!)
+  const { errors: treeifiedErrors } = treeifyCreateScanFormErrors(result.error!)
 
   it('should summarise errors', () => {
     const summary = errorSummary(treeifiedErrors)
