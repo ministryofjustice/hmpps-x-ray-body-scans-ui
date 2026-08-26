@@ -12,7 +12,7 @@
     <div class="govuk-grid-column-two-thirds">
 
       {% set prisonerDetailsHtml %}
-        <div class="govuk-!-font-size-48">
+        <div class="govuk-!-font-size-36">
           <strong>Name:</strong> {{ prisoner.displayName }}
           <br />
           <strong>Prison number:</strong> {{ prisoner.prisonerNumber }}
@@ -74,7 +74,7 @@
 
       <div class="govuk-button-group">
         {{ govukButton({
-          text: "Return to body scans",
+          text: "Return to X-ray body scans",
           href: "/prisoner/" + prisoner.prisonerNumber + "/scans"
         }) }}
         <a class="govuk-link" href="{{ prisoner | prisonerProfileUrl }}">View this person’s profile</a>
