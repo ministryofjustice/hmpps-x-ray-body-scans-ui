@@ -83,7 +83,7 @@ export default class ScanController {
 
   private renderCreateScanForm(req: Request, res: Response, createScanFormErrors?: CreateScanFormErrors): void {
     const { prisoner } = res.locals
-    const { errors, scanDateComponentsWithErrors } = createScanFormErrors ?? {}
+    const { errors, scanDateComponentsWithErrors, createCallFailed } = createScanFormErrors ?? {}
 
     const today = new Date()
     const yesterday = new Date(today.getTime() - dayMillis)
@@ -94,6 +94,7 @@ export default class ScanController {
       yesterday: formatDisplayDate(yesterday),
       errors,
       scanDateComponentsWithErrors: scanDateComponentsWithErrors ?? new Set(),
+      createCallFailed,
       formValues: errors ? req.body : undefined,
     })
   }
@@ -139,8 +140,9 @@ export default class ScanController {
     } catch (error) {
       logger.error(error)
       this.renderCreateScanForm(req, res, {
-        errors: { errors: ['The details could not be recorded. Try again later'] },
+        errors: { errors: [] },
         scanDateComponentsWithErrors: new Set(),
+        createCallFailed: true,
       })
     }
   }

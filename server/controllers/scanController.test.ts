@@ -133,6 +133,7 @@ describe('getCreateScan', () => {
         yesterday: expect.any(String),
         errors: undefined,
         scanDateComponentsWithErrors: new Set(),
+        createCallFailed: undefined,
         formValues: undefined,
       }),
     )
@@ -352,6 +353,7 @@ describe('postCreateScan', () => {
         yesterday: expect.any(String),
         errors: expectedErrors,
         scanDateComponentsWithErrors: new Set(expectedScanDateComponentsWithErrors),
+        createCallFailed: undefined,
         formValues: body,
       }),
     )
@@ -374,8 +376,9 @@ describe('postCreateScan', () => {
     expect(res.render).toHaveBeenCalledWith(
       'pages/createScan',
       expect.objectContaining({
-        errors: { errors: ['The details could not be recorded. Try again later'] },
+        errors: { errors: [] },
         scanDateComponentsWithErrors: new Set(),
+        createCallFailed: true,
       }),
     )
     expect(res.redirect).not.toHaveBeenCalled()

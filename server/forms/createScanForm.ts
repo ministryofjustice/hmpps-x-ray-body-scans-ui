@@ -167,6 +167,8 @@ export interface CreateScanFormErrors {
   errors: ZodErrorTree<CreateScanForm>
   /** The set of scan date component fields which have errors */
   scanDateComponentsWithErrors: Set<ScanDateComponents>
+  /** API call failed */
+  createCallFailed?: boolean
 }
 
 export function treeifyCreateScanFormErrors(error: z.ZodError<CreateScanForm>): CreateScanFormErrors {

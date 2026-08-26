@@ -216,10 +216,11 @@ test.describe('Create scan page', () => {
 
     createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
 
-    // errors summary shows
+    // error summary shows
     await expect(createScanPage.getErrorSummary()).resolves.toEqual([
       { text: 'Select the result of the scan', href: '#outcome' },
     ])
+    await expect(createScanPage.alert).not.toBeVisible()
 
     // user-entered details reappear
     await expect(createScanPage.getFormValues()).resolves.toEqual(
@@ -248,11 +249,12 @@ test.describe('Create scan page', () => {
 
     createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
 
-    // errors summary shows
+    // error summary shows
     await expect(createScanPage.getErrorSummary()).resolves.toEqual([
       { text: 'Enter a real date', href: '#scanDate' },
       { text: 'Select type of item detected', href: '#typeOfFind' },
     ])
+    await expect(createScanPage.alert).not.toBeVisible()
     // errors messages show
     await expect(createScanPage.scanDateConditional).toContainText('Enter a real date')
     await expect(createScanPage.getScanDateComponentErrors()).resolves.toEqual({
@@ -303,9 +305,8 @@ test.describe('Create scan page', () => {
 
     createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
 
-    // errors summary shows, but cannot point to a specific field
-    await expect(createScanPage.getErrorSummary()).resolves.toEqual([
-      { text: 'The details could not be recorded. Try again later', href: '#form' },
-    ])
+    // error alert shows, but not error summary
+    await expect(createScanPage.getErrorSummary()).resolves.toBeNull()
+    await expect(createScanPage.alert).toContainText('The details could not be recorded')
   })
 })
