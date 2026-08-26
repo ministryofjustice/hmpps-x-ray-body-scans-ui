@@ -24,7 +24,8 @@
       {% if createCallFailed %}
         {{ mojAlert({
           variant: "error",
-          text: "The details could not be recorded. Try again. If the problem continues, try again later."
+          text: "The details could not be recorded. Try again. If the problem continues, try again later.",
+          role: "alert"
         }) }}
       {% elseif errors %}
         {{ govukErrorSummary({
