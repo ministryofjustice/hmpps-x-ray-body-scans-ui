@@ -25,12 +25,16 @@ describe('createScanForm', () => {
       expect(result.error).toBeUndefined()
     })
 
-    it('another scan date', () => {
+    it.each([
+      ['21', '7', '2026'],
+      ['21', '07', '2026'],
+      ['21 ', ' 7 ', ' 2026'],
+    ])('another scan date: %s/%s/%s', (day, month, year) => {
       const result = createScanForm.safeParse({
         scanDateOption: 'other',
-        'scanDate-day': '21',
-        'scanDate-month': '7',
-        'scanDate-year': '2026',
+        'scanDate-day': day,
+        'scanDate-month': month,
+        'scanDate-year': year,
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
       } satisfies FormInput)
@@ -84,7 +88,52 @@ describe('createScanForm', () => {
       expect(result.data).toBeUndefined()
     })
 
-    it.each(['', 'today', '0', '-1', '32'])('invalid scan date with day %j', day => {
+    it.each(['year', 'month', 'day'] as const)('invalid scan date with blank %s', blankComponent => {
+      const result = createScanForm.safeParse({
+        scanDateOption: 'other',
+        'scanDate-day': blankComponent === 'day' ? '' : '10',
+        'scanDate-month': blankComponent === 'month' ? '' : '7',
+        'scanDate-year': blankComponent === 'year' ? '' : '2026',
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+      } satisfies FormInput)
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: { scanDate: { errors: [`The scan date must include a ${blankComponent}`] } },
+      })
+      expect(scanDateComponentsWithErrors).toEqual(new Set([`scanDate-${blankComponent}`]))
+    })
+
+    it.each([
+      { scenario: 'components', blankComponents: ['year', 'month', 'day'] },
+      { scenario: 'year and month', blankComponents: ['year', 'month'] },
+      { scenario: 'year and day', blankComponents: ['year', 'day'] },
+      { scenario: 'month and day', blankComponents: ['month', 'day'] },
+    ])('invalid scan date with blank $scenario', ({ blankComponents }) => {
+      const result = createScanForm.safeParse({
+        scanDateOption: 'other',
+        'scanDate-day': blankComponents.includes('day') ? '' : '10',
+        'scanDate-month': blankComponents.includes('month') ? '' : '7',
+        'scanDate-year': blankComponents.includes('year') ? '' : '2026',
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+      } satisfies FormInput)
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: { scanDate: { errors: ['The scan date must include a day, month and year'] } },
+      })
+      expect(scanDateComponentsWithErrors).toHaveProperty('size', blankComponents.length)
+    })
+
+    it.each(['today', '0', '1.5', '-1', '32'])('invalid scan date with day %j', day => {
       const result = createScanForm.safeParse({
         scanDateOption: 'other',
         'scanDate-day': day,
@@ -96,14 +145,15 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { scanDate: { errors: ['Enter a real date'] } },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set(['scanDate-day']))
     })
 
-    it.each(['', 'may', '0', '-1', '13'])('invalid scan date with month %j', month => {
+    it.each(['may', '0', '1.5', '-1', '13'])('invalid scan date with month %j', month => {
       const result = createScanForm.safeParse({
         scanDateOption: 'other',
         'scanDate-day': '10',
@@ -115,14 +165,15 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { scanDate: { errors: ['Enter a real date'] } },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set(['scanDate-month']))
     })
 
-    it.each(['', 'last', '0', '-1', '13'])('invalid scan date with year %j', year => {
+    it.each(['last', '0', '1.5', '-1', '26'])('invalid scan date with year %j', year => {
       const result = createScanForm.safeParse({
         scanDateOption: 'other',
         'scanDate-day': '10',
@@ -134,34 +185,79 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { scanDate: { errors: ['Enter a real date'] } },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set(['scanDate-year']))
     })
 
     it.each([
-      { scenario: 'missing', date: undefined },
-      { scenario: 'blank', date: '' },
-      { scenario: 'invalid', date: 'one' },
-    ])('$scenario scan date', date => {
+      { scenario: 'components', invalidComponents: ['year', 'month', 'day'] },
+      { scenario: 'year and month', invalidComponents: ['year', 'month'] },
+      { scenario: 'year and day', invalidComponents: ['year', 'day'] },
+      { scenario: 'month and day', invalidComponents: ['month', 'day'] },
+    ])('invalid scan date with invalid $scenario', ({ invalidComponents }) => {
       const result = createScanForm.safeParse({
         scanDateOption: 'other',
-        'scanDate-day': date,
-        'scanDate-month': date,
-        'scanDate-year': date,
+        'scanDate-day': invalidComponents.includes('day') ? 'today' : '10',
+        'scanDate-month': invalidComponents.includes('month') ? 'may' : '7',
+        'scanDate-year': invalidComponents.includes('year') ? 'last' : '2026',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
       } satisfies FormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { scanDate: { errors: ['Enter a real date'] } },
       })
+      expect(scanDateComponentsWithErrors).toHaveProperty('size', invalidComponents.length)
+    })
+
+    it('invalid scan date with blank and invalid components', () => {
+      const result = createScanForm.safeParse({
+        scanDateOption: 'other',
+        'scanDate-day': '10',
+        'scanDate-month': '26',
+        'scanDate-year': '',
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+      } satisfies FormInput)
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        // invalid error takes precedence over blank
+        properties: { scanDate: { errors: ['Enter a real date'] } },
+      })
+      expect(scanDateComponentsWithErrors).toEqual(new Set(['scanDate-month', 'scanDate-year']))
+    })
+
+    it.each([['30', '2', '2026', new Date(2026, 2, 3, 12)]])('invalid scan date %s/%s/%s', (day, month, year, now) => {
+      fixedClock(now)
+      const result = createScanForm.safeParse({
+        scanDateOption: 'other',
+        'scanDate-day': day,
+        'scanDate-month': month,
+        'scanDate-year': year,
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+      } satisfies FormInput)
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: { scanDate: { errors: ['Enter a real date'] } },
+      })
+      expect(scanDateComponentsWithErrors).toEqual(new Set())
     })
 
     it('future scan date', () => {
@@ -176,11 +272,12 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { scanDate: { errors: ['The scan date cannot be in the future'] } },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set())
     })
 
     it.each([
@@ -200,11 +297,12 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { justification: { errors: ['Select why the scan was carried out'] } },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set())
     })
 
     it.each([
@@ -224,11 +322,12 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { outcome: { errors: ['Select the result of the scan'] } },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set())
     })
 
     it.each([
@@ -249,11 +348,12 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: { typeOfFind: { errors: ['Select type of item detected'] } },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set())
     })
 
     it('form with many errors', () => {
@@ -266,7 +366,7 @@ describe('createScanForm', () => {
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: {
@@ -276,28 +376,31 @@ describe('createScanForm', () => {
           typeOfFind: { errors: ['Select type of item detected'] },
         },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set())
     })
 
     it('form with dependent errors', () => {
       const result = createScanForm.safeParse({
         scanDateOption: 'other',
         'scanDate-day': '',
-        'scanDate-month': '',
-        'scanDate-year': '',
+        'scanDate-month': '7',
+        'scanDate-year': '2026',
         justification: 'INTELLIGENCE',
         outcome: '',
       })
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
-      const errors = treeifyCreateScanFormErrors(result.error!)
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
       expect(errors).toEqual({
         errors: [],
         properties: {
-          scanDate: { errors: ['Enter a real date'] },
+          // scan date is checked in super refinement despite base schema errors
+          scanDate: { errors: ['The scan date must include a day'] },
           outcome: { errors: ['Select the result of the scan'] },
         },
       })
+      expect(scanDateComponentsWithErrors).toEqual(new Set(['scanDate-day']))
     })
   })
 })

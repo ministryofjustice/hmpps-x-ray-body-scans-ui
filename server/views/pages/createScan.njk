@@ -4,9 +4,10 @@
 {% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 
 {% set pageTitle = applicationName + " – Record an X-ray body scan" %}
-{% if errors %}
+{% if createCallFailed or errors %}
   {% set pageTitle = "Error: " + pageTitle %}
 {% endif %}
 
@@ -20,7 +21,13 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
 
-      {% if errors %}
+      {% if createCallFailed %}
+        {{ mojAlert({
+          variant: "error",
+          text: "The details could not be recorded. Try again. If the problem continues, try again later.",
+          role: "alert"
+        }) }}
+      {% elseif errors %}
         {{ govukErrorSummary({
           titleText: "There is a problem",
           errorList: errorSummary(errors)
@@ -68,9 +75,24 @@
                   },
                   errorMessage: errorMessageForField("scanDate", errors),
                   items: [
-                    { name: "day", classes: "govuk-input--width-2", value: formValues["scanDate-day"]  },
-                    { name: "month", classes: "govuk-input--width-2", value: formValues["scanDate-month"] },
-                    { name: "year", classes: "govuk-input--width-4", value: formValues["scanDate-year"] }
+                    {
+                      name: "day",
+                      classes: "govuk-input--width-2",
+                      value: formValues["scanDate-day"],
+                      error: scanDateComponentsWithErrors.has("scanDate-day")
+                    },
+                    {
+                      name: "month",
+                      classes: "govuk-input--width-2",
+                      value: formValues["scanDate-month"],
+                      error: scanDateComponentsWithErrors.has("scanDate-month")
+                    },
+                    {
+                      name: "year",
+                      classes: "govuk-input--width-4",
+                      value: formValues["scanDate-year"],
+                      error: scanDateComponentsWithErrors.has("scanDate-year")
+                    }
                   ]
                 })
               }
