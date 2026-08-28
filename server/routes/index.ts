@@ -9,7 +9,7 @@ import scanRouter from './scanRouter'
 
 export default function routes(services: Services): Router {
   const router = Router()
-  const { auditService, prisonerSearchApiClient, xrayBodyScansApiClient } = services
+  const { auditService, prisonService, prisonerSearchApiClient, xrayBodyScansApiClient } = services
 
   router.use(authorisationMiddleware(['DPS_APPLICATION_DEVELOPER']))
 
@@ -23,7 +23,7 @@ export default function routes(services: Services): Router {
     '/prisoner/:prisonerNumber',
     requireActiveCaseload(),
     getPrisonerMiddleware(prisonerSearchApiClient),
-    scanRouter(xrayBodyScansApiClient, auditService),
+    scanRouter(auditService, prisonService, xrayBodyScansApiClient),
   )
 
   return router

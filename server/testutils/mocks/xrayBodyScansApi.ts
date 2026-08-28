@@ -5,7 +5,7 @@ import type {
   ScanSummaryResponse,
   ScanSummaryResponseWithAlerts,
   ScanSummaryResponseWithoutAlerts,
-} from '../../data/interfaces/xrayBodyScansApiClient'
+} from '../../data/interfaces/xrayBodyScansApi'
 
 const sampleId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
 export function mockScanResponse(

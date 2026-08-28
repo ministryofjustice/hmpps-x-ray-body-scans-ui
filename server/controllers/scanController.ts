@@ -1,21 +1,28 @@
 import type { Request, Response } from 'express'
-
+import {
+  type AlertFlagLabel,
+  AlertType,
+  getAlertFlagCssClasses,
+  getAlertTypeForCode,
+} from '@ministryofjustice/hmpps-connect-dps-shared-items'
 import logger from '../../logger'
 import { formatDisplayDate } from '../utils/dates'
 import { type CreateScanFormErrors, createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
 import type { PrisonUser } from '../interfaces/hmppsUser'
 import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApiClient'
+import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
+import { PrisonService } from '../services/prisonService'
 
 const dayMillis = 24 * 60 * 60 * 1000
 
 export default class ScanController {
   constructor(
-    private readonly xrayBodyScansApiClient: XrayBodyScansApiClient,
     private readonly auditService: AuditService,
+    private readonly prisonService: PrisonService,
+    private readonly xrayBodyScansApiClient: XrayBodyScansApiClient,
   ) {}
 
   async getScanList(req: Request, res: Response): Promise<void> {
@@ -31,38 +38,40 @@ export default class ScanController {
       correlationId: req.id,
     })
 
-    const scanSummary = await this.xrayBodyScansApiClient.getScanSummary(
-      prisonerNumber,
-      { includeAlerts: true },
-      username,
-    )
-    const scans = await this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username)
+    const [scanSummary, scans] = await Promise.all([
+      this.xrayBodyScansApiClient.getScanSummary(prisonerNumber, { includeAlerts: true }, username),
+      this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username),
+    ])
 
-    const rawScanRows = scans.content.map(scan =>
+    const prisonIds = new Set(
+      scans.content.map(scan => ('prisonId' in scan ? scan.prisonId : undefined)).filter(Boolean) as string[],
+    )
+    const prisonNames = await this.prisonService.getPrisonNames([...prisonIds])
+
+    const scanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'
         ? {
             ...scan,
             scanDateDescription: scan.scanDate ? formatDisplayDate(scan.scanDate) : 'Not recorded',
-            action: null,
           }
         : {
             ...scan,
             scanDateDescription: formatDisplayDate(scan.scanDate),
-            prisonDescription: scan.prisonId, // TODO: lookup in prison-register or prison-api
-            action: 'TODO: link based on scan.caseNoteId',
+            prisonDescription: prisonNames.get(scan.prisonId),
           },
     )
 
+    const alertFlags: AlertFlagLabel[] = scanSummary.relevantAlerts.map(alert => ({
+      alertCodes: [alert.code],
+      classes: getAlertFlagCssClasses(getAlertTypeForCode(alert.type) ?? AlertType.Security),
+      label: alert.codeDescription,
+    }))
+
     res.render('pages/scanList', {
       prisonerNumber,
-      currentYear: new Date().getFullYear(),
-      scansThisYearCount: scanSummary.totalCount,
-      itemsDetectedCount: scanSummary.positiveCount,
-      inconclusiveCount: scanSummary.inconclusiveCount,
-      noItemsDetectedCount: scanSummary.negativeCount,
-      // TODO: Get scanAlerts from soon-to-be xrbs endpoint
-      scanAlerts: ['Some alert', 'Some other alert'],
-      rawScanRows,
+      scanSummary,
+      alertFlags,
+      scanRows,
     })
   }
 

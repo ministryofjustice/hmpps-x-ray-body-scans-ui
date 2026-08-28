@@ -3,13 +3,14 @@ import hmppsAuth from '../mockApis/hmppsAuth'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import tokenVerification from '../mockApis/tokenVerification'
 import prisonApi from '../mockApis/prisonApi'
+import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 
 import { resetStubs } from '../testUtils'
 
 // NB: add new mock apis here:
-const mockApis = [hmppsAuth, tokenVerification, prisonApi, prisonerSearchApi, xrayBodyScansApi]
+const mockApis = [hmppsAuth, tokenVerification, prisonApi, prisonRegisterApi, prisonerSearchApi, xrayBodyScansApi]
 
 test.describe('Health', () => {
   test.beforeEach(async () => {

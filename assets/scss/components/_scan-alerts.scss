@@ -1,0 +1,9 @@
+@use "govuk-frontend/dist/govuk/helpers/colour" as *;
+@use "govuk-frontend/dist/govuk/helpers/media-queries" as *;
+
+.scan-alerts {
+  @include govuk-media-query($from: tablet) {
+    border-left: 2px solid #{govuk-functional-colour(border)};
+    @include govuk-responsive-padding(6, "left");
+  }
+}

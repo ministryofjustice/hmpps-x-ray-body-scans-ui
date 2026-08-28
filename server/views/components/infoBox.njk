@@ -1,0 +1,13 @@
+{% macro infoBox(params) %}
+  <div class="info-box {{ params.classes }}" {% if params.testid %}data-testid="{{ params.testid }}"{% endif %}>
+    <svg aria-hidden="true" width="25" height="25" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
+      <path fill="currentColor" d="M12.5 0a1 1 0 0 0-.003 25.003A1 1 0 0 0 12.5 0ZM12.5 5.088a1 1 0 0 1 0 3.25 1 1 0 0 1 0-3.25ZM11.162 10.449h2.695v9.463h-2.695v-9.463Z"/>
+    </svg>
+    <div>
+      <strong>{{ params.text }}</strong>
+      {% if params.secondaryText %}
+        <p>{{ params.secondaryText }}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}

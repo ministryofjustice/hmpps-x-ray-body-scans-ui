@@ -1,0 +1,23 @@
+{% macro scanCount(scanSummary) %}
+  <div class="scan-count {% if scanSummary.atScanLimit %}scan-count--at-limit{% elseif scanSummary.nearingScanLimit %}scan-count--nearing-limit{% endif %}">
+    <div class="scan-count__number">
+      {% if scanSummary.totalCount === 1 %}
+        {% set countDescription = '1 scan this year' %}
+      {% elseif scanSummary.totalCount > 0 %}
+        {% set countDescription = scanSummary.totalCount + ' scans this year' %}
+      {% else %}
+        {% set countDescription = 'No scans recorded' %}
+      {% endif %}
+      <span aria-label="{{ countDescription }}">{{ scanSummary.totalCount }}</span>
+    </div>
+    {% if scanSummary.atScanLimit %}
+      <strong class="scan-count__limit-warning">Scan limit reached</strong>
+      No more scans allowed this year<span class="govuk-visually-hidden">.</span>
+    {% elseif scanSummary.nearingScanLimit %}
+      <strong class="scan-count__limit-warning">Near scan limit</strong>
+      {{ scanSummary.remainingScans }} scans left this year<span class="govuk-visually-hidden">.</span>
+    {% elseif scanSummary.totalCount == 0 %}
+      <span aria-hidden="true">No scans recorded</span>
+    {% endif %}
+  </div>
+{% endmacro %}

@@ -7,7 +7,7 @@ import config from '../config'
 import logger from '../../logger'
 import { formatDisplayDate } from './dates'
 import { initialiseName } from './utils'
-import type { Prisoner } from '../data/interfaces/prisonerSearchApiClient'
+import type { Prisoner } from '../data/interfaces/prisonerSearchApi'
 import { errorMessageForField, errorSummary } from '../forms/formErrors'
 
 export default function nunjucksSetup(app: express.Express): void {
@@ -34,6 +34,7 @@ export default function nunjucksSetup(app: express.Express): void {
       'node_modules/govuk-frontend/dist/',
       'node_modules/@ministryofjustice/frontend/',
       'node_modules/@ministryofjustice/hmpps-connect-dps-components/dist/assets/',
+      'node_modules/@ministryofjustice/hmpps-connect-dps-shared-items/dist/assets',
     ],
     {
       autoescape: true,

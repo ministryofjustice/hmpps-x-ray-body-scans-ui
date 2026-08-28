@@ -2,26 +2,29 @@ import type { Request, Response } from 'express'
 import logger from '../../logger'
 import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now, yesterday } from '../testutils/fixedClock'
-import { pageResponse } from '../testutils/pagination'
+import { emptyPageResponse, pageResponse } from '../testutils/pagination'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
-import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
+import { mockPrisonNamesImpl } from '../testutils/mocks/prisonService'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
   mockScanResponse,
   mockScanSummaryResponse,
-} from '../testutils/mocks/xrayBodyScansApiClient'
-import HmppsAuditClient from '../data/hmppsAuditClient'
+} from '../testutils/mocks/xrayBodyScansApi'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
+import { PrisonService } from '../services/prisonService'
 import ScanController from './scanController'
 
 jest.mock('../../logger')
 jest.mock('../services/auditService')
+jest.mock('../services/prisonService')
 jest.mock('../data/xrayBodyScansApiClient')
 
-const auditService = new AuditService({} as HmppsAuditClient) as jest.Mocked<AuditService>
-const xrayBodyScansApiClient = new XrayBodyScansApiClient(undefined as never) as jest.Mocked<XrayBodyScansApiClient>
+const auditService = jest.mocked(new AuditService({} as never))
+const prisonService = jest.mocked(new PrisonService({} as never, {} as never))
+const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as never))
 
 const prisonerNumber = 'A1234BC'
 const prisoner = mockPrisoner(prisonerNumber)
@@ -37,8 +40,8 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
-  scanController = new ScanController(xrayBodyScansApiClient, auditService)
-  auditService.logPageView.mockResolvedValue(undefined)
+  scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
+  prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
 
   req = {
     params: { prisonerNumber },
@@ -59,18 +62,65 @@ afterEach(() => {
 })
 
 describe('getScanList', () => {
-  it('logs a page view and renders the scan list with scan summary and scan rows', async () => {
-    xrayBodyScansApiClient.getScanSummary.mockResolvedValue(
-      mockScanSummaryResponse({
+  afterEach(() => {
+    // list page should always log an audit event
+    expect(auditService.logPageView).toHaveBeenCalledWith(Page.SCAN_LIST, {
+      who: username,
+      subjectId: prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId,
+    })
+  })
+
+  it.each([
+    {
+      scenario: 'an empty page for someone with no scans or alerts',
+      scanSummary: mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+      expectedAlertFlags: [],
+    },
+    {
+      scenario: 'the scan summary for someone without alerts',
+      scanSummary: mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+      expectedAlertFlags: [],
+    },
+    {
+      scenario: 'the scan summary for someone with alerts',
+      scanSummary: mockScanSummaryResponse({
         prisonerNumber,
         now,
-        nomisCount: 0,
-        dpsCount: 6,
-        positiveCount: 1,
-        negativeCount: 2,
+        relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert],
       }),
-    )
-    xrayBodyScansApiClient.listScans.mockResolvedValue(
+      expectedAlertFlags: [
+        {
+          label: mockInternalSecretorAlert.codeDescription,
+          alertCodes: [mockInternalSecretorAlert.code],
+          classes: expect.stringContaining('dps-alert-status--security'),
+        },
+        {
+          label: mockDoNotScanAlert.codeDescription,
+          alertCodes: [mockDoNotScanAlert.code],
+          classes: expect.stringContaining('dps-alert-status--security'),
+        },
+      ],
+    },
+  ])('should render $scenario', async ({ scanSummary, expectedAlertFlags }) => {
+    xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(scanSummary)
+    xrayBodyScansApiClient.listScans.mockResolvedValueOnce(emptyPageResponse())
+
+    await scanController.getScanList(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('pages/scanList', {
+      prisonerNumber,
+      scanSummary,
+      alertFlags: expectedAlertFlags,
+      scanRows: [],
+    })
+  })
+
+  it('should render scan list', async () => {
+    const scanSummary = mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] })
+    xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(scanSummary)
+    xrayBodyScansApiClient.listScans.mockResolvedValueOnce(
       pageResponse([
         {
           ...mockScanResponse(prisonerNumber, now),
@@ -83,35 +133,25 @@ describe('getScanList', () => {
           typeOfFindDescription: 'Organic',
         },
       ]),
+      // TODO: other variations
     )
 
     await scanController.getScanList(req, res)
 
-    expect(auditService.logPageView).toHaveBeenCalledWith(Page.SCAN_LIST, {
-      who: username,
-      subjectId: prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId,
+    expect(res.render).toHaveBeenCalledWith('pages/scanList', {
+      prisonerNumber,
+      scanSummary,
+      alertFlags: [],
+      scanRows: [
+        expect.objectContaining({
+          scanDateDescription: '24 July 2026',
+          prisonDescription: 'Leeds (HMP & YOI)',
+          justificationDescription: 'Reasonable suspicion',
+          outcomeDescription: 'Item detected',
+          typeOfFindDescription: 'Organic',
+        }),
+      ],
     })
-    expect(res.render).toHaveBeenCalledWith(
-      'pages/scanList',
-      expect.objectContaining({
-        prisonerNumber,
-        scansThisYearCount: 6,
-        itemsDetectedCount: 1,
-        inconclusiveCount: 3,
-        noItemsDetectedCount: 2,
-        rawScanRows: [
-          expect.objectContaining({
-            scanDateDescription: '24 July 2026',
-            prisonDescription: 'LEI',
-            justificationDescription: 'Reasonable suspicion',
-            outcomeDescription: 'Item detected',
-            typeOfFindDescription: 'Organic',
-          }),
-        ],
-      }),
-    )
   })
 })
 
@@ -129,8 +169,8 @@ describe('getCreateScan', () => {
       'pages/createScan',
       expect.objectContaining({
         prisoner,
-        today: expect.any(String),
-        yesterday: expect.any(String),
+        today: '24 July 2026',
+        yesterday: '23 July 2026',
         errors: undefined,
         scanDateComponentsWithErrors: new Set(),
         createCallFailed: undefined,
@@ -349,8 +389,8 @@ describe('postCreateScan', () => {
       'pages/createScan',
       expect.objectContaining({
         prisoner,
-        today: expect.any(String),
-        yesterday: expect.any(String),
+        today: '24 July 2026',
+        yesterday: '23 July 2026',
         errors: expectedErrors,
         scanDateComponentsWithErrors: new Set(expectedScanDateComponentsWithErrors),
         createCallFailed: undefined,

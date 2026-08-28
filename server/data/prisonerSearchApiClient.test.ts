@@ -2,17 +2,17 @@ import nock from 'nock'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../testutils/mocks/errorResponse'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { PrisonerSearchApiClient } from './prisonerSearchApiClient'
-import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
 
 describe('Prisoner search API client', () => {
   let prisonerSearchApiClient: PrisonerSearchApiClient
-  let mockAuthenticationClient: jest.Mocked<AuthenticationClient>
+  let mockAuthenticationClient: AuthenticationClient
 
   beforeEach(() => {
     mockAuthenticationClient = {
       getToken: jest.fn().mockResolvedValue('test-system-token'),
-    } as unknown as jest.Mocked<AuthenticationClient>
+    } as unknown as AuthenticationClient
     prisonerSearchApiClient = new PrisonerSearchApiClient(mockAuthenticationClient)
   })
 

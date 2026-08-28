@@ -13,7 +13,7 @@ import type {
   ScanSummaryResponse,
   ScanSummaryResponseWithAlerts,
   ScanSummaryResponseWithoutAlerts,
-} from './interfaces/xrayBodyScansApiClient'
+} from './interfaces/xrayBodyScansApi'
 
 interface RawScanResponse extends Omit<ScanResponse, 'scanDate' | 'mergedAt' | 'createdAt' | 'lastModifiedAt'> {
   scanDate: string
