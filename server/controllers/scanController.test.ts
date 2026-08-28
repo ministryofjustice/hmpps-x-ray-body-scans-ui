@@ -94,12 +94,12 @@ describe('getScanList', () => {
         {
           label: mockInternalSecretorAlert.codeDescription,
           alertCodes: [mockInternalSecretorAlert.code],
-          classes: expect.stringContaining('security'),
+          classes: expect.stringContaining('dps-alert-status--security'),
         },
         {
           label: mockDoNotScanAlert.codeDescription,
           alertCodes: [mockDoNotScanAlert.code],
-          classes: expect.stringContaining('security'),
+          classes: expect.stringContaining('dps-alert-status--security'),
         },
       ],
     },

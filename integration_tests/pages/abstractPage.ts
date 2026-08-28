@@ -30,7 +30,7 @@ export default class AbstractPage {
   }
 
   protected expectHeading(text: string): Promise<void> {
-    return expect(this.page.getByRole('heading', { name: text })).toBeVisible()
+    return expect(this.page.getByRole('heading', { name: text, level: 1 })).toBeVisible()
   }
 
   async getBreadcrumbs(): Promise<Anchor[] | null> {

@@ -25,7 +25,7 @@
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
 
   <div class="govuk-grid-row">
-    <section class="govuk-grid-column-three-quarters">
+    <section class="govuk-grid-column-three-quarters" data-testid="scan-summary">
       <h2 class="govuk-heading-m">
         X-ray body scans recorded in {{ scanSummary.fromScanDate.getFullYear() }}
       </h2>
@@ -41,12 +41,12 @@
         {{ infoBox({
           text: infoText,
           secondaryText: "Legacy records do not include a scan result. View the scan history details for additional information.",
-          testId: "dps-scans-exist"
+          testid: "dps-scans-exist"
         }) }}
       {% endif %}
 
       <div class="scan-summary">
-        <section class="scan-count__container">
+        <section class="scan-count__container" data-testid="scan-count">
           <h3 class="govuk-heading-s govuk-!-margin-bottom-2">
             Scans in {{ scanSummary.fromScanDate.getFullYear() }}
           </h3>
@@ -54,7 +54,7 @@
           {{ scanCount(scanSummary) }}
         </section>
 
-        <section class="scan-outcome__container">
+        <section class="scan-outcome__container" data-testid="scan-outcome">
           <h3 class="govuk-heading-s govuk-!-margin-bottom-2">
             Scan results
           </h3>

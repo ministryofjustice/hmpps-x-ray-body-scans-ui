@@ -34,5 +34,5 @@
 }
 
 .scan-count--at-limit {
-  --xray-body-scan-count-accent-colour: #{govuk-colour('red', $variant: 'shade-25')};
+  --scan-count-accent-colour: #{govuk-colour('red', $variant: 'shade-25')};
 }
