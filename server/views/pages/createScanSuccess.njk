@@ -3,7 +3,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/panel/macro.njk" import govukPanel %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-{% from "macros/resultTag.njk" import resultTag %}
+{% from "components/resultTag.njk" import resultTag %}
 
 {% set pageTitle = applicationName + " – Scan recorded" %}
 
@@ -75,7 +75,7 @@
       <div class="govuk-button-group">
         {{ govukButton({
           text: "Return to X-ray body scans",
-          href: "/prisoner/" + prisoner.prisonerNumber + "/scans"
+          href: "/prisoner/" + prisoner.prisonerNumber + "/scan-overview"
         }) }}
         <a class="govuk-link" href="{{ prisoner | prisonerProfileUrl }}">View this person’s profile</a>
       </div>

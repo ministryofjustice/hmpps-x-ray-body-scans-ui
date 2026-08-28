@@ -1,0 +1,32 @@
+@use "govuk-frontend/dist/govuk/helpers/typography" as *;
+
+@property --info-box-colour {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #{govuk-colour('blue')};
+}
+
+// NB: this is _nearly_ identical to the MoJ alert 🤷
+.info-box {
+  --info-box-colour: #{govuk-colour('blue')};
+  display: flex;
+  flex-direction: row;
+  gap: $govuk-gutter-half;
+  @include govuk-responsive-margin(4, 'bottom');
+  padding: $govuk-gutter-half;
+  border: 2px solid var(--info-box-colour);
+
+  > svg {
+    flex: 0 0 auto;
+    color: var(--info-box-colour);
+  }
+
+  div, p {
+    @include govuk-font($size: 16);
+  }
+
+  p {
+    margin-bottom: 0;
+    color: govuk-functional-colour(secondary-text);
+  }
+}

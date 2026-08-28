@@ -14,7 +14,7 @@
 {% set breadcrumbs = [
   { text: 'Digital Prison Services', href: dpsHomeUrl },
   { text: prisoner.reversedDisplayName, href: prisoner | prisonerProfileUrl },
-  { text: 'X-ray body scans', href: '/prisoner/' + prisoner.prisonerNumber + '/scans' }
+  { text: 'X-ray body scans', href: '/prisoner/' + prisoner.prisonerNumber + '/scan-overview' }
 ] %}
 
 {% block content %}
@@ -212,7 +212,7 @@
             preventDoubleClick: true
           }) }}
 
-          <a href="/prisoner/{{ prisoner.prisonerNumber }}/scans" class="govuk-link">Cancel</a>
+          <a href="/prisoner/{{ prisoner.prisonerNumber }}/scan-overview" class="govuk-link">Cancel</a>
         </div>
 
       </form>

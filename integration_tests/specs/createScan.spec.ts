@@ -37,7 +37,7 @@ test.describe('Create scan page', () => {
     await expect(createScanPage.getBreadcrumbs()).resolves.toEqual([
       { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
       { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
-      { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scans` },
+      { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scan-overview` },
     ])
 
     // nothing is pre-selected
@@ -50,7 +50,7 @@ test.describe('Create scan page', () => {
       }),
     )
 
-    await expect(createScanPage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scans`)
+    await expect(createScanPage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
   })
 
   test('Can record a negative scan for today', async ({ page }) => {

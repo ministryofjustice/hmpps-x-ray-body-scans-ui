@@ -1,7 +1,11 @@
 {% extends "partials/layout.njk" %}
+
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
-{% from "macros/resultTag.njk" import resultTag %}
+{% from "dps/components/alert-flag/macro.njk" import alertFlag %}
+{% from "components/infoBox.njk" import infoBox %}
+{% from "components/resultTag.njk" import resultTag %}
+{% from "components/scanCount.njk" import scanCount %}
 
 {% set pageTitle = applicationName + " – X-ray body scans" %}
 {% set breadcrumbs = [
@@ -21,85 +25,132 @@
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
 
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-three-quarters">
-      <h2 class="govuk-heading-m">X-ray body scans recorded in {{ currentYear }}</h2>
+    <section class="govuk-grid-column-three-quarters">
+      <h2 class="govuk-heading-m">
+        X-ray body scans recorded in {{ scanSummary.fromScanDate.getFullYear() }}
+      </h2>
 
-      <div class="govuk-grid-row">
-        <div class="govuk-grid-column-one-quarter">
-          <p class="govuk-body govuk-!-font-weight-bold govuk-!-margin-bottom-1">Scans in {{ currentYear }}</p>
-          <p class="govuk-heading-l">{{ scansThisYearCount }}</p>
-        </div>
-        <div class="govuk-grid-column-one-quarter">
-          <div class="govuk-!-padding-3 summary-box-items-detected">
-            <p class="govuk-body govuk-!-margin-bottom-1">Items detected</p>
-            <p class="govuk-heading-m">{{ itemsDetectedCount }}</p>
-          </div>
-        </div>
-        <div class="govuk-grid-column-one-quarter">
-          <div class="govuk-!-padding-3 summary-box-inconclusive">
-            <p class="govuk-body govuk-!-margin-bottom-1">Inconclusive</p>
-            <p class="govuk-heading-m">{{ inconclusiveCount }}</p>
-          </div>
-        </div>
-        <div class="govuk-grid-column-one-quarter">
-          <div class="govuk-!-padding-3 summary-box-no-items-detected">
-            <p class="govuk-body govuk-!-margin-bottom-1">No item detected</p>
-            <p class="govuk-heading-m">{{ noItemsDetectedCount }}</p>
-          </div>
-        </div>
+      {% if scanSummary.nomisCount %}
+        {% set infoText %}
+          {% if scanSummary.nomisCount == 1 %}
+            1 scan does not have a result available
+          {% else %}
+            {{ scanSummary.nomisCount }} scans do not have a result available
+          {% endif %}
+        {% endset %}
+        {{ infoBox({
+          text: infoText,
+          secondaryText: "Legacy records do not include a scan result. View the scan history details for additional information.",
+          testId: "dps-scans-exist"
+        }) }}
+      {% endif %}
+
+      <div class="scan-summary">
+        <section class="scan-count__container">
+          <h3 class="govuk-heading-s govuk-!-margin-bottom-2">
+            Scans in {{ scanSummary.fromScanDate.getFullYear() }}
+          </h3>
+
+          {{ scanCount(scanSummary) }}
+        </section>
+
+        <section class="scan-outcome__container">
+          <h3 class="govuk-heading-s govuk-!-margin-bottom-2">
+            Scan results
+          </h3>
+          <ul class="govuk-list scan-outcome__list">
+            <li class="scan-outcome scan-outcome--positive">
+              <p>Items detected</p>
+              <p class="scan-outcome__count">{{ scanSummary.positiveCount }}</p>
+            </li>
+            <li class="scan-outcome scan-outcome--inconclusive">
+              <p>Inconclusive</p>
+              <p class="scan-outcome__count">{{ scanSummary.inconclusiveCount }}</p>
+            </li>
+            <li class="scan-outcome scan-outcome--negative">
+              <p>No item detected</p>
+              <p class="scan-outcome__count">{{ scanSummary.negativeCount }}</p>
+            </li>
+          </ul>
+        </section>
       </div>
-    </div>
+
+    </section>
 
     <div class="govuk-grid-column-one-quarter">
-      <h2 class="govuk-heading-m">Scan alerts</h2>
-      <p>TODO: make these as alertFlag components</p>
-      {% if scanAlerts.length %}
-        {% for alert in scanAlerts %}
-          <p><strong class="govuk-tag govuk-tag--grey">{{ alert }}</strong></p>
-        {% endfor %}
-      {% else %}
-        <p>No scan alerts</p>
-      {% endif %}
+      <section class="scan-alerts">
+        <h2 class="govuk-heading-m">
+          Scan alerts
+        </h2>
+
+        <ul class="govuk-list" data-testid="scan-alerts">
+          {% for alert in alertFlags %}
+            <li>
+              {# href, if needed, could be:
+              {% set alertDetailsUrl -%}
+                {{ prisonerProfileUrl }}/prisoner/{{ prisoner.prisonerNumber }}/alerts//detail?ids={{ alert.id }}
+              {%- endset %}
+              #}
+              {{ alertFlag({
+                alert: alert
+              }) }}
+            </li>
+          {% else %}
+            <li data-testid="no-scan-alerts">No scan alerts</li>
+          {% endfor %}
+        </ul>
+      </section>
     </div>
   </div>
 
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
 
-  <h2 class="govuk-heading-m">X-ray body scan history</h2>
+  <section>
+    <h2 class="govuk-heading-m">X-ray body scan history</h2>
 
-  <h3 class="govuk-heading-s">All scans</h3>
+    <p>TODO: tabs</p>
 
-  {% set rows = [] %}
-  {% for scan in scanRows %}
-    {% set actionLink %}
-      <a class="govuk-link" href="#">{{ scan.action }}</a>
-    {% endset %}
-    {% set _ = rows.push([
-      { text: scan.scanDateDescription },
-      { text: scan.prisonDescription },
-      { text: scan.justificationDescription },
-      { html: resultTag(scan) },
-      { text: scan.typeOfFindDescription },
-      { html: actionLink, classes: "scan-list-table__action-td" }
-    ]) %}
-  {% endfor %}
+    <h3 class="govuk-heading-s">All scans</h3>
 
-  <p class="govuk-body">TODO show page / scan numbers</p>
+    <p>TODO: pagination</p>
 
-  {{ govukTable({
-    head: [
-      { text: "Date" },
-      { text: "Establishment" },
-      { text: "Reason" },
-      { text: "Scan details", classes: "scan-list-table__details-th" },
-      { text: "Items found" },
-      { text: "Action", classes: "scan-list-table__action-th" }
-    ],
-    rows: rows,
-    classes: "scan-list-table"
-  }) }}
+    {% set rows = [] %}
+    {% for scan in scanRows %}
+      {% set actionLink %}
+        {% if scan.casNoteId %}
+          <a href="#">View case note</a>
+        {% elseif scan.source === "DPS" %}
+          <a href="#">Add case note</a>
+        {% endif %}
+      {% endset %}
 
-  <p class="govuk-body">TODO show page / scan numbers</p>
+      {% set _ = rows.push([
+        { text: scan.scanDateDescription },
+        { text: scan.prisonDescription },
+        { text: scan.justificationDescription },
+        { html: resultTag(scan) },
+        { text: scan.typeOfFindDescription | default("None", true) if scan.source === "DPS" else "" },
+        { html: actionLink, classes: "scan-table__action-td" }
+      ]) %}
+    {% endfor %}
+    <div class="scan-table__container">
+      {{ govukTable({
+        head: [
+          { text: "Date" },
+          { text: "Establishment" },
+          { text: "Reason" },
+          { text: "Scan details", classes: "scan-table__details-th" },
+          { text: "Items found" },
+          { text: "Action", classes: "scan-table__action-th" }
+        ],
+        rows: rows,
+        classes: "scan-table"
+      }) }}
+    </div>
+
+    <p>TODO: pagination</p>
+
+  </section>
 
   <p><a href="{{ prisoner | prisonerProfileUrl }}">Return to the prisoner’s profile</a></p>
 

@@ -53,13 +53,11 @@ export default class ScanController {
         ? {
             ...scan,
             scanDateDescription: scan.scanDate ? formatDisplayDate(scan.scanDate) : 'Not recorded',
-            action: null,
           }
         : {
             ...scan,
             scanDateDescription: formatDisplayDate(scan.scanDate),
             prisonDescription: prisonNames.get(scan.prisonId),
-            action: 'TODO: link based on scan.caseNoteId',
           },
     )
 

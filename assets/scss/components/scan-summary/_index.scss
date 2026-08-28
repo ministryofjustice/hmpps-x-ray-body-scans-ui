@@ -1,0 +1,23 @@
+@import "./count";
+@import "./outcome";
+
+@media (min-width: 55rem) {
+  .scan-summary {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .scan-count__container {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 25%;
+
+    .scan-count {
+      flex-grow: 1;
+    }
+  }
+
+  .scan-outcome__container {
+    flex: 3 0 75%;
+  }
+}

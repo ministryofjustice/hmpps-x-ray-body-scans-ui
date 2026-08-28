@@ -29,7 +29,7 @@ test.describe('Scan list page', () => {
   test('Page shows', async ({ page }) => {
     await login(page)
 
-    const response = await page.goto(`/prisoner/${prisonerNumber}/scans`)
+    const response = await page.goto(`/prisoner/${prisonerNumber}/scan-overview`)
 
     expect(response?.status()).toBe(200)
     await expect(page.getByRole('heading', { name: 'X-ray body scans', exact: true })).toBeVisible()
@@ -38,7 +38,7 @@ test.describe('Scan list page', () => {
   test('404 page when prisoner not found', async ({ page }) => {
     await login(page)
 
-    const response = await page.goto('/prisoner/B2222BB/scans')
+    const response = await page.goto('/prisoner/B2222BB/scan-overview')
 
     expect(response?.status()).toBe(404)
   })

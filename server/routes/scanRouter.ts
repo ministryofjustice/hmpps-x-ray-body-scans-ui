@@ -16,10 +16,10 @@ export default function scanRouter(
   router.get('/', (_req, res) => {
     const { prisonerNumber } = res.locals.prisoner
     // TODO: should this redirect to profile page instead?
-    res.redirect(`/prisoner/${prisonerNumber}/scans`)
+    res.redirect(`/prisoner/${prisonerNumber}/scan-overview`)
   })
 
-  router.get('/scans', (req, res, next) => scanController.getScanList(req, res).catch(next))
+  router.get('/scan-overview', (req, res, next) => scanController.getScanList(req, res).catch(next))
   router.get('/record-scan', (req, res, next) => scanController.getCreateScan(req, res).catch(next))
   router.post('/record-scan', (req, res, next) => scanController.postCreateScan(req, res).catch(next))
 

@@ -1,0 +1,28 @@
+@use "govuk-frontend/dist/govuk/helpers/media-queries" as *;
+@use "govuk-frontend/dist/govuk/helpers/typography" as *;
+
+.scan-table__container {
+  overflow-x: auto;
+}
+
+.scan-table {
+  @include govuk-media-query($until: desktop) {
+    min-width: 70rem;
+  }
+
+  @include govuk-font($size: 16);
+
+  .govuk-tag {
+    @include govuk-font($size: 16);
+  }
+}
+
+.scan-table__details-th {
+  min-width: 9rem; // to prevent tag text from wrapping
+}
+
+.scan-table__action-th, .scan-table__action-td {
+  @include govuk-media-query($from: tablet) {
+    text-align: right;
+  }
+}

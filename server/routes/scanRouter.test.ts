@@ -53,7 +53,7 @@ describe('scan router', () => {
     })
 
     return request(app)
-      .get(`/prisoner/${prisonerNumber}/scans`)
+      .get(`/prisoner/${prisonerNumber}/scan-overview`)
       .expect(302)
       .expect('Location', '/authError')
       .expect(() => {
@@ -70,7 +70,7 @@ describe('scan router', () => {
     )
     xrayBodyScansApiClient.listScans.mockResolvedValueOnce(emptyPageResponse())
 
-    return request(app).get(`/prisoner/${prisonerNumber}/scans`).expect(200)
+    return request(app).get(`/prisoner/${prisonerNumber}/scan-overview`).expect(200)
   })
 
   it('should show 404 page when prisoner is not found', () => {
@@ -79,7 +79,7 @@ describe('scan router', () => {
     prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce(null)
 
     return request(app)
-      .get(`/prisoner/${prisonerNumber}/scans`)
+      .get(`/prisoner/${prisonerNumber}/scan-overview`)
       .expect(404)
       .expect(() => {
         expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
@@ -95,7 +95,7 @@ describe('scan router', () => {
     })
 
     return request(app)
-      .get(`/prisoner/${prisonerNumber}/scans`)
+      .get(`/prisoner/${prisonerNumber}/scan-overview`)
       .expect(302)
       .expect('Location', 'http://localhost:3001/dps-home')
       .expect(() => {
@@ -111,7 +111,7 @@ describe('scan router', () => {
     return request(app)
       .get(`/prisoner/${prisonerNumber}`)
       .expect(302)
-      .expect('Location', `/prisoner/${prisonerNumber}/scans`)
+      .expect('Location', `/prisoner/${prisonerNumber}/scan-overview`)
       .expect(() => {
         expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
         expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
