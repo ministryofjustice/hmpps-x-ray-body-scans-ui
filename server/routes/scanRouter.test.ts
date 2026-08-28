@@ -66,7 +66,7 @@ describe('scan router', () => {
   it('should allow access when the user has the DPS_APPLICATION_DEVELOPER role', () => {
     app = appWithAllRoutes({ services })
     xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
-      mockScanSummaryResponse({ prisonerNumber, now: new Date() }),
+      mockScanSummaryResponse({ prisonerNumber, now: new Date(), relevantAlerts: [] }),
     )
     xrayBodyScansApiClient.listScans.mockResolvedValueOnce(emptyPageResponse())
 

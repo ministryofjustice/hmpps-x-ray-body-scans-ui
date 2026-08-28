@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { mockScanSummaryResponse } from '../../server/testutils/mocks/xrayBodyScansApi'
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonRegisterApi from '../mockApis/prisonRegisterApi'
@@ -13,7 +14,10 @@ test.describe('Scan list page', () => {
       microFrontendComponents.stubComponents(),
       prisonRegisterApi.stubAllPrisons(),
       prisonerSearchApi.stubGetPrisoner(prisonerNumber),
-      xrayBodyScansApi.stubGetScanSummary(prisonerNumber),
+      xrayBodyScansApi.stubGetScanSummary(
+        prisonerNumber,
+        mockScanSummaryResponse({ prisonerNumber, now: new Date(), relevantAlerts: [] }),
+      ),
       xrayBodyScansApi.stubListScans(prisonerNumber),
     ])
   })

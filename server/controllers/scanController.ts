@@ -1,5 +1,10 @@
 import type { Request, Response } from 'express'
-
+import {
+  type AlertFlagLabel,
+  AlertType,
+  getAlertFlagCssClasses,
+  getAlertTypeForCode,
+} from '@ministryofjustice/hmpps-connect-dps-shared-items'
 import logger from '../../logger'
 import { formatDisplayDate } from '../utils/dates'
 import { type CreateScanFormErrors, createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
@@ -58,15 +63,16 @@ export default class ScanController {
           },
     )
 
+    const alertFlags: AlertFlagLabel[] = scanSummary.relevantAlerts.map(alert => ({
+      alertCodes: [alert.code],
+      classes: getAlertFlagCssClasses(getAlertTypeForCode(alert.type) ?? AlertType.Security),
+      label: alert.codeDescription,
+    }))
+
     res.render('pages/scanList', {
       prisonerNumber,
-      currentYear: new Date().getFullYear(),
-      scansThisYearCount: scanSummary.totalCount,
-      itemsDetectedCount: scanSummary.positiveCount,
-      inconclusiveCount: scanSummary.inconclusiveCount,
-      noItemsDetectedCount: scanSummary.negativeCount,
-      // TODO: Get scanAlerts from soon-to-be xrbs endpoint
-      scanAlerts: ['Some alert', 'Some other alert'],
+      scanSummary,
+      alertFlags,
       scanRows,
     })
   }
