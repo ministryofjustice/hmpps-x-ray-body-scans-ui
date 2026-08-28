@@ -30,11 +30,11 @@
     "npm": "^11"
   },
   "dependencies": {
-    "@aws-sdk/client-sqs": "3.1110.0",
+    "@aws-sdk/client-sqs": "3.1115.0",
     "@ministryofjustice/frontend": "10.0.1",
     "@ministryofjustice/hmpps-auth-clients": "3.0.0",
     "@ministryofjustice/hmpps-azure-telemetry": "1.0.2",
-    "@ministryofjustice/hmpps-connect-dps-components": "6.3.2",
+    "@ministryofjustice/hmpps-connect-dps-components": "6.3.3",
     "@ministryofjustice/hmpps-monitoring": "^2.1.0",
     "@ministryofjustice/hmpps-rest-client": "^2.2.0",
     "@sentry/node": "10.70.0",
@@ -65,7 +65,7 @@
     "@ministryofjustice/hmpps-npm-script-allowlist": "0.0.6",
     "@ministryofjustice/hmpps-precommit-hooks": "3.0.2",
     "@playwright/test": "^1.62.1",
-    "@tsconfig/node24": "^24.0.4",
+    "@tsconfig/node24": "^24.0.5",
     "@types/bunyan": "^1.8.11",
     "@types/bunyan-format": "^0.2.9",
     "@types/compression": "^1.8.1",
