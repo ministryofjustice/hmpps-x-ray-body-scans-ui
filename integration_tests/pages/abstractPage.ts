@@ -60,6 +60,10 @@ export default class AbstractPage {
       })),
     )
   }
+
+  get alert(): Locator {
+    return this.page.locator('.moj-alert')
+  }
 }
 
 interface Anchor {

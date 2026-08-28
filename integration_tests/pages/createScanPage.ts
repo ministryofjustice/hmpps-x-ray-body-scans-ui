@@ -23,4 +23,31 @@ export default class CreateScanPage extends AbstractPage {
   typeScanDateComponent(label: string, text: string): Promise<void> {
     return this.page.getByLabel(label, { exact: true }).fill(text)
   }
+
+  get scanDateConditional(): Locator {
+    return this.page.locator('#conditional-scanDateOption-3')
+  }
+
+  async getScanDateComponentErrors(): Promise<ScanDateComponentErrors> {
+    const [day, month, year] = await Promise.all([
+      this.page.getByRole('textbox', { name: 'Day' }).evaluate(input => input.classList.contains('govuk-input--error')),
+      this.page
+        .getByRole('textbox', { name: 'Month' })
+        .evaluate(input => input.classList.contains('govuk-input--error')),
+      this.page
+        .getByRole('textbox', { name: 'Year' })
+        .evaluate(input => input.classList.contains('govuk-input--error')),
+    ])
+    return { day, month, year }
+  }
+
+  get outcomeConditional(): Locator {
+    return this.page.locator('#conditional-outcome-3')
+  }
+}
+
+interface ScanDateComponentErrors {
+  day: boolean
+  month: boolean
+  year: boolean
 }
