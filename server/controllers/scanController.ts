@@ -49,10 +49,11 @@ export default class ScanController {
       this.xrayBodyScansApiClient.listScans(prisonerNumber, listScansRequest, username),
     ])
 
-    const prisonIds = new Set(
-      scans.content.map(scan => ('prisonId' in scan ? scan.prisonId : undefined)).filter(Boolean) as string[],
+    const prisonIds = Array.from(
+      new Set(scans.content.map(scan => ('prisonId' in scan ? scan.prisonId : undefined)).filter(Boolean) as string[]),
     )
-    const prisonNames = await this.prisonService.getPrisonNames([...prisonIds])
+    const prisonNames =
+      prisonIds.length > 0 ? await this.prisonService.getPrisonNames(prisonIds) : new Map<string, string>()
 
     const scanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'

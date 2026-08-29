@@ -125,6 +125,8 @@ describe('getScanList', () => {
       historicYears: [2025, 2024],
       scanRows: [],
     })
+    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, {}, username)
+    expect(prisonService.getPrisonNames).not.toHaveBeenCalled()
   })
 
   it.each([
@@ -192,6 +194,7 @@ describe('getScanList', () => {
       ],
     })
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, expectedListScansRequest, username)
+    expect(prisonService.getPrisonNames).toHaveBeenCalledWith(['LEI'])
   })
 })
 
