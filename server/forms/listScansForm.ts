@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import * as z from 'zod'
 import type { ListScansRequest } from '../data/interfaces/xrayBodyScansApi'
 
@@ -7,29 +8,46 @@ function getHistoricYears(): number[] {
   return Array.from({ length: historicYearsToShow }).map((_, i) => currentYear - i - 1)
 }
 
+const optionalNumber = z.preprocess(
+  // preprocess '' to undefined otherwise it coerces to 0
+  v => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z.coerce.number().optional(),
+)
+
 const baseListScansForm = z.preprocess(
-  form => {
-    if (form && typeof form === 'object' && 'year' in form && Array.isArray(form.year)) {
-      // eslint-disable-next-line no-param-reassign
-      form.year = form.year.at(-1)
+  (form: Record<string, string | string[] | undefined>) => {
+    // take the last value for any repeated parameters
+    if (form && typeof form === 'object') {
+      Object.getOwnPropertyNames(form).forEach(field => {
+        if (Array.isArray(form[field])) {
+          form[field] = form[field].at(-1)
+        }
+      })
     }
     return form
   },
-  z.union([
-    z.object({ year: z.literal('all') }),
-    z.object({
-      year: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().optional()),
-    }),
-  ]),
+  z.object({
+    year: z.union([z.literal('all'), optionalNumber]),
+    page: optionalNumber.default(0), // TODO: all pages
+  }),
 )
 
 export const listScansForm = baseListScansForm
+  // force defaults when there’s an error
   .superRefine(
-    // force year filter to undefined if there’s an error
     (form, ctx) => {
-      ctx.issues = ctx.issues.filter(issue => issue?.path?.[0] === 'year')
-      // eslint-disable-next-line no-param-reassign
-      form.year = undefined
+      ctx.issues = ctx.issues.filter(issue => {
+        const field = issue?.path?.[0]
+        if (field === 'year') {
+          form.year = undefined
+          return false
+        }
+        if (field === 'page') {
+          form.page = 0
+          return false
+        }
+        return true
+      })
     },
     {
       when(payload) {
@@ -37,14 +55,18 @@ export const listScansForm = baseListScansForm
       },
     },
   )
-  .transform(({ year }) => {
+  // transform into ListScansRequest and variables needed by the scansList.njk template
+  .transform(({ year, page }) => {
     const historicYears = getHistoricYears()
     if (typeof year === 'number' && !historicYears.includes(year)) {
-      // eslint-disable-next-line no-param-reassign
       year = undefined
     }
 
-    const listScansRequest: ListScansRequest = {}
+    if (!Number.isSafeInteger(page) || page < 0) {
+      page = 0
+    }
+
+    const listScansRequest: ListScansRequest = { page }
     if (year === 'all') {
       listScansRequest.fromScanDate = new Date(2000, 0, 1, 12)
     } else if (typeof year === 'number') {

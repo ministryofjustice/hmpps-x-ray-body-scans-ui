@@ -4,6 +4,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "dps/components/alert-flag/macro.njk" import alertFlag %}
 {% from "components/infoBox.njk" import infoBox %}
+{% from "components/pagination.njk" import paginate %}
 {% from "components/resultTag.njk" import resultTag %}
 {% from "components/scanCount.njk" import scanCount %}
 
@@ -139,7 +140,8 @@
       {% endif %}
     </h3>
 
-    <p>TODO: pagination</p>
+    {% set pagination = paginate(pagination) %}
+    {{ pagination }}
 
     {% set rows = [] %}
     {% for scan in scanRows %}
@@ -187,7 +189,7 @@
       {% endif %}
     {% endif %}
 
-    <p>TODO: pagination</p>
+    {{ pagination }}
 
   </section>
 

@@ -67,6 +67,10 @@ export default class ScanListPage extends AbstractPage {
       )
   }
 
+  get pagination(): Locator {
+    return this.page.locator('.dps-pagination').first()
+  }
+
   get returnLink(): Locator {
     return this.page.getByRole('link', { name: 'Return to the prisoner’s profile' })
   }

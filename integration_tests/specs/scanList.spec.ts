@@ -300,7 +300,7 @@ test.describe('Scan list page', () => {
             relevantAlerts: [],
           }),
         ),
-        xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), {}),
+        xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), { page: 0 }),
         login(page),
       ])
 
@@ -315,11 +315,10 @@ test.describe('Scan list page', () => {
       )
 
       // mock filtered scans
-      await xrayBodyScansApi.stubListScans(
-        prisonerNumber,
-        pageResponse([mockScanResponse(prisonerNumber, now)]),
-        listScanRequest,
-      )
+      await xrayBodyScansApi.stubListScans(prisonerNumber, pageResponse([mockScanResponse(prisonerNumber, now)]), {
+        ...listScanRequest,
+        page: 0,
+      })
 
       await scanListPage.yearTabs.nth(yearTabIndex).getByRole('link').click()
 
@@ -330,7 +329,10 @@ test.describe('Scan list page', () => {
       await expect(scanListPage.historySection).not.toContainText(expectedNoScansMessage)
 
       // mock no filtered scans
-      await xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), listScanRequest)
+      await xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), {
+        ...listScanRequest,
+        page: 0,
+      })
 
       await scanListPage.yearTabs.nth(yearTabIndex).getByRole('link').click()
 
@@ -419,7 +421,6 @@ test.describe('Scan list page', () => {
           mockLegacyScanResponse(prisonerNumber, now),
           mockLegacyScanResponse(prisonerNumber, null, 'positive'),
         ]),
-        {},
       ),
       login(page),
     ])
@@ -435,7 +436,64 @@ test.describe('Scan list page', () => {
       [nowDisplay, '', '', '', '', ''],
       ['Not recorded', '', '', 'positive', '', ''],
     ])
+    await expect(scanListPage.pagination).not.toBeVisible()
   })
+
+  const pageScenarios = [
+    {
+      scenario: 'last year',
+      yearTabIndex: 1,
+      listScanRequest: {
+        fromScanDate: new Date(now.getFullYear() - 1, 0, 1, 12),
+        toScanDate: new Date(now.getFullYear() - 1, 11, 31, 12),
+      },
+      goToPage: 'page 10',
+      finalPage: 10,
+    },
+    {
+      scenario: 'all years',
+      yearTabIndex: 3,
+      listScanRequest: {
+        fromScanDate: new Date(2000, 0, 1, 12),
+      },
+      goToPage: 'next page',
+      finalPage: 1,
+    },
+  ]
+  for (const { scenario, yearTabIndex, listScanRequest, goToPage, finalPage } of pageScenarios) {
+    const response = pageResponse(Array.from({ length: 20 }).map(() => mockLegacyScanResponse(prisonerNumber, now)))
+    response.totalElements = 200
+    response.totalPages = 10
+
+    test(`Shows pagination when going to ${goToPage} of 10 pages in scans from ${scenario}`, async ({ page }) => {
+      await Promise.all([
+        xrayBodyScansApi.stubGetScanSummary(
+          prisonerNumber,
+          mockScanSummaryResponse({
+            prisonerNumber,
+            now,
+            relevantAlerts: [],
+          }),
+        ),
+        xrayBodyScansApi.stubListScans(prisonerNumber, response, { page: 0 }),
+        login(page),
+      ])
+
+      const scanListPage = await goToScanListPage(page)
+
+      await xrayBodyScansApi.stubListScans(prisonerNumber, response, { ...listScanRequest, page: 0 })
+      await scanListPage.yearTabs.nth(yearTabIndex).getByRole('link').click()
+
+      await xrayBodyScansApi.stubListScans(prisonerNumber, response, { ...listScanRequest, page: finalPage })
+      await scanListPage.pagination.getByRole('link', { name: goToPage === 'page 10' ? '10' : 'Next' }).click()
+
+      if (scenario === 'all years') {
+        await expect(scanListPage.pagination.getByRole('link', { name: 'View all' })).not.toBeVisible()
+      } else {
+        await expect(scanListPage.pagination.getByRole('link', { name: 'View all' })).toBeVisible()
+      }
+    })
+  }
 
   // TODO: what shows if summary and/or list do not load?
 })

@@ -45,6 +45,7 @@ beforeEach(() => {
   prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
 
   req = {
+    originalUrl: `/prisoner/${prisonerNumber}/scan-overview`,
     params: { prisonerNumber },
     query: {},
     body: {},
@@ -123,25 +124,26 @@ describe('getScanList', () => {
       alertFlags: expectedAlertFlags,
       yearFilter: undefined,
       historicYears: [2025, 2024],
+      pagination: null,
       scanRows: [],
     })
-    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, {}, username)
+    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, { page: 0 }, username)
     expect(prisonService.getPrisonNames).not.toHaveBeenCalled()
   })
 
   it.each([
-    { scenario: 'this year', year: undefined, expectedYearFilter: undefined, expectedListScansRequest: {} },
+    { scenario: 'this year', year: undefined, expectedYearFilter: undefined, expectedListScansRequest: { page: 0 } },
     {
       scenario: 'last year',
       year: '2025',
       expectedYearFilter: 2025,
-      expectedListScansRequest: { fromScanDate: expect.any(Date), toScanDate: expect.any(Date) },
+      expectedListScansRequest: { page: 0, fromScanDate: expect.any(Date), toScanDate: expect.any(Date) },
     },
     {
       scenario: 'all years',
       year: 'all',
       expectedYearFilter: 'all',
-      expectedListScansRequest: { fromScanDate: expect.any(Date) },
+      expectedListScansRequest: { page: 0, fromScanDate: expect.any(Date) },
     },
   ])('should render scan list for $scenario', async ({ year, expectedYearFilter, expectedListScansRequest }) => {
     const scanSummary = mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] })
@@ -172,6 +174,7 @@ describe('getScanList', () => {
       alertFlags: [],
       yearFilter: expectedYearFilter,
       historicYears: [2025, 2024],
+      pagination: null,
       scanRows: [
         expect.objectContaining({
           source: 'DPS',
@@ -196,6 +199,36 @@ describe('getScanList', () => {
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, expectedListScansRequest, username)
     expect(prisonService.getPrisonNames).toHaveBeenCalledWith(['LEI'])
   })
+
+  it('should render pagination for long lists', async () => {
+    xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
+      mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+    )
+    xrayBodyScansApiClient.listScans.mockResolvedValueOnce({
+      ...pageResponse(Array.from({ length: 20 }).map(() => mockLegacyScanResponse(prisonerNumber, now))),
+      number: 1,
+      totalPages: 3,
+      totalElements: 56,
+    })
+
+    req.query.page = '1'
+    req.originalUrl += '?page=1'
+    await scanController.getScanList(req, res)
+
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/scanList',
+      expect.objectContaining({
+        pagination: expect.objectContaining({
+          showing: [21, 40, 56],
+          viewAllUrl: `/prisoner/${prisonerNumber}/scan-overview?page=all`,
+        }),
+      }),
+    )
+    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, { page: 1 }, username)
+    expect(prisonService.getPrisonNames).not.toHaveBeenCalled()
+  })
+
+  // TODO: what shows if summary and/or list do not load?
 })
 
 describe('getCreateScan', () => {
