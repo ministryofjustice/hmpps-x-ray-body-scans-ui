@@ -1,9 +1,11 @@
 import { type Page, expect, test } from '@playwright/test'
+import { formatDisplayDate } from '../../server/utils/dates'
 import { notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { emptyPageResponse, pageResponse } from '../../server/testutils/pagination'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
+  mockLegacyScanResponse,
   mockScanResponse,
   mockScanSummaryResponse,
 } from '../../server/testutils/mocks/xrayBodyScansApi'
@@ -15,6 +17,7 @@ import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import ScanListPage from '../pages/scanListPage'
 
 const now = new Date() // cannot fix clock since backend runs in separate process with no mocking
+const nowDisplay = formatDisplayDate(now)
 const prisonerNumber = 'A1234BC'
 
 test.describe('Scan list page', () => {
@@ -338,6 +341,101 @@ test.describe('Scan list page', () => {
       await expect(scanListPage.historySection).toContainText(expectedNoScansMessage)
     })
   }
+
+  test('Shows table of scans', async ({ page }) => {
+    await Promise.all([
+      xrayBodyScansApi.stubGetScanSummary(
+        prisonerNumber,
+        mockScanSummaryResponse({
+          prisonerNumber,
+          now,
+          relevantAlerts: [],
+        }),
+      ),
+      xrayBodyScansApi.stubListScans(
+        prisonerNumber,
+        pageResponse([
+          {
+            ...mockScanResponse(prisonerNumber, now),
+            prisonId: 'LEI',
+            justification: 'REASONABLE_SUSPICION',
+            justificationDescription: 'Reasonable suspicion',
+            outcome: 'POSITIVE',
+            outcomeDescription: 'Item detected',
+            typeOfFind: 'ORGANIC',
+            typeOfFindDescription: 'Organic',
+          },
+          {
+            ...mockScanResponse(prisonerNumber, now),
+            prisonId: 'LEI',
+            justification: 'REASONABLE_SUSPICION',
+            justificationDescription: 'Reasonable suspicion',
+            outcome: 'POSITIVE',
+            outcomeDescription: 'Item detected',
+            typeOfFind: 'INORGANIC',
+            typeOfFindDescription: 'Inorganic',
+            caseNoteId: '019f94a7-17cd-746f-b1df-5d4848da42e1',
+          },
+          {
+            ...mockScanResponse(prisonerNumber, now),
+            prisonId: 'LEI',
+            justification: 'INTELLIGENCE',
+            justificationDescription: 'Intelligence-led',
+            outcome: 'POSITIVE',
+            outcomeDescription: 'Item detected',
+            typeOfFind: 'ORGANIC_AND_INORGANIC',
+            typeOfFindDescription: 'Organic and inorganic',
+          },
+          {
+            ...mockScanResponse(prisonerNumber, now),
+            prisonId: 'LEI',
+            justification: 'REASONABLE_SUSPICION',
+            justificationDescription: 'Reasonable suspicion',
+            outcome: 'POSITIVE',
+            outcomeDescription: 'Item detected',
+            typeOfFind: 'NOT_KNOWN',
+            typeOfFindDescription: 'Not known',
+          },
+          {
+            ...mockScanResponse(prisonerNumber, now),
+            prisonId: 'LEI',
+            justification: 'REASONABLE_SUSPICION',
+            justificationDescription: 'Reasonable suspicion',
+            outcome: 'NEGATIVE',
+            outcomeDescription: 'No item detected',
+            typeOfFind: null,
+            typeOfFindDescription: null,
+          },
+          {
+            ...mockScanResponse(prisonerNumber, now),
+            prisonId: 'MDI',
+            justification: 'INTELLIGENCE',
+            justificationDescription: 'Intelligence-led',
+            outcome: 'INCONCLUSIVE',
+            outcomeDescription: 'Inconclusive',
+            typeOfFind: null,
+            typeOfFindDescription: null,
+          },
+          mockLegacyScanResponse(prisonerNumber, now),
+          mockLegacyScanResponse(prisonerNumber, null, 'positive'),
+        ]),
+        {},
+      ),
+      login(page),
+    ])
+
+    const scanListPage = await goToScanListPage(page)
+    await expect(scanListPage.getScanTableContents()).resolves.toEqual([
+      [nowDisplay, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
+      [nowDisplay, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
+      [nowDisplay, 'Leeds (HMP & YOI)', 'Intelligence-led', 'Item detected', 'Organic and inorganic', 'Add case note'],
+      [nowDisplay, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Not known', 'Add case note'],
+      [nowDisplay, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'No item detected', 'None', 'Add case note'],
+      [nowDisplay, 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
+      [nowDisplay, '', '', '', '', ''],
+      ['Not recorded', '', '', 'positive', '', ''],
+    ])
+  })
 
   // TODO: what shows if summary and/or list do not load?
 })

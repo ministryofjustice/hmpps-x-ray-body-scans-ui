@@ -59,6 +59,14 @@ export default class ScanListPage extends AbstractPage {
     return this.page.locator('.scan-table')
   }
 
+  async getScanTableContents(): Promise<string[][]> {
+    return this.scanTable
+      .locator('.govuk-table__body tr')
+      .evaluateAll((trs: HTMLTableRowElement[]) =>
+        trs.map(tr => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())),
+      )
+  }
+
   get returnLink(): Locator {
     return this.page.getByRole('link', { name: 'Return to the prisoner’s profile' })
   }

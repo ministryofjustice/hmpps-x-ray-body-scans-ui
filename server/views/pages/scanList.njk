@@ -146,7 +146,7 @@
 
       {# TODO: what permissions are needed? #}
       {% set actionLink %}
-        {% if scan.casNoteId %}
+        {% if scan.caseNoteId %}
           <a href="#">View case note</a>
         {% elseif scan.source === "DPS" %}
           <a href="#">Add case note</a>
