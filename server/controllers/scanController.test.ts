@@ -9,6 +9,7 @@ import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
+  mockLegacyScanResponse,
   mockScanResponse,
   mockScanSummaryResponse,
 } from '../testutils/mocks/xrayBodyScansApi'
@@ -80,7 +81,14 @@ describe('getScanList', () => {
     },
     {
       scenario: 'the scan summary for someone without alerts',
-      scanSummary: mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+      scanSummary: mockScanSummaryResponse({
+        prisonerNumber,
+        now,
+        nomisCount: 1,
+        dpsCount: 2,
+        negativeCount: 2,
+        relevantAlerts: [],
+      }),
       expectedAlertFlags: [],
     },
     {
@@ -113,11 +121,27 @@ describe('getScanList', () => {
       prisonerNumber,
       scanSummary,
       alertFlags: expectedAlertFlags,
+      yearFilter: undefined,
+      historicYears: [2025, 2024],
       scanRows: [],
     })
   })
 
-  it('should render scan list', async () => {
+  it.each([
+    { scenario: 'this year', year: undefined, expectedYearFilter: undefined, expectedListScansRequest: {} },
+    {
+      scenario: 'last year',
+      year: '2025',
+      expectedYearFilter: 2025,
+      expectedListScansRequest: { fromScanDate: expect.any(Date), toScanDate: expect.any(Date) },
+    },
+    {
+      scenario: 'all years',
+      year: 'all',
+      expectedYearFilter: 'all',
+      expectedListScansRequest: { fromScanDate: expect.any(Date) },
+    },
+  ])('should render scan list for $scenario', async ({ year, expectedYearFilter, expectedListScansRequest }) => {
     const scanSummary = mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] })
     xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(scanSummary)
     xrayBodyScansApiClient.listScans.mockResolvedValueOnce(
@@ -132,26 +156,42 @@ describe('getScanList', () => {
           typeOfFind: 'ORGANIC',
           typeOfFindDescription: 'Organic',
         },
+        mockLegacyScanResponse(prisonerNumber, now),
+        mockLegacyScanResponse(prisonerNumber, null, 'pos'),
       ]),
-      // TODO: other variations
     )
 
+    req.query.year = year
     await scanController.getScanList(req, res)
 
     expect(res.render).toHaveBeenCalledWith('pages/scanList', {
       prisonerNumber,
       scanSummary,
       alertFlags: [],
+      yearFilter: expectedYearFilter,
+      historicYears: [2025, 2024],
       scanRows: [
         expect.objectContaining({
+          source: 'DPS',
           scanDateDescription: '24 July 2026',
           prisonDescription: 'Leeds (HMP & YOI)',
           justificationDescription: 'Reasonable suspicion',
           outcomeDescription: 'Item detected',
           typeOfFindDescription: 'Organic',
         }),
+        expect.objectContaining({
+          source: 'NOMIS',
+          scanDateDescription: '24 July 2026',
+          scanDetails: null,
+        }),
+        expect.objectContaining({
+          source: 'NOMIS',
+          scanDateDescription: 'Not recorded',
+          scanDetails: 'pos',
+        }),
       ],
     })
+    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, expectedListScansRequest, username)
   })
 })
 

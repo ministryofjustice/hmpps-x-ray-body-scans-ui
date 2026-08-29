@@ -47,6 +47,18 @@ export default class ScanListPage extends AbstractPage {
     return this.page.locator('[data-testid="scan-alerts"] li')
   }
 
+  get yearTabs(): Locator {
+    return this.page.locator('.govuk-tabs__list li')
+  }
+
+  get historySection(): Locator {
+    return this.page.locator('[data-testid="scan-history"]')
+  }
+
+  get scanTable(): Locator {
+    return this.page.locator('.scan-table')
+  }
+
   get returnLink(): Locator {
     return this.page.getByRole('link', { name: 'Return to the prisoner’s profile' })
   }

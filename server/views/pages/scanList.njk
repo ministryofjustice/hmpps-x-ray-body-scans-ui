@@ -105,17 +105,46 @@
 
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
 
-  <section>
+  <section data-testid="scan-history">
     <h2 class="govuk-heading-m">X-ray body scan history</h2>
 
-    <p>TODO: tabs</p>
-
-    <h3 class="govuk-heading-s">All scans</h3>
+    <div class="govuk-tabs">
+      <ul class="govuk-tabs__list">
+        <li class="govuk-tabs__list-item {{ "govuk-tabs__list-item--selected" if not yearFilter }}">
+          <a class="govuk-tabs__tab" href="?">
+            This year’s scans
+          </a>
+        </li>
+        {% for historicYear in historicYears %}
+          <li class="govuk-tabs__list-item {{ "govuk-tabs__list-item--selected" if yearFilter === historicYear }}">
+            <a class="govuk-tabs__tab" href="?year={{ historicYear }}">
+              {{ historicYear }} scans
+            </a>
+          </li>
+        {% endfor %}
+        <li class="govuk-tabs__list-item {{ "govuk-tabs__list-item--selected" if yearFilter === "all" }}">
+          <a class="govuk-tabs__tab" href="?year=all">
+            All scans
+          </a>
+        </li>
+      </ul>
+    </div>
+    <h3 class="govuk-heading-s">
+      {% if not yearFilter %}
+        Scans recorded this year
+      {% elseif yearFilter === "all" %}
+        All scans recorded
+      {% else %}
+        Scans recorded in {{ yearFilter }}
+      {% endif %}
+    </h3>
 
     <p>TODO: pagination</p>
 
     {% set rows = [] %}
     {% for scan in scanRows %}
+
+      {# TODO: what permissions are needed? #}
       {% set actionLink %}
         {% if scan.casNoteId %}
           <a href="#">View case note</a>
@@ -133,20 +162,30 @@
         { html: actionLink, classes: "scan-table__action-td" }
       ]) %}
     {% endfor %}
-    <div class="scan-table__container">
-      {{ govukTable({
-        head: [
-          { text: "Date" },
-          { text: "Establishment" },
-          { text: "Reason" },
-          { text: "Scan details", classes: "scan-table__details-th" },
-          { text: "Items found" },
-          { text: "Action", classes: "scan-table__action-th" }
-        ],
-        rows: rows,
-        classes: "scan-table"
-      }) }}
-    </div>
+    {% if rows.length > 0 %}
+      <div class="scan-table__container">
+        {{ govukTable({
+          head: [
+            { text: "Date" },
+            { text: "Establishment" },
+            { text: "Reason" },
+            { text: "Scan details", classes: "scan-table__details-th" },
+            { text: "Items found" },
+            { text: "Action", classes: "scan-table__action-th" }
+          ],
+          rows: rows,
+          classes: "scan-table"
+        }) }}
+      </div>
+    {% else %}
+      {% if not yearFilter %}
+        <p>No X-ray body scans have been recorded for this person in {{ now().getFullYear() }}.</p>
+      {% elseif yearFilter === "all" %}
+        <p>No X-ray body scans have been recorded for this person.</p>
+      {% else %}
+        <p>No X-ray body scans have been recorded for this person in {{ yearFilter }}.</p>
+      {% endif %}
+    {% endif %}
 
     <p>TODO: pagination</p>
 

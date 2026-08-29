@@ -1,8 +1,10 @@
 import { type Page, expect, test } from '@playwright/test'
 import { notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
+import { emptyPageResponse, pageResponse } from '../../server/testutils/pagination'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
+  mockScanResponse,
   mockScanSummaryResponse,
 } from '../../server/testutils/mocks/xrayBodyScansApi'
 import { login, resetStubs } from '../testUtils'
@@ -12,6 +14,7 @@ import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import ScanListPage from '../pages/scanListPage'
 
+const now = new Date() // cannot fix clock since backend runs in separate process with no mocking
 const prisonerNumber = 'A1234BC'
 
 test.describe('Scan list page', () => {
@@ -46,7 +49,7 @@ test.describe('Scan list page', () => {
     await Promise.all([
       xrayBodyScansApi.stubGetScanSummary(
         prisonerNumber,
-        mockScanSummaryResponse({ prisonerNumber, now: new Date(), relevantAlerts: [] }),
+        mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
       ),
       xrayBodyScansApi.stubListScans(prisonerNumber),
       login(page),
@@ -68,14 +71,25 @@ test.describe('Scan list page', () => {
     // TODO: record button hidden sometimes?
 
     // summary headings
-    const currentYear = `${new Date().getFullYear()}`
+    const currentYear = now.getFullYear()
     await Promise.all([
       expect(
         scanListPage.summarySection.getByRole('heading', { name: 'X-ray body scans recorded in', level: 2 }),
-      ).toContainText(currentYear),
-      expect(scanListPage.countSection.getByRole('heading', { name: 'Scans in', level: 3 })).toContainText(currentYear),
+      ).toContainText(currentYear.toString()),
+      expect(scanListPage.countSection.getByRole('heading', { name: 'Scans in', level: 3 })).toContainText(
+        currentYear.toString(),
+      ),
     ])
 
+    // year filter tabs
+    await expect(scanListPage.yearTabs).toContainText([
+      'This year’s scans',
+      `${currentYear - 1} scans`,
+      `${currentYear - 2} scans`,
+      'All scans',
+    ])
+
+    // return link
     await expect(scanListPage.returnLink).toHaveAttribute(
       'href',
       `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
@@ -85,7 +99,7 @@ test.describe('Scan list page', () => {
   const summaryScenarios = [
     {
       scenario: 'with no scans',
-      scanSummary: mockScanSummaryResponse({ prisonerNumber, now: new Date(), relevantAlerts: [] }),
+      scanSummary: mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
       expectedInfoBoxText: null,
       expectedCurrentYearCount: {
         count: 0,
@@ -97,7 +111,7 @@ test.describe('Scan list page', () => {
     },
     {
       scenario: 'with only 1 NOMIS scan',
-      scanSummary: mockScanSummaryResponse({ prisonerNumber, now: new Date(), nomisCount: 1, relevantAlerts: [] }),
+      scanSummary: mockScanSummaryResponse({ prisonerNumber, now, nomisCount: 1, relevantAlerts: [] }),
       expectedInfoBoxText: '1 scan does not have a result available',
       expectedCurrentYearCount: {
         count: 1,
@@ -111,7 +125,7 @@ test.describe('Scan list page', () => {
       scenario: 'with NOMIS and DPS scans',
       scanSummary: mockScanSummaryResponse({
         prisonerNumber,
-        now: new Date(),
+        now,
         dpsCount: 6,
         nomisCount: 3,
         positiveCount: 1,
@@ -131,7 +145,7 @@ test.describe('Scan list page', () => {
       scenario: 'nearing the scan limit',
       scanSummary: mockScanSummaryResponse({
         prisonerNumber,
-        now: new Date(),
+        now,
         dpsCount: 101,
         positiveCount: 1,
         negativeCount: 100,
@@ -150,7 +164,7 @@ test.describe('Scan list page', () => {
       scenario: 'at the scan limit',
       scanSummary: mockScanSummaryResponse({
         prisonerNumber,
-        now: new Date(),
+        now,
         dpsCount: 106,
         nomisCount: 10,
         negativeCount: 100,
@@ -205,14 +219,14 @@ test.describe('Scan list page', () => {
   const alertsScenarios = [
     {
       scenario: 'with no relevant alerts',
-      scanSummary: mockScanSummaryResponse({ prisonerNumber, now: new Date(), relevantAlerts: [] }),
+      scanSummary: mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
       expectedAlertFlags: ['No scan alerts'],
     },
     {
       scenario: 'with an internal secretor alert',
       scanSummary: mockScanSummaryResponse({
         prisonerNumber,
-        now: new Date(),
+        now,
         relevantAlerts: [mockInternalSecretorAlert],
       }),
       expectedAlertFlags: ['Internal Secretor'],
@@ -221,7 +235,7 @@ test.describe('Scan list page', () => {
       scenario: 'with both relevant alerts',
       scanSummary: mockScanSummaryResponse({
         prisonerNumber,
-        now: new Date(),
+        now,
         relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert],
       }),
       expectedAlertFlags: ['Internal Secretor', 'Do Not X-Ray Body Scan'],
@@ -238,6 +252,90 @@ test.describe('Scan list page', () => {
       const scanListPage = await goToScanListPage(page)
 
       await expect(scanListPage.alertsList).toContainText(expectedAlertFlags)
+    })
+  }
+
+  const tabScenarios = [
+    {
+      scenario: 'last year',
+      yearTabIndex: 1,
+      listScanRequest: {
+        fromScanDate: new Date(now.getFullYear() - 1, 0, 1, 12),
+        toScanDate: new Date(now.getFullYear() - 1, 11, 31, 12),
+      },
+      expectedSubheading: `Scans recorded in ${now.getFullYear() - 1}`,
+      expectedNoScansMessage: `No X-ray body scans have been recorded for this person in ${now.getFullYear() - 1}.`,
+    },
+    {
+      scenario: '2 years ago',
+      yearTabIndex: 2,
+      listScanRequest: {
+        fromScanDate: new Date(now.getFullYear() - 2, 0, 1, 12),
+        toScanDate: new Date(now.getFullYear() - 2, 11, 31, 12),
+      },
+      expectedSubheading: `Scans recorded in ${now.getFullYear() - 2}`,
+      expectedNoScansMessage: `No X-ray body scans have been recorded for this person in ${now.getFullYear() - 2}.`,
+    },
+    {
+      scenario: 'all years',
+      yearTabIndex: 3,
+      listScanRequest: {
+        fromScanDate: new Date(2000, 0, 1, 12),
+      },
+      expectedSubheading: 'All scans recorded',
+      expectedNoScansMessage: 'No X-ray body scans have been recorded for this person.',
+    },
+  ]
+  for (const { scenario, yearTabIndex, listScanRequest, expectedSubheading, expectedNoScansMessage } of tabScenarios) {
+    test(`Can filter scans from ${scenario} and display messages when there are no scans`, async ({ page }) => {
+      await Promise.all([
+        xrayBodyScansApi.stubGetScanSummary(
+          prisonerNumber,
+          mockScanSummaryResponse({
+            prisonerNumber,
+            now,
+            relevantAlerts: [],
+          }),
+        ),
+        xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), {}),
+        login(page),
+      ])
+
+      const scanListPage = await goToScanListPage(page)
+
+      await expect(
+        scanListPage.historySection.getByRole('heading', { name: 'Scans recorded this year', level: 3 }),
+      ).toBeVisible()
+      await expect(scanListPage.scanTable).not.toBeVisible()
+      await expect(scanListPage.historySection).toContainText(
+        `No X-ray body scans have been recorded for this person in ${now.getFullYear()}.`,
+      )
+
+      // mock filtered scans
+      await xrayBodyScansApi.stubListScans(
+        prisonerNumber,
+        pageResponse([mockScanResponse(prisonerNumber, now)]),
+        listScanRequest,
+      )
+
+      await scanListPage.yearTabs.nth(yearTabIndex).getByRole('link').click()
+
+      await expect(
+        scanListPage.historySection.getByRole('heading', { name: expectedSubheading, level: 3 }),
+      ).toBeVisible()
+      await expect(scanListPage.scanTable).toBeVisible()
+      await expect(scanListPage.historySection).not.toContainText(expectedNoScansMessage)
+
+      // mock no filtered scans
+      await xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), listScanRequest)
+
+      await scanListPage.yearTabs.nth(yearTabIndex).getByRole('link').click()
+
+      await expect(
+        scanListPage.historySection.getByRole('heading', { name: expectedSubheading, level: 3 }),
+      ).toBeVisible()
+      await expect(scanListPage.scanTable).not.toBeVisible()
+      await expect(scanListPage.historySection).toContainText(expectedNoScansMessage)
     })
   }
 

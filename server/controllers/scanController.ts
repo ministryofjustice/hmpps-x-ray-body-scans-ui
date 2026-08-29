@@ -8,10 +8,11 @@ import {
 import logger from '../../logger'
 import { formatDisplayDate } from '../utils/dates'
 import { type CreateScanFormErrors, createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
+import { listScansForm } from '../forms/listScansForm'
 import type { PrisonUser } from '../interfaces/hmppsUser'
 import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
+import type { CreateScanRequest, ListScansRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 import { PrisonService } from '../services/prisonService'
@@ -38,9 +39,14 @@ export default class ScanController {
       correlationId: req.id,
     })
 
+    const result = listScansForm.safeParse(req.query)
+    const historicYears = result.data?.historicYears ?? []
+    const yearFilter = result.data?.yearFilter
+    const listScansRequest: ListScansRequest = result.data?.listScansRequest ?? {}
+
     const [scanSummary, scans] = await Promise.all([
       this.xrayBodyScansApiClient.getScanSummary(prisonerNumber, { includeAlerts: true }, username),
-      this.xrayBodyScansApiClient.listScans(prisonerNumber, {}, username),
+      this.xrayBodyScansApiClient.listScans(prisonerNumber, listScansRequest, username),
     ])
 
     const prisonIds = new Set(
@@ -71,6 +77,8 @@ export default class ScanController {
       prisonerNumber,
       scanSummary,
       alertFlags,
+      yearFilter,
+      historicYears,
       scanRows,
     })
   }
