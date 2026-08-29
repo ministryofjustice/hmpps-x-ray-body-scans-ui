@@ -1,0 +1,20 @@
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
+
+{% macro paginate(pagination) %}
+  {% if pagination %}
+    <div class="dps-pagination">
+      {{ govukPagination(pagination.govukPagination) }}
+      <div class="dps-pagination__showing">
+        <p>
+          Showing <span>{{ pagination.showing[0] }}</span> to <span>{{ pagination.showing[1] }}</span> of <span>{{ pagination.showing[2] }}</span> {% if pagination.showing[2] === 1 %}result{% else %}results{% endif %}
+        </p>
+
+        {% if pagination.viewAllUrl %}
+          <a href="{{ pagination.viewAllUrl }}" aria-label="View all results">
+            View all
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endmacro %}
