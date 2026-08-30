@@ -29,6 +29,7 @@ const baseListScansForm = z.preprocess(
   z.object({
     year: z.union([z.literal('all'), optionalNumber]),
     page: z.union([z.literal('all'), optionalNumber.default(0)]),
+    sort: z.string().optional(),
   }),
 )
 
@@ -56,7 +57,7 @@ export const listScansForm = baseListScansForm
     },
   )
   // transform into ListScansRequest and variables needed by the scansList.njk template
-  .transform(({ year, page }) => {
+  .transform(({ year, page, sort: sortOrder }) => {
     const historicYears = getHistoricYears()
     if (typeof year === 'number' && !historicYears.includes(year)) {
       year = undefined
@@ -72,7 +73,14 @@ export const listScansForm = baseListScansForm
       page = 0
     }
 
-    const listScansRequest: ListScansRequest = { page, size }
+    let sort: ListScansRequest['sort'] | undefined
+    if (sortOrder?.trim() === 'scanDate') {
+      sort = 'scanDate,ASC'
+    } else if (sortOrder?.trim() === '-scanDate') {
+      sort = 'scanDate,DESC'
+    }
+
+    const listScansRequest: ListScansRequest = { page, size, sort }
     if (year === 'all') {
       listScansRequest.fromScanDate = new Date(2000, 0, 1, 12)
     } else if (typeof year === 'number') {

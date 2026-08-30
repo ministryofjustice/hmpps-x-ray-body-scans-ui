@@ -1,4 +1,4 @@
-import type { PageResponse } from '../data/interfaces/pagination'
+import type { PageRequest, PageResponse } from '../data/interfaces/pagination'
 
 export interface Pagination {
   govukPagination: {
@@ -81,4 +81,51 @@ export function paginate<T = unknown>(
     showing: [number * size + 1, number * size + numberOfElements, totalElements],
     viewAllUrl: allowViewAll ? buildUrl('all') : undefined,
   }
+}
+
+type SortableFields<P> = P extends PageRequest<infer S> ? S : never
+
+export function sortable<P extends PageRequest<S>, S extends string>(
+  pageRequest: P,
+  url: string,
+): (field: SortableFields<P>) => SortSettings {
+  const [baseUrl, query] = url.split('?', 2)
+  const params = new URLSearchParams(query ?? '')
+  if (params.has('page')) {
+    params.delete('page')
+  }
+
+  function buildUrl(newSort: SortableFields<P>, descending = false): string {
+    params.set('sort', descending ? `-${newSort}` : newSort)
+    return `${baseUrl}?${params}`
+  }
+
+  const { sort } = pageRequest
+  let currentField: SortableFields<P> | undefined
+  let currentDirection: 'ASC' | 'DESC' | undefined
+  if (typeof sort === 'string') {
+    const [field, direction = 'ASC'] = sort.split(',', 2)
+    currentField = field as SortableFields<P>
+    currentDirection = direction as 'ASC' | 'DESC'
+  }
+
+  return field => {
+    if (currentField === field) {
+      return {
+        href: buildUrl(field, currentDirection === 'ASC'),
+        currentDirection,
+        direction: currentDirection === 'ASC' ? 'DESC' : 'ASC',
+      }
+    }
+    return { href: buildUrl(field), direction: 'ASC' }
+  }
+}
+
+interface SortSettings {
+  /** URL with instructions to sort by this field */
+  href: string
+  /** The direction href will sort by */
+  direction: 'ASC' | 'DESC'
+  /** The direction currently sorted by this field, if any */
+  currentDirection?: 'ASC' | 'DESC'
 }

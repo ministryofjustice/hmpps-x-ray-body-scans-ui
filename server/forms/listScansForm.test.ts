@@ -137,4 +137,34 @@ describe('createScanForm', () => {
       },
     })
   })
+
+  it.each([
+    { sort: 'scanDate', expected: 'scanDate,ASC' },
+    { sort: ' scanDate ', expected: 'scanDate,ASC' },
+    { sort: '-scanDate', expected: 'scanDate,DESC' },
+  ] as const)('should parse a form with sort $sort', ({ sort, expected }) => {
+    const result = listScansForm.safeParse({ sort } satisfies Request['query'] satisfies FormInput)
+    expect(result.success).toBe(true)
+    expect(result.data).toEqual<ListScansForm>({
+      historicYears: [2025, 2024],
+      yearFilter: undefined,
+      listScansRequest: {
+        page: 0,
+        sort: expected,
+      },
+    })
+  })
+
+  it.each([undefined, '', 'prisonerNumber'])('should ignore sort %s when parsing a form', sort => {
+    const result = listScansForm.safeParse({ sort } satisfies Request['query'] satisfies FormInput)
+    expect(result.success).toBe(true)
+    expect(result.data).toEqual<ListScansForm>({
+      historicYears: [2025, 2024],
+      yearFilter: undefined,
+      listScansRequest: {
+        page: 0,
+        sort: undefined,
+      },
+    })
+  })
 })

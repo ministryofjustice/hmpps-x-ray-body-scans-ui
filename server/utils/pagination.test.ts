@@ -2,7 +2,8 @@ import express from 'express'
 import nunjucks from 'nunjucks'
 import { emptyPageResponse, pageResponse } from '../testutils/pagination'
 import nunjucksSetup from './nunjucksSetup'
-import { type Pagination, paginate } from './paginate'
+import type { PageRequest } from '../data/interfaces/pagination'
+import { type Pagination, paginate, sortable } from './paginate'
 
 describe('paginate', () => {
   let njkEnv: nunjucks.Environment
@@ -347,5 +348,44 @@ describe('paginate', () => {
       showing: [2, 2, 3],
       viewAllUrl: '/?year=2026&page=all',
     })
+  })
+})
+
+describe('sortable', () => {
+  interface ExamplePageRequest extends PageRequest<'a' | 'b'> {
+    a: number
+    b: number
+    c?: number
+  }
+
+  it('should build url for sortable columns when there’s no current sort order set', () => {
+    const request: ExamplePageRequest = { a: 0, b: 0 }
+    const sorter = sortable(request, '/table?query=test')
+    expect(sorter('a')).toEqual({ href: '/table?query=test&sort=a', direction: 'ASC', currentDirection: undefined })
+    expect(sorter('b')).toEqual({ href: '/table?query=test&sort=b', direction: 'ASC' })
+  })
+
+  it.each(['a', 'a,ASC'] as const)(
+    'should build url for sortable columns when an ascending sort order is set (%s)',
+    sort => {
+      const request: ExamplePageRequest = { a: 0, b: 0, sort }
+      const sorter = sortable(request, '/table?query=test&sort=a')
+      expect(sorter('a')).toEqual({ href: '/table?query=test&sort=-a', direction: 'DESC', currentDirection: 'ASC' })
+      expect(sorter('b')).toEqual({ href: '/table?query=test&sort=b', direction: 'ASC' })
+    },
+  )
+
+  it('should build url for sortable columns when a descending sort order is set (a,DESC)', () => {
+    const request: ExamplePageRequest = { a: 0, b: 0, sort: 'a,DESC' }
+    const sorter = sortable(request, '/table?query=test&sort=-a')
+    expect(sorter('a')).toEqual({ href: '/table?query=test&sort=a', direction: 'ASC', currentDirection: 'DESC' })
+    expect(sorter('b')).toEqual({ href: '/table?query=test&sort=b', direction: 'ASC' })
+  })
+
+  it('should reset the page to 0 in sortable columns', () => {
+    const request: ExamplePageRequest = { a: 0, b: 0 }
+    const sorter = sortable(request, '/table?page=2&query=test')
+    expect(sorter('a')).toEqual({ href: '/table?query=test&sort=a', direction: 'ASC', currentDirection: undefined })
+    expect(sorter('b')).toEqual({ href: '/table?query=test&sort=b', direction: 'ASC' })
   })
 })
