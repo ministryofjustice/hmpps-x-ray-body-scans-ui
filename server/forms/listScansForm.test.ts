@@ -102,4 +102,39 @@ describe('createScanForm', () => {
       listScansRequest: { page: 0 },
     })
   })
+
+  it.each([
+    { scenario: 'this year', year: undefined, expectedYearFilter: undefined, expectedScanDateFilters: {} },
+    {
+      scenario: 'last year',
+      year: '2025',
+      expectedYearFilter: 2025,
+      expectedScanDateFilters: { fromScanDate: new Date(2025, 0, 1, 12), toScanDate: new Date(2025, 11, 31, 12) },
+    },
+  ])('should parse a form with all pages for $scenario', ({ year, expectedYearFilter, expectedScanDateFilters }) => {
+    const result = listScansForm.safeParse({ page: 'all', year } satisfies Request['query'] satisfies FormInput)
+    expect(result.success).toBe(true)
+    expect(result.data).toEqual<ListScansForm>({
+      historicYears: [2025, 2024],
+      yearFilter: expectedYearFilter,
+      listScansRequest: {
+        ...expectedScanDateFilters,
+        page: 0,
+        size: 5000,
+      },
+    })
+  })
+
+  it('should only get first page for a form with all pages for all year', () => {
+    const result = listScansForm.safeParse({ page: 'all', year: 'all' } satisfies Request['query'] satisfies FormInput)
+    expect(result.success).toBe(true)
+    expect(result.data).toEqual<ListScansForm>({
+      historicYears: [2025, 2024],
+      yearFilter: 'all',
+      listScansRequest: {
+        page: 0,
+        fromScanDate: new Date(2000, 0, 1, 12),
+      },
+    })
+  })
 })

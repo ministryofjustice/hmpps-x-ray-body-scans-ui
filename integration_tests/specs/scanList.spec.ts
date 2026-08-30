@@ -490,7 +490,19 @@ test.describe('Scan list page', () => {
       if (scenario === 'all years') {
         await expect(scanListPage.pagination.getByRole('link', { name: 'View all' })).not.toBeVisible()
       } else {
-        await expect(scanListPage.pagination.getByRole('link', { name: 'View all' })).toBeVisible()
+        await xrayBodyScansApi.stubListScans(
+          prisonerNumber,
+          {
+            ...response,
+            numberOfElements: 200,
+            totalElements: 200,
+            totalPages: 1,
+            size: 5000,
+          },
+          { ...listScanRequest, page: 0 },
+        )
+        await scanListPage.pagination.getByRole('link', { name: 'View all' }).click()
+        await expect(scanListPage.pagination).not.toBeVisible()
       }
     })
   }

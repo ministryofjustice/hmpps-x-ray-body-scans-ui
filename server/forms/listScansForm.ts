@@ -28,7 +28,7 @@ const baseListScansForm = z.preprocess(
   },
   z.object({
     year: z.union([z.literal('all'), optionalNumber]),
-    page: optionalNumber.default(0), // TODO: all pages
+    page: z.union([z.literal('all'), optionalNumber.default(0)]),
   }),
 )
 
@@ -62,11 +62,17 @@ export const listScansForm = baseListScansForm
       year = undefined
     }
 
-    if (!Number.isSafeInteger(page) || page < 0) {
+    let size: number | undefined
+    if (page === 'all') {
+      page = 0
+      if (year !== 'all') {
+        size = 5_000 // NB: not technically all :(
+      }
+    } else if (!Number.isSafeInteger(page) || page < 0) {
       page = 0
     }
 
-    const listScansRequest: ListScansRequest = { page }
+    const listScansRequest: ListScansRequest = { page, size }
     if (year === 'all') {
       listScansRequest.fromScanDate = new Date(2000, 0, 1, 12)
     } else if (typeof year === 'number') {
