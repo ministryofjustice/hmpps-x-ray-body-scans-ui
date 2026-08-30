@@ -166,9 +166,22 @@
     {% endfor %}
     {% if rows.length > 0 %}
       <div class="scan-table__container">
+        {% set sortOptions = sorter("scanDate") %}
+        {% set scanDateHtml %}
+          <a href="{{ sortOptions.href }}" class="scan-table__sort-link">
+            Date
+            {% if sortOptions.currentDirection === "ASC" %}
+            <span class="govuk-visually-hidden">(sorted ascending)</span>
+            {% else %}
+            <span class="govuk-visually-hidden">(sorted descending)</span>
+            {% endif %}
+          </a>
+        {% endset %}
         {{ govukTable({
           head: [
-            { text: "Date" },
+            { html: scanDateHtml, attributes: {
+              "aria-sort": "ascending" if sortOptions.currentDirection === "ASC" else "descending"
+            } },
             { text: "Establishment" },
             { text: "Reason" },
             { text: "Scan details", classes: "scan-table__details-th" },

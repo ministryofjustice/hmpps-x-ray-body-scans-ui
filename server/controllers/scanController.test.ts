@@ -125,6 +125,7 @@ describe('getScanList', () => {
       yearFilter: undefined,
       historicYears: [2025, 2024],
       pagination: null,
+      sorter: expect.any(Function),
       scanRows: [],
     })
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, { page: 0 }, username)
@@ -175,6 +176,7 @@ describe('getScanList', () => {
       yearFilter: expectedYearFilter,
       historicYears: [2025, 2024],
       pagination: null,
+      sorter: expect.any(Function),
       scanRows: [
         expect.objectContaining({
           source: 'DPS',
@@ -222,6 +224,7 @@ describe('getScanList', () => {
           showing: [21, 40, 56],
           viewAllUrl: `/prisoner/${prisonerNumber}/scan-overview?page=all`,
         }),
+        sorter: expect.any(Function),
       }),
     )
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, { page: 1 }, username)
@@ -263,6 +266,7 @@ describe('getScanList', () => {
       expect.objectContaining({
         yearFilter: expectedYearFilter,
         pagination: null,
+        sorter: expect.any(Function),
       }),
     )
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(

@@ -59,6 +59,19 @@ export default class ScanListPage extends AbstractPage {
     return this.page.locator('.scan-table')
   }
 
+  async getScanTableHeaders(): Promise<ScanTableHeader[]> {
+    return this.scanTable.locator('.govuk-table__head th').evaluateAll((ths: HTMLTableCellElement[]) =>
+      ths.map(th => {
+        const text = th.textContent.trim()
+        const anchor = th.querySelector('a')
+        if (anchor) {
+          return { text, href: anchor.href, ariaSort: th.ariaSort }
+        }
+        return { text }
+      }),
+    )
+  }
+
   async getScanTableContents(): Promise<string[][]> {
     return this.scanTable
       .locator('.govuk-table__body tr')
@@ -75,3 +88,13 @@ export default class ScanListPage extends AbstractPage {
     return this.page.getByRole('link', { name: 'Return to the prisoner’s profile' })
   }
 }
+
+type ScanTableHeader =
+  | {
+      text: string
+    }
+  | {
+      text: string
+      href: string
+      ariaSort: string
+    }

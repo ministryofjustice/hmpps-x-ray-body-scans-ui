@@ -7,7 +7,7 @@ import {
 } from '@ministryofjustice/hmpps-connect-dps-shared-items'
 import logger from '../../logger'
 import { formatDisplayDate } from '../utils/dates'
-import { paginate } from '../utils/paginate'
+import { paginate, sortable } from '../utils/paginate'
 import { type CreateScanFormErrors, createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
 import { listScansForm } from '../forms/listScansForm'
 import type { PrisonUser } from '../interfaces/hmppsUser'
@@ -49,6 +49,8 @@ export default class ScanController {
       this.xrayBodyScansApiClient.getScanSummary(prisonerNumber, { includeAlerts: true }, username),
       this.xrayBodyScansApiClient.listScans(prisonerNumber, listScansRequest, username),
     ])
+
+    const sorter = sortable(listScansRequest, req.originalUrl)
     const pagination = paginate(scans, req.originalUrl, yearFilter !== 'all')
 
     const prisonIds = Array.from(
@@ -82,6 +84,7 @@ export default class ScanController {
       alertFlags,
       yearFilter,
       historicYears,
+      sorter,
       pagination,
       scanRows,
     })

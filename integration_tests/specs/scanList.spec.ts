@@ -519,6 +519,93 @@ test.describe('Scan list page', () => {
         }
       })
     }
+
+    test('Can sort scans by date in various tabs', async ({ page }) => {
+      const response = pageResponse(Array.from({ length: 20 }).map(() => mockScanResponse(prisonerNumber, now)))
+      response.totalElements = 110
+      response.totalPages = 6
+
+      await Promise.all([
+        xrayBodyScansApi.stubGetScanSummary(
+          prisonerNumber,
+          mockScanSummaryResponse({
+            prisonerNumber,
+            now,
+            relevantAlerts: [],
+          }),
+        ),
+        xrayBodyScansApi.stubListScans(prisonerNumber, response, {
+          page: 0,
+        }),
+        login(page),
+      ])
+
+      const scanListPage = await goToScanListPage(page)
+      await expect(scanListPage.getScanTableHeaders()).resolves.toEqual([
+        {
+          text: expect.stringMatching(/Date\s+\(sorted descending\)/),
+          href: expect.stringContaining('sort=scanDate'),
+          ariaSort: 'descending',
+        },
+        { text: 'Establishment' },
+        { text: 'Reason' },
+        { text: 'Scan details' },
+        { text: 'Items found' },
+        { text: 'Action' },
+      ])
+
+      // sort by ascending scan date in this year
+      await xrayBodyScansApi.stubListScans(prisonerNumber, response, {
+        page: 0,
+        sort: 'scanDate,ASC',
+      })
+      await scanListPage.scanTable.locator('.govuk-table__head').getByRole('link', { name: 'Date' }).click()
+      await expect(scanListPage.getScanTableHeaders()).resolves.toEqual(
+        expect.arrayContaining([
+          {
+            text: expect.stringMatching(/Date\s+\(sorted ascending\)/),
+            href: expect.stringContaining('sort=-scanDate'),
+            ariaSort: 'ascending',
+          },
+        ]),
+      )
+
+      // go to another page and ensure sort order persists
+      await xrayBodyScansApi.stubListScans(
+        prisonerNumber,
+        { ...response, number: 2 },
+        {
+          page: 2,
+          sort: 'scanDate,ASC',
+        },
+      )
+      await scanListPage.pagination.getByRole('link', { name: '3' }).click()
+      await expect(scanListPage.getScanTableHeaders()).resolves.toEqual(
+        expect.arrayContaining([
+          {
+            text: expect.stringMatching(/Date\s+\(sorted ascending\)/),
+            href: expect.stringContaining('sort=-scanDate'),
+            ariaSort: 'ascending',
+          },
+        ]),
+      )
+
+      // go to all years and expect sort and page to reset
+      await xrayBodyScansApi.stubListScans(prisonerNumber, response, {
+        page: 0,
+        fromScanDate: new Date(2000, 0, 1, 12),
+      })
+      await scanListPage.yearTabs.nth(3).getByRole('link').click()
+      await expect(scanListPage.getScanTableHeaders()).resolves.toEqual(
+        expect.arrayContaining([
+          {
+            text: expect.stringMatching(/Date\s+\(sorted descending\)/),
+            href: expect.stringContaining('sort=scanDate'),
+            ariaSort: 'descending',
+          },
+        ]),
+      )
+    })
   })
 
   // TODO: what shows if summary and/or list do not load?
