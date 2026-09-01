@@ -267,7 +267,7 @@ export default class ScanController {
         details: { scanId },
       })
 
-      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scans`)
+      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview`)
     } catch (error) {
       logger.error(error)
       this.renderAddScanCaseNoteForm(req, res, scan, true)
