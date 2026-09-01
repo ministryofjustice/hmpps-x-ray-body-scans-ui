@@ -10,6 +10,7 @@ import type {
   CreateScanRequest,
   LegacyScanResponse,
   ListScansRequest,
+  ScanCaseNoteResponse,
   ScanResponse,
   ScanSummaryResponse,
 } from '../../server/data/interfaces/xrayBodyScansApi'
@@ -44,7 +45,7 @@ export default {
     return stubFor({
       request: {
         method: 'GET',
-        urlPath: `/xray-body-scans-api/scans/${id}`,
+        urlPath: `/xray-body-scans-api/scan/${id}`,
       },
       response: {
         status: 'userMessage' in response ? response.status : 200,
@@ -87,7 +88,34 @@ export default {
     })
   },
 
-  stubCreateScanCaseNote(scanId: string, request?: CreateScanCaseNoteRequest): SuperAgentRequest {
+  stubGetScanCaseNote(scanId: string, response: ScanCaseNoteResponse | ErrorResponse): SuperAgentRequest {
+    const jsonBody =
+      'text' in response
+        ? {
+            ...response,
+            createdAt: response.createdAt.toISOString(),
+            occurredAt: response.occurredAt.toISOString(),
+          }
+        : response
+    return stubFor({
+      request: {
+        method: 'GET',
+        urlPath: `/xray-body-scans-api/scan/${scanId}/case-note`,
+      },
+      response: {
+        status: response && 'userMessage' in response ? response.status : 200,
+        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+        jsonBody,
+      },
+    })
+  },
+
+  stubCreateScanCaseNote(
+    scanId: string,
+    request?: CreateScanCaseNoteRequest,
+    response?: ErrorResponse,
+  ): SuperAgentRequest {
+    // TODO: shouldn’t api reply with new case note?
     return stubFor({
       request: {
         method: 'POST',
@@ -95,8 +123,9 @@ export default {
         ...(request ? { bodyPatterns: [{ equalToJson: request }] } : {}),
       },
       response: {
-        status: 201,
+        status: response && 'userMessage' in response ? response.status : 201,
         headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+        ...(response ? { jsonBody: response } : {}),
       },
     })
   },

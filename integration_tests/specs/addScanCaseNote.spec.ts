@@ -1,10 +1,10 @@
 import { type Page, expect, test } from '@playwright/test'
+import { internalServerErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { mockScanResponse } from '../../server/testutils/mocks/xrayBodyScansApi'
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
-import { stubFor } from '../mockApis/wiremock'
 import AddScanCaseNotePage from '../pages/addScanCaseNotePage'
 
 const prisonerNumber = 'A1234BC'
@@ -85,14 +85,7 @@ test.describe('Add scan case note page', () => {
     const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
 
     await xrayBodyScansApi.stubGetScan(scanId, scan)
-    await stubFor({
-      request: { method: 'POST', urlPath: `/xray-body-scans-api/scan/${scanId}/case-note` },
-      response: {
-        status: 500,
-        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
-        jsonBody: { status: 500, userMessage: 'Internal Server Error' },
-      },
-    })
+    await xrayBodyScansApi.stubCreateScanCaseNote(scanId, undefined, internalServerErrorResponse)
     await addScanCaseNotePage.saveButton.click()
 
     await expect(addScanCaseNotePage.alert).toContainText('The case note could not be saved')

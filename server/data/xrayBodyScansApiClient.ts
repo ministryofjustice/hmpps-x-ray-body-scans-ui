@@ -56,6 +56,14 @@ interface RawScanCaseNoteResponse extends Omit<ScanCaseNoteResponse, 'createdAt'
   occurredAt: string
 }
 
+export function convertRawScanCaseNoteResponse(caseNote: RawScanCaseNoteResponse): ScanCaseNoteResponse {
+  return {
+    ...caseNote,
+    createdAt: new Date(caseNote.createdAt),
+    occurredAt: new Date(caseNote.occurredAt),
+  }
+}
+
 interface RawScanSummaryResponse extends Omit<ScanSummaryResponse, 'fromScanDate' | 'toScanDate'> {
   fromScanDate: string
   toScanDate: string
@@ -89,20 +97,25 @@ export class XrayBodyScansApiClient extends RestClient {
 
   getScanSummary(prisonerNumber: string, request: ScanSummaryRequest, username: string): Promise<ScanSummaryResponse>
 
-  getScanSummary(prisonerNumber: string, request: ScanSummaryRequest, username: string): Promise<ScanSummaryResponse> {
-    return this.get<RawScanSummaryResponse>(
+  async getScanSummary(
+    prisonerNumber: string,
+    request: ScanSummaryRequest,
+    username: string,
+  ): Promise<ScanSummaryResponse> {
+    const summary = await this.get<RawScanSummaryResponse>(
       {
         path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan/summary`,
         query: request,
       },
       asSystem(username),
-    ).then(convertRawScanSummaryResponse)
+    )
+    return convertRawScanSummaryResponse(summary)
   }
 
-  async getScan(id: string, username: string): Promise<ScanResponse | null> {
+  async getScan(scanId: string, username: string): Promise<ScanResponse | null> {
     const scan = await this.get<RawScanResponse | null>(
       {
-        path: `/scans/${id}`,
+        path: `/scan/${encodeURIComponent(scanId)}`,
         errorHandler: (path, method, error) => {
           if (error?.responseStatus === 404) {
             return null
@@ -115,7 +128,7 @@ export class XrayBodyScansApiClient extends RestClient {
     return scan ? convertRawScanResponse(scan) : null
   }
 
-  listScans(
+  async listScans(
     prisonerNumber: string,
     request: ListScansRequest,
     username: string,
@@ -125,26 +138,28 @@ export class XrayBodyScansApiClient extends RestClient {
       fromScanDate: formatIsoDate(request?.fromScanDate),
       toScanDate: formatIsoDate(request?.toScanDate),
     }
-    return this.get<PageResponse<RawScanResponse | RawLegacyScanResponse>>(
+    const rawResponses = await this.get<PageResponse<RawScanResponse | RawLegacyScanResponse>>(
       {
         path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan`,
         query,
       },
       asSystem(username),
-    ).then(rawResponses => ({
+    )
+    return {
       ...rawResponses,
       content: rawResponses.content.map(convertRawScanResponse),
-    }))
+    }
   }
 
-  createScan(prisonerNumber: string, scanData: CreateScanRequest, username: string): Promise<ScanResponse> {
-    return this.post<RawScanResponse>(
+  async createScan(prisonerNumber: string, scanData: CreateScanRequest, username: string): Promise<ScanResponse> {
+    const response = await this.post<RawScanResponse>(
       {
         path: `/prisoner/${encodeURIComponent(prisonerNumber)}/scan`,
         data: scanData,
       },
       asSystem(username),
-    ).then(response => convertRawScanResponse(response))
+    )
+    return convertRawScanResponse(response)
   }
 
   async getScanCaseNote(scanId: string, username: string): Promise<ScanCaseNoteResponse | null> {
@@ -160,12 +175,11 @@ export class XrayBodyScansApiClient extends RestClient {
       },
       asSystem(username),
     )
-    if (!response) return null
-    return { ...response, createdAt: new Date(response.createdAt), occurredAt: new Date(response.occurredAt) }
+    return response ? convertRawScanCaseNoteResponse(response) : null
   }
 
   createScanCaseNote(scanId: string, request: CreateScanCaseNoteRequest, username: string): Promise<void> {
-    return this.post(
+    return this.post<void>(
       {
         path: `/scan/${encodeURIComponent(scanId)}/case-note`,
         data: request,
