@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
+import { getScanMiddleware } from '../middleware/getScanMiddleware'
 import type AuditService from '../services/auditService'
 import type { PrisonService } from '../services/prisonService'
 import ScanController from '../controllers/scanController'
@@ -13,7 +14,6 @@ export default function scanRouter(
 ): Router {
   const router = Router({ mergeParams: true })
   const scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
-  const caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
 
   router.get('/', (_req, res) => {
     const { prisonerNumber } = res.locals.prisoner
@@ -25,12 +25,20 @@ export default function scanRouter(
   router.get('/record-scan', (req, res, next) => scanController.getCreateScan(req, res).catch(next))
   router.post('/record-scan', (req, res, next) => scanController.postCreateScan(req, res).catch(next))
 
-  router.get('/scan/:scanId/add-a-scan-case-note', (req, res, next) =>
-    caseNoteController.getAddScanCaseNote(req, res).catch(next),
-  )
-  router.post('/scan/:scanId/add-a-scan-case-note', (req, res, next) =>
-    caseNoteController.postAddScanCaseNote(req, res).catch(next),
+  router.use(
+    '/scan/:scanId',
+    getScanMiddleware(xrayBodyScansApiClient),
+    caseNoteRouter(auditService, xrayBodyScansApiClient),
   )
 
+  return router
+}
+
+function caseNoteRouter(auditService: AuditService, xrayBodyScansApiClient: XrayBodyScansApiClient): Router {
+  const caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
+
+  const router = Router({ mergeParams: true })
+  router.get('/add-a-scan-case-note', (req, res, next) => caseNoteController.getAddScanCaseNote(req, res).catch(next))
+  router.post('/add-a-scan-case-note', (req, res, next) => caseNoteController.postAddScanCaseNote(req, res).catch(next))
   return router
 }

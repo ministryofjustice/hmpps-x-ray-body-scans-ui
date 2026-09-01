@@ -14,9 +14,13 @@ export default class CaseNoteController {
   ) {}
 
   async getAddScanCaseNote(req: Request, res: Response): Promise<void> {
-    const { prisoner } = res.locals
+    const { prisoner, scan } = res.locals
     const { username } = res.locals.user
-    const scanId = req.params.scanId as string
+
+    if (!this.checkScan(scan)) {
+      res.sendStatus(404)
+      return
+    }
 
     await this.auditService.logPageView(Page.ADD_SCAN_CASE_NOTE, {
       who: username,
@@ -25,22 +29,14 @@ export default class CaseNoteController {
       correlationId: req.id,
     })
 
-    const scan = await this.xrayBodyScansApiClient.getScan(scanId, username)
-    if (!scan || scan.source !== 'DPS') {
-      res.sendStatus(404)
-      return
-    }
-
     this.renderAddScanCaseNoteForm(req, res, scan)
   }
 
   async postAddScanCaseNote(req: Request, res: Response): Promise<void> {
-    const { prisoner } = res.locals
+    const { prisoner, scan } = res.locals
     const { username } = res.locals.user
-    const scanId = req.params.scanId as string
 
-    const scan = await this.xrayBodyScansApiClient.getScan(scanId, username)
-    if (!scan || scan.source !== 'DPS') {
+    if (!this.checkScan(scan)) {
       res.sendStatus(404)
       return
     }
@@ -60,7 +56,8 @@ export default class CaseNoteController {
     const text = additionalDetails ? `${autoText}\n${additionalDetails}` : autoText
 
     try {
-      await this.xrayBodyScansApiClient.createScanCaseNote(scanId, { text }, username)
+      await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
+      logger.info(`Created case note for scan ${scan.id}`)
 
       // TODO: confirm required audit event info
       await this.auditService.logAuditEvent({
@@ -69,7 +66,7 @@ export default class CaseNoteController {
         subjectId: prisoner.prisonerNumber,
         subjectType: 'PRISONER_ID',
         correlationId: req.id,
-        details: { scanId },
+        details: { scanId: scan.id },
       })
 
       res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview`)
@@ -77,6 +74,10 @@ export default class CaseNoteController {
       logger.error(error)
       this.renderAddScanCaseNoteForm(req, res, scan, true)
     }
+  }
+
+  private checkScan(scan: ScanResponse | undefined): scan is ScanResponse {
+    return Boolean(scan && scan.source === 'DPS' && !scan.caseNoteId)
   }
 
   private renderAddScanCaseNoteForm(

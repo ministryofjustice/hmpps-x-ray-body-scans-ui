@@ -4,8 +4,9 @@ import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now } from '../testutils/fixedClock'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
-import { mockScanResponse } from '../testutils/mocks/xrayBodyScansApi'
+import { mockLegacyScanResponse, mockScanResponse } from '../testutils/mocks/xrayBodyScansApi'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
+import { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import AuditService, { Page } from '../services/auditService'
 import CaseNoteController from './caseNoteController'
 
@@ -20,7 +21,9 @@ const prisonerNumber = 'A1234BC'
 const prisoner = mockPrisoner(prisonerNumber)
 const username = 'user1'
 const correlationId = 'correlation-id'
-const scanId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
+const scan = mockScanResponse(prisonerNumber, now)
+const scanId = scan.id
+const caseNoteId = '341c845e-fadc-4ec8-9330-81c83968c1a8'
 
 let caseNoteController: CaseNoteController
 let req: Request
@@ -40,7 +43,7 @@ beforeEach(() => {
   } as unknown as Request
 
   res = {
-    locals: { user: { ...user, username }, prisoner },
+    locals: { user: { ...user, username }, prisoner, scan },
     render: jest.fn(),
     redirect: jest.fn(),
     sendStatus: jest.fn(),
@@ -53,9 +56,6 @@ afterEach(() => {
 
 describe('getAddScanCaseNote', () => {
   it('logs a page view and renders the form', async () => {
-    const scan = mockScanResponse(prisonerNumber, now)
-    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
-
     await caseNoteController.getAddScanCaseNote(req, res)
 
     expect(auditService.logPageView).toHaveBeenCalledWith(Page.ADD_SCAN_CASE_NOTE, {
@@ -78,28 +78,38 @@ describe('getAddScanCaseNote', () => {
   })
 
   it('returns 404 when scan is not found', async () => {
-    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(null)
-
+    res.locals.scan = undefined
     await caseNoteController.getAddScanCaseNote(req, res)
 
     expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(res.render).not.toHaveBeenCalled()
+    expect(res.redirect).not.toHaveBeenCalled()
   })
 
   it('returns 404 for a NOMIS scan', async () => {
-    xrayBodyScansApiClient.getScan.mockResolvedValueOnce({ source: 'NOMIS' } as never)
-
+    res.locals.scan = mockLegacyScanResponse(prisonerNumber, now) as unknown as ScanResponse
     await caseNoteController.getAddScanCaseNote(req, res)
 
     expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(res.render).not.toHaveBeenCalled()
+    expect(res.redirect).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 for a scan that already has a case note', async () => {
+    res.locals.scan = {
+      ...scan,
+      caseNoteId,
+    }
+    await caseNoteController.getAddScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(res.render).not.toHaveBeenCalled()
+    expect(res.redirect).not.toHaveBeenCalled()
   })
 })
 
 describe('postAddScanCaseNote', () => {
   it('creates a case note with only the auto-text and redirects', async () => {
-    const scan = mockScanResponse(prisonerNumber, now)
-    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
     xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(undefined)
 
     await caseNoteController.postAddScanCaseNote(req, res)
@@ -121,8 +131,6 @@ describe('postAddScanCaseNote', () => {
   })
 
   it('appends additional details to the auto-text', async () => {
-    const scan = mockScanResponse(prisonerNumber, now)
-    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
     xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(undefined)
 
     req.body = { additionalDetails: 'Extra info' }
@@ -137,9 +145,6 @@ describe('postAddScanCaseNote', () => {
   })
 
   it('shows a validation error when additional details exceeds 3500 characters', async () => {
-    const scan = mockScanResponse(prisonerNumber, now)
-    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
-
     req.body = { additionalDetails: 'a'.repeat(3501) }
     await caseNoteController.postAddScanCaseNote(req, res)
 
@@ -159,8 +164,6 @@ describe('postAddScanCaseNote', () => {
   })
 
   it('shows an error when the API call fails', async () => {
-    const scan = mockScanResponse(prisonerNumber, now)
-    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
     xrayBodyScansApiClient.createScanCaseNote.mockRejectedValueOnce(mockThrownError(internalServerErrorResponse))
 
     await caseNoteController.postAddScanCaseNote(req, res)
@@ -174,11 +177,32 @@ describe('postAddScanCaseNote', () => {
   })
 
   it('returns 404 when scan is not found', async () => {
-    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(null)
-
+    res.locals.scan = undefined
     await caseNoteController.postAddScanCaseNote(req, res)
 
     expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(res.render).not.toHaveBeenCalled()
+    expect(res.redirect).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 for a NOMIS scan', async () => {
+    res.locals.scan = mockLegacyScanResponse(prisonerNumber, now) as unknown as ScanResponse
+    await caseNoteController.postAddScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(res.render).not.toHaveBeenCalled()
+    expect(res.redirect).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 for a scan that already has a case note', async () => {
+    res.locals.scan = {
+      ...scan,
+      caseNoteId,
+    }
+    await caseNoteController.postAddScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
   })
 })
