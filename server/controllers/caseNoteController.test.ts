@@ -44,7 +44,7 @@ beforeEach(() => {
   } as unknown as Request
 
   res = {
-    locals: { user: { ...user, username }, prisoner, scan },
+    locals: { user: { ...user, username }, prisoner: { ...prisoner, displayName: 'John Smith' }, scan },
     render: jest.fn(),
     redirect: jest.fn(),
     sendStatus: jest.fn(),
@@ -68,8 +68,6 @@ describe('getAddScanCaseNote', () => {
     expect(res.render).toHaveBeenCalledWith(
       'pages/addScanCaseNote',
       expect.objectContaining({
-        prisoner,
-        scan,
         occurredAt: '24 July 2026 at 00:00',
         caseNoteTitle: `Result of X-ray body scan: ${scan.outcomeDescription}`,
         createCallFailed: false,
@@ -117,7 +115,15 @@ describe('postAddScanCaseNote', () => {
 
     expect(xrayBodyScansApiClient.createScanCaseNote).toHaveBeenCalledWith(
       scanId,
-      expect.objectContaining({ text: expect.stringContaining('X-ray body scan for') }),
+      {
+        text: `
+X-ray body scan for John Smith
+--
+Reason: Reasonable suspicion
+Result: Item detected
+Items found: Inorganic
+        `.trim(),
+      },
       username,
     )
     expect(auditService.logAuditEvent).toHaveBeenCalledWith({
@@ -140,7 +146,17 @@ describe('postAddScanCaseNote', () => {
 
     expect(xrayBodyScansApiClient.createScanCaseNote).toHaveBeenCalledWith(
       scanId,
-      { text: expect.stringContaining('Extra info') },
+      {
+        text: `
+X-ray body scan for John Smith
+--
+Reason: Reasonable suspicion
+Result: Item detected
+Items found: Inorganic
+--
+Extra info
+        `.trim(),
+      },
       username,
     )
     expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)

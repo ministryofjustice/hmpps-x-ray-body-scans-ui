@@ -53,7 +53,7 @@ export default class CaseNoteController {
       return
     }
 
-    const text = additionalDetails ? `${autoText}\n${additionalDetails}` : autoText
+    const text = additionalDetails ? `${autoText}\n--\n${additionalDetails}` : autoText
 
     try {
       const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
@@ -92,8 +92,6 @@ export default class CaseNoteController {
     const occurredAt = `${formatDisplayDate(scan.scanDate)} at 00:00`
 
     res.render('pages/addScanCaseNote', {
-      prisoner,
-      scan,
       autoText,
       occurredAt,
       caseNoteTitle: `Result of X-ray body scan: ${scan.outcomeDescription}`,
@@ -113,7 +111,6 @@ export default class CaseNoteController {
     if (scan.typeOfFindDescription) {
       lines.push(`Items found: ${scan.typeOfFindDescription}`)
     }
-    lines.push('--')
     return lines.join('\n')
   }
 }
