@@ -22,7 +22,7 @@ export const internalServerErrorResponse = mockErrorResponse(500)
 
 /** Error thrown by HMPPS REST client */
 export function mockThrownError(responseBody: ErrorResponse): SanitisedError<ErrorResponse> {
-  const error = new SanitisedError<ErrorResponse>(`Error: ${responseBody.status}`)
+  const error = new SanitisedError<ErrorResponse>(responseBody.userMessage!)
   error.responseStatus = responseBody.status
   error.headers = {}
   error.data = responseBody

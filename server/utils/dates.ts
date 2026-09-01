@@ -38,7 +38,7 @@ export function formatIsoDate(dateTime: Date | null | undefined): string | undef
 /**
  * Formats dates (ignoring time) in Europe/London for display to users.
  *
- * Example: `01 January 2026`
+ * Example: `1 January 2026`
  */
 export function formatDisplayDate(dateTime: Date): string {
   return longDateFormatter.format(dateTime)

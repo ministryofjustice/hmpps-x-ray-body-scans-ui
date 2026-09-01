@@ -9,7 +9,7 @@ import type {
   LegacyScanResponse,
   ListScansRequest,
   ScanResponse,
-} from './interfaces/xrayBodyScansApiClient'
+} from './interfaces/xrayBodyScansApi'
 
 const now = new Date()
 const nowString = now.toISOString()

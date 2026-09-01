@@ -1,6 +1,6 @@
 import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
 import type { HmppsUser } from '../../interfaces/hmppsUser'
-import type { Prisoner } from '../../data/interfaces/prisonerSearchApiClient'
+import type { Prisoner } from '../../data/interfaces/prisonerSearchApi'
 
 export declare module 'express-session' {
   // Declare that the session will potentially contain these additional fields

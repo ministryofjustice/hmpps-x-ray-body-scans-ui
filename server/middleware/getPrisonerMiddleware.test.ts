@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import { NotFound } from 'http-errors'
 import type { PrisonerSearchApiClient } from '../data/prisonerSearchApiClient'
-import { mockPrisoner } from '../testutils/mocks/prisonerSearchApiClient'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { getPrisonerMiddleware } from './getPrisonerMiddleware'
 
 describe('getPrisonerMiddleware', () => {

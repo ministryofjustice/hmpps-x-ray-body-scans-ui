@@ -8,5 +8,12 @@ $govuk-page-width: $moj-page-width;
 @import "@ministryofjustice/frontend/moj/all";
 @import "@ministryofjustice/hmpps-connect-dps-components/dist/assets/footer";
 @import "@ministryofjustice/hmpps-connect-dps-components/dist/assets/header-bar";
+@import "@ministryofjustice/hmpps-connect-dps-shared-items/dist/assets/scss/all";
 
-@import './overrides/local';
+@import "./overrides/local";
+
+@import "./components/info-box";
+@import "./components/pagination";
+@import "./components/scan-alerts";
+@import "./components/scan-summary";
+@import "./components/scan-table";

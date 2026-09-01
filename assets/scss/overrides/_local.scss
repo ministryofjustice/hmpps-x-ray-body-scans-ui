@@ -5,24 +5,3 @@
 .govuk-main-wrapper {
   min-height: 600px;
 }
-
-.summary-box-items-detected,
-.summary-box-inconclusive,
-.summary-box-no-items-detected {
-  height: 110px;
-}
-
-.summary-box-items-detected {
-  background-color: govuk-colour("red", "tint-80");
-  border: 1px solid govuk-colour("red", "tint-50");
-}
-
-.summary-box-inconclusive {
-  background-color: govuk-colour("black", "tint-95");
-  border: 1px solid govuk-colour("black", "tint-80");
-}
-
-.summary-box-no-items-detected {
-  background-color: govuk-colour("blue", "tint-80");
-  border: 1px solid govuk-colour("blue", "tint-50");
-}

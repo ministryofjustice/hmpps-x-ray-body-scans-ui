@@ -4,14 +4,14 @@ import { formatIsoDate } from '../../server/utils/dates'
 import type { ErrorResponse } from '../../server/data/interfaces/errorResponse'
 import type { PageResponse } from '../../server/data/interfaces/pagination'
 import { emptyPageResponse } from '../../server/testutils/pagination'
-import { mockScanSummaryResponse } from '../../server/testutils/mocks/xrayBodyScansApiClient'
+import { mockScanSummaryResponse } from '../../server/testutils/mocks/xrayBodyScansApi'
 import type {
   CreateScanRequest,
   LegacyScanResponse,
   ListScansRequest,
   ScanResponse,
   ScanSummaryResponse,
-} from '../../server/data/interfaces/xrayBodyScansApiClient'
+} from '../../server/data/interfaces/xrayBodyScansApi'
 
 export default {
   stubPing: (httpStatus = 200): SuperAgentRequest => stubPing('/xray-body-scans-api', httpStatus),

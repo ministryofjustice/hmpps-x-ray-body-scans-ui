@@ -1,20 +1,25 @@
 import { Router } from 'express'
 
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import ScanController from '../controllers/scanController'
 import type AuditService from '../services/auditService'
+import type { PrisonService } from '../services/prisonService'
+import ScanController from '../controllers/scanController'
 
-export default function scanRouter(xrayBodyScansApiClient: XrayBodyScansApiClient, auditService: AuditService): Router {
+export default function scanRouter(
+  auditService: AuditService,
+  prisonService: PrisonService,
+  xrayBodyScansApiClient: XrayBodyScansApiClient,
+): Router {
   const router = Router({ mergeParams: true })
-  const scanController = new ScanController(xrayBodyScansApiClient, auditService)
+  const scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
 
   router.get('/', (_req, res) => {
     const { prisonerNumber } = res.locals.prisoner
     // TODO: should this redirect to profile page instead?
-    res.redirect(`/prisoner/${prisonerNumber}/scans`)
+    res.redirect(`/prisoner/${prisonerNumber}/scan-overview`)
   })
 
-  router.get('/scans', (req, res, next) => scanController.getScanList(req, res).catch(next))
+  router.get('/scan-overview', (req, res, next) => scanController.getScanList(req, res).catch(next))
   router.get('/record-scan', (req, res, next) => scanController.getCreateScan(req, res).catch(next))
   router.post('/record-scan', (req, res, next) => scanController.postCreateScan(req, res).catch(next))
 
