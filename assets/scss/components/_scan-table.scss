@@ -1,3 +1,4 @@
+@use "govuk-frontend/dist/govuk/helpers/colour" as *;
 @use "govuk-frontend/dist/govuk/helpers/links" as *;
 @use "govuk-frontend/dist/govuk/helpers/media-queries" as *;
 @use "govuk-frontend/dist/govuk/helpers/typography" as *;
@@ -74,5 +75,11 @@
   @media print {
     text-decoration: none;
     color: #000;
+  }
+}
+
+.add-case-note-link {
+  &:link, &:visited, &:hover {
+    color: govuk-functional-colour(text);
   }
 }
