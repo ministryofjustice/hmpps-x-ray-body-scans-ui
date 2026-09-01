@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 
+import config from '../config'
 import logger from '../../logger'
 import { formatDisplayDate } from '../utils/dates'
 import { type CreateScanFormErrors, createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
@@ -7,6 +8,13 @@ import type { PrisonUser } from '../interfaces/hmppsUser'
 import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApiClient'
+
+const longDateFormatter = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Europe/London',
+})
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 
@@ -49,7 +57,15 @@ export default class ScanController {
             ...scan,
             scanDateDescription: formatDisplayDate(scan.scanDate),
             prisonDescription: scan.prisonId, // TODO: lookup in prison-register or prison-api
-            action: 'TODO: link based on scan.caseNoteId',
+            action: scan.caseNoteId
+              ? {
+                  text: 'View case note',
+                  href: `${config.serviceUrls.prisonerProfile}/prisoner/${prisonerNumber}/update-case-note/${scan.caseNoteId}`,
+                }
+              : {
+                  text: 'Add a case note',
+                  href: `/prisoner/${prisonerNumber}/scan/${scan.id}/add-a-scan-case-note`,
+                },
           },
     )
 
@@ -144,6 +160,108 @@ export default class ScanController {
         scanDateComponentsWithErrors: new Set(),
         createCallFailed: true,
       })
+    }
+  }
+
+  async getAddScanCaseNote(req: Request, res: Response): Promise<void> {
+    const { prisoner } = res.locals
+    const { username } = res.locals.user
+    const scanId = req.params.scanId as string
+
+    await this.auditService.logPageView(Page.ADD_SCAN_CASE_NOTE, {
+      who: username,
+      subjectId: prisoner.prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId: req.id,
+    })
+
+    const scan = await this.xrayBodyScansApiClient.getScan(scanId, username)
+    if (!scan || scan.source !== 'DPS') {
+      res.sendStatus(404)
+      return
+    }
+
+    this.renderAddScanCaseNoteForm(req, res, scan)
+  }
+
+  private renderAddScanCaseNoteForm(
+    req: Request,
+    res: Response,
+    scan: ScanResponse,
+    createCallFailed = false,
+    errors?: { properties?: { additionalDetails?: { errors: string[] } } },
+  ): void {
+    const { prisoner } = res.locals
+    const autoText = this.buildCaseNoteAutoText(prisoner.displayName, scan)
+    const occurredAt = `${longDateFormatter.format(scan.scanDate)} at 00:00`
+
+    res.render('pages/addScanCaseNote', {
+      prisoner,
+      scan,
+      autoText,
+      occurredAt,
+      caseNoteTitle: `Result of X-ray body scan: ${scan.outcomeDescription}`,
+      createCallFailed,
+      errors,
+      formValues: req.body,
+    })
+  }
+
+  private buildCaseNoteAutoText(prisonerDisplayName: string, scan: ScanResponse): string {
+    const lines = [
+      `X-ray body scan for ${prisonerDisplayName}`,
+      '--',
+      `Reason: ${scan.justificationDescription}`,
+      `Result: ${scan.outcomeDescription}`,
+    ]
+    if (scan.typeOfFindDescription) {
+      lines.push(`Items found: ${scan.typeOfFindDescription}`)
+    }
+    lines.push('--')
+    return lines.join('\n')
+  }
+
+  async postAddScanCaseNote(req: Request, res: Response): Promise<void> {
+    const { prisoner } = res.locals
+    const { username } = res.locals.user
+    const scanId = req.params.scanId as string
+
+    const scan = await this.xrayBodyScansApiClient.getScan(scanId, username)
+    if (!scan || scan.source !== 'DPS') {
+      res.sendStatus(404)
+      return
+    }
+
+    const autoText = this.buildCaseNoteAutoText(prisoner.displayName, scan)
+    const additionalDetails = (req.body.additionalDetails ?? '').trim()
+
+    if (additionalDetails.length > 3500) {
+      this.renderAddScanCaseNoteForm(req, res, scan, false, {
+        properties: {
+          additionalDetails: { errors: ['The additional details must be 3,500 characters or less'] },
+        },
+      })
+      return
+    }
+
+    const text = additionalDetails ? `${autoText}\n${additionalDetails}` : autoText
+
+    try {
+      await this.xrayBodyScansApiClient.createScanCaseNote(scanId, { text }, username)
+
+      await this.auditService.logAuditEvent({
+        what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
+        who: username,
+        subjectId: prisoner.prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+        details: { scanId },
+      })
+
+      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scans`)
+    } catch (error) {
+      logger.error(error)
+      this.renderAddScanCaseNoteForm(req, res, scan, true)
     }
   }
 

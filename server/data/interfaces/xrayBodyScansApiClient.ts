@@ -95,3 +95,15 @@ export interface AlertResponse {
   code: string
   codeDescription: string
 }
+
+export interface CreateScanCaseNoteRequest extends Record<string, unknown> {
+  text: string
+}
+
+export interface ScanCaseNoteResponse {
+  title: string
+  createdBy: string
+  createdAt: Date
+  occurredAt: Date
+  text: string
+}

@@ -71,14 +71,18 @@
 
   {% set rows = [] %}
   {% for scan in rawScanRows %}
-    {% set actionLink = { html: '<a class="govuk-link" href="#">' + scan.action + '</a>' } %}
+    {% if scan.action %}
+      {% set actionCell = { html: '<a class="govuk-link" href="' + scan.action.href + '">' + scan.action.text + '</a>' } %}
+    {% else %}
+      {% set actionCell = { text: '' } %}
+    {% endif %}
     {% set rows = (rows.push([
       { text: scan.scanDateDescription },
       { text: scan.prisonDescription },
       { text: scan.justificationDescription },
       { html: resultTag(scan) },
       { text: scan.typeOfFindDescription },
-      actionLink
+      actionCell
     ]), rows) %}
   {% endfor %}
 
