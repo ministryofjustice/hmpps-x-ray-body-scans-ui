@@ -1,0 +1,184 @@
+import type { Request, Response } from 'express'
+import logger from '../../logger'
+import { user } from '../routes/testutils/appSetup'
+import { fixedClock, now } from '../testutils/fixedClock'
+import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
+import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
+import { mockScanResponse } from '../testutils/mocks/xrayBodyScansApi'
+import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
+import AuditService, { Page } from '../services/auditService'
+import CaseNoteController from './caseNoteController'
+
+jest.mock('../../logger')
+jest.mock('../services/auditService')
+jest.mock('../data/xrayBodyScansApiClient')
+
+const auditService = jest.mocked(new AuditService({} as never))
+const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as never))
+
+const prisonerNumber = 'A1234BC'
+const prisoner = mockPrisoner(prisonerNumber)
+const username = 'user1'
+const correlationId = 'correlation-id'
+const scanId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
+
+let caseNoteController: CaseNoteController
+let req: Request
+let res: Response & { render: jest.Mock; redirect: jest.Mock; sendStatus: jest.Mock }
+
+beforeAll(() => {
+  fixedClock()
+})
+
+beforeEach(() => {
+  caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
+
+  req = {
+    params: { prisonerNumber, scanId },
+    body: {},
+    id: correlationId,
+  } as unknown as Request
+
+  res = {
+    locals: { user: { ...user, username }, prisoner },
+    render: jest.fn(),
+    redirect: jest.fn(),
+    sendStatus: jest.fn(),
+  } as unknown as Response & { render: jest.Mock; redirect: jest.Mock; sendStatus: jest.Mock }
+})
+
+afterEach(() => {
+  jest.resetAllMocks()
+})
+
+describe('getAddScanCaseNote', () => {
+  it('logs a page view and renders the form', async () => {
+    const scan = mockScanResponse(prisonerNumber, now)
+    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
+
+    await caseNoteController.getAddScanCaseNote(req, res)
+
+    expect(auditService.logPageView).toHaveBeenCalledWith(Page.ADD_SCAN_CASE_NOTE, {
+      who: username,
+      subjectId: prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId,
+    })
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/addScanCaseNote',
+      expect.objectContaining({
+        prisoner,
+        scan,
+        occurredAt: '24 July 2026 at 00:00',
+        caseNoteTitle: `Result of X-ray body scan: ${scan.outcomeDescription}`,
+        createCallFailed: false,
+        errors: undefined,
+      }),
+    )
+  })
+
+  it('returns 404 when scan is not found', async () => {
+    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(null)
+
+    await caseNoteController.getAddScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(res.render).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 for a NOMIS scan', async () => {
+    xrayBodyScansApiClient.getScan.mockResolvedValueOnce({ source: 'NOMIS' } as never)
+
+    await caseNoteController.getAddScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(res.render).not.toHaveBeenCalled()
+  })
+})
+
+describe('postAddScanCaseNote', () => {
+  it('creates a case note with only the auto-text and redirects', async () => {
+    const scan = mockScanResponse(prisonerNumber, now)
+    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
+    xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(undefined)
+
+    await caseNoteController.postAddScanCaseNote(req, res)
+
+    expect(xrayBodyScansApiClient.createScanCaseNote).toHaveBeenCalledWith(
+      scanId,
+      expect.objectContaining({ text: expect.stringContaining('X-ray body scan for') }),
+      username,
+    )
+    expect(auditService.logAuditEvent).toHaveBeenCalledWith({
+      what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
+      who: username,
+      subjectId: prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId,
+      details: { scanId },
+    })
+    expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)
+  })
+
+  it('appends additional details to the auto-text', async () => {
+    const scan = mockScanResponse(prisonerNumber, now)
+    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
+    xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(undefined)
+
+    req.body = { additionalDetails: 'Extra info' }
+    await caseNoteController.postAddScanCaseNote(req, res)
+
+    expect(xrayBodyScansApiClient.createScanCaseNote).toHaveBeenCalledWith(
+      scanId,
+      { text: expect.stringContaining('Extra info') },
+      username,
+    )
+    expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)
+  })
+
+  it('shows a validation error when additional details exceeds 3500 characters', async () => {
+    const scan = mockScanResponse(prisonerNumber, now)
+    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
+
+    req.body = { additionalDetails: 'a'.repeat(3501) }
+    await caseNoteController.postAddScanCaseNote(req, res)
+
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/addScanCaseNote',
+      expect.objectContaining({
+        errors: {
+          properties: {
+            additionalDetails: { errors: ['The additional details must be 3,500 characters or less'] },
+          },
+        },
+        createCallFailed: false,
+      }),
+    )
+    expect(xrayBodyScansApiClient.createScanCaseNote).not.toHaveBeenCalled()
+    expect(res.redirect).not.toHaveBeenCalled()
+  })
+
+  it('shows an error when the API call fails', async () => {
+    const scan = mockScanResponse(prisonerNumber, now)
+    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
+    xrayBodyScansApiClient.createScanCaseNote.mockRejectedValueOnce(mockThrownError(internalServerErrorResponse))
+
+    await caseNoteController.postAddScanCaseNote(req, res)
+
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/addScanCaseNote',
+      expect.objectContaining({ createCallFailed: true }),
+    )
+    expect(res.redirect).not.toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ responseStatus: 500 }))
+  })
+
+  it('returns 404 when scan is not found', async () => {
+    xrayBodyScansApiClient.getScan.mockResolvedValueOnce(null)
+
+    await caseNoteController.postAddScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(res.redirect).not.toHaveBeenCalled()
+  })
+})

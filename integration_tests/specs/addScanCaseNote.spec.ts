@@ -75,7 +75,9 @@ test.describe('Add scan case note page', () => {
     await expect(addScanCaseNotePage.getErrorSummary()).resolves.toEqual([
       { text: 'The additional details must be 3,500 characters or less', href: '#additionalDetails' },
     ])
-    await expect(page.getByText('The additional details must be 3,500 characters or less')).toBeVisible()
+    await expect(page.locator('#additionalDetails-error')).toContainText(
+      'The additional details must be 3,500 characters or less',
+    )
   })
 
   test('Shows error alert when case note save fails', async ({ page }) => {

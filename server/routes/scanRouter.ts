@@ -4,6 +4,7 @@ import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type AuditService from '../services/auditService'
 import type { PrisonService } from '../services/prisonService'
 import ScanController from '../controllers/scanController'
+import CaseNoteController from '../controllers/caseNoteController'
 
 export default function scanRouter(
   auditService: AuditService,
@@ -12,6 +13,7 @@ export default function scanRouter(
 ): Router {
   const router = Router({ mergeParams: true })
   const scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
+  const caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
 
   router.get('/', (_req, res) => {
     const { prisonerNumber } = res.locals.prisoner
@@ -24,10 +26,10 @@ export default function scanRouter(
   router.post('/record-scan', (req, res, next) => scanController.postCreateScan(req, res).catch(next))
 
   router.get('/scan/:scanId/add-a-scan-case-note', (req, res, next) =>
-    scanController.getAddScanCaseNote(req, res).catch(next),
+    caseNoteController.getAddScanCaseNote(req, res).catch(next),
   )
   router.post('/scan/:scanId/add-a-scan-case-note', (req, res, next) =>
-    scanController.postAddScanCaseNote(req, res).catch(next),
+    caseNoteController.postAddScanCaseNote(req, res).catch(next),
   )
 
   return router
