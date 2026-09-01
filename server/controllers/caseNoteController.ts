@@ -56,8 +56,8 @@ export default class CaseNoteController {
     const text = additionalDetails ? `${autoText}\n${additionalDetails}` : autoText
 
     try {
-      await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
-      logger.info(`Created case note for scan ${scan.id}`)
+      const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
+      logger.info(`Created case note ${caseNote.id} for scan ${scan.id}`)
 
       // TODO: confirm required audit event info
       await this.auditService.logAuditEvent({

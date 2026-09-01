@@ -4,7 +4,7 @@ import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now } from '../testutils/fixedClock'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
-import { mockLegacyScanResponse, mockScanResponse } from '../testutils/mocks/xrayBodyScansApi'
+import { mockLegacyScanResponse, mockScanResponse, mockScanCaseNoteResponse } from '../testutils/mocks/xrayBodyScansApi'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import AuditService, { Page } from '../services/auditService'
@@ -23,7 +23,8 @@ const username = 'user1'
 const correlationId = 'correlation-id'
 const scan = mockScanResponse(prisonerNumber, now)
 const scanId = scan.id
-const caseNoteId = '341c845e-fadc-4ec8-9330-81c83968c1a8'
+const caseNote = mockScanCaseNoteResponse(scan)
+const caseNoteId = caseNote.id
 
 let caseNoteController: CaseNoteController
 let req: Request
@@ -110,7 +111,7 @@ describe('getAddScanCaseNote', () => {
 
 describe('postAddScanCaseNote', () => {
   it('creates a case note with only the auto-text and redirects', async () => {
-    xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(undefined)
+    xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(caseNote)
 
     await caseNoteController.postAddScanCaseNote(req, res)
 
@@ -128,10 +129,11 @@ describe('postAddScanCaseNote', () => {
       details: { scanId },
     })
     expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)
+    expect(logger.info).toHaveBeenCalledWith(`Created case note ${caseNote.id} for scan ${scan.id}`)
   })
 
   it('appends additional details to the auto-text', async () => {
-    xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(undefined)
+    xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(caseNote)
 
     req.body = { additionalDetails: 'Extra info' }
     await caseNoteController.postAddScanCaseNote(req, res)
@@ -142,6 +144,7 @@ describe('postAddScanCaseNote', () => {
       username,
     )
     expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)
+    expect(logger.info).toHaveBeenCalledWith(`Created case note ${caseNote.id} for scan ${scan.id}`)
   })
 
   it('shows a validation error when additional details exceeds 3500 characters', async () => {

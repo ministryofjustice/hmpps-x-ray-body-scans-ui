@@ -126,10 +126,15 @@ export const mockDoNotScanAlert: AlertResponse = {
   codeDescription: 'Do Not X-Ray Body Scan',
 }
 
-export function mockScanCaseNoteResponse(scan: ScanResponse): ScanCaseNoteResponse {
+const caseNoteId = '341c845e-fadc-4ec8-9330-81c83968c1a8'
+export function mockScanCaseNoteResponse(
+  scan: ScanResponse,
+  additionalDetails: string = 'some notes',
+): ScanCaseNoteResponse {
   const occurredAt = new Date(scan.scanDate)
   occurredAt.setHours(0, 0, 0, 0)
   return {
+    id: caseNoteId,
     title: `Result of X-ray body scan: ${scan.outcomeDescription}`,
     text: `
 X-ray body scan for ${scan.prisonerNumber}
@@ -138,7 +143,7 @@ Reason: ${scan.justificationDescription}
 Result: ${scan.outcomeDescription}
 Items found: ${scan.typeOfFindDescription || 'None'}
 --
-some notes
+${additionalDetails}
     `.trim(),
     occurredAt,
     createdBy: scan.createdBy,

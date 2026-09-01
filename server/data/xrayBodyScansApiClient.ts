@@ -178,13 +178,18 @@ export class XrayBodyScansApiClient extends RestClient {
     return response ? convertRawScanCaseNoteResponse(response) : null
   }
 
-  createScanCaseNote(scanId: string, request: CreateScanCaseNoteRequest, username: string): Promise<void> {
-    return this.post<void>(
+  async createScanCaseNote(
+    scanId: string,
+    request: CreateScanCaseNoteRequest,
+    username: string,
+  ): Promise<ScanCaseNoteResponse> {
+    const caseNote = await this.post<RawScanCaseNoteResponse>(
       {
         path: `/scan/${encodeURIComponent(scanId)}/case-note`,
         data: request,
       },
       asSystem(username),
     )
+    return convertRawScanCaseNoteResponse(caseNote)
   }
 }

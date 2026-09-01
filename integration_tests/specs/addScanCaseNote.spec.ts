@@ -1,6 +1,10 @@
 import { type Page, expect, test } from '@playwright/test'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
-import { mockScanResponse, mockScanSummaryResponse } from '../../server/testutils/mocks/xrayBodyScansApi'
+import {
+  mockScanCaseNoteResponse,
+  mockScanResponse,
+  mockScanSummaryResponse,
+} from '../../server/testutils/mocks/xrayBodyScansApi'
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
@@ -12,6 +16,7 @@ const scanId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
 const now = new Date()
 
 const scan = mockScanResponse(prisonerNumber, now)
+const caseNote = mockScanCaseNoteResponse(scan)
 
 test.describe('Add scan case note page', () => {
   test.beforeEach(async () => {
@@ -81,7 +86,20 @@ test.describe('Add scan case note page', () => {
   test('Saves case note and redirects to scan overview', async ({ page }) => {
     const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
 
-    await xrayBodyScansApi.stubCreateScanCaseNote(scanId)
+    await xrayBodyScansApi.stubCreateScanCaseNote(
+      scanId,
+      {
+        text: `
+X-ray body scan for John Smith
+--
+Reason: Reasonable suspicion
+Result: Item detected
+Items found: Inorganic
+--
+        `.trim(),
+      },
+      caseNote,
+    )
     await stubBlankScanListPage()
     await addScanCaseNotePage.saveButton.click()
 
@@ -91,7 +109,21 @@ test.describe('Add scan case note page', () => {
   test('Saves case note with additional details', async ({ page }) => {
     const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
 
-    await xrayBodyScansApi.stubCreateScanCaseNote(scanId)
+    await xrayBodyScansApi.stubCreateScanCaseNote(
+      scanId,
+      {
+        text: `
+X-ray body scan for John Smith
+--
+Reason: Reasonable suspicion
+Result: Item detected
+Items found: Inorganic
+--
+Some extra details
+        `.trim(),
+      },
+      caseNote,
+    )
     await stubBlankScanListPage()
     await addScanCaseNotePage.additionalDetailsInput.fill('Some extra details')
     await addScanCaseNotePage.saveButton.click()

@@ -41,7 +41,7 @@ describe('X-ray body scans API client', () => {
   const scanId = scanResponse.id
   const legacyScanResponse: LegacyScanResponse = mockLegacyScanResponse(prisonerNumber, scanDate, 'pos')
   const caseNoteResponse = {
-    ...mockScanCaseNoteResponse(scanResponse),
+    ...mockScanCaseNoteResponse(scanResponse, 'nothing of interest detected'),
     createdAt: now,
   }
 
@@ -227,12 +227,16 @@ describe('X-ray body scans API client', () => {
         .matchHeader('authorization', 'Bearer test-system-token')
         .reply(201, (_uri, body) => {
           expect(body).toEqual(request)
-          return undefined
+          return {
+            ...caseNoteResponse,
+            occurredAt: `${scanDateString}T00:00:00`,
+            createdAt: nowString,
+          }
         })
 
       const response = await xrayBodyScansApiClient.createScanCaseNote(scanId, request, username)
 
-      expect(response).toEqual({})
+      expect(response).toEqual(caseNoteResponse)
       expect(mockAuthenticationClient.getToken).toHaveBeenCalledWith(username)
     })
   })

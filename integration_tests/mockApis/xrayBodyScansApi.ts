@@ -112,10 +112,17 @@ export default {
 
   stubCreateScanCaseNote(
     scanId: string,
-    request?: CreateScanCaseNoteRequest,
-    response?: ErrorResponse,
+    request: CreateScanCaseNoteRequest | undefined,
+    response: ScanCaseNoteResponse | ErrorResponse,
   ): SuperAgentRequest {
-    // TODO: shouldn’t api reply with new case note?
+    const jsonBody =
+      'text' in response
+        ? {
+            ...response,
+            createdAt: response.createdAt.toISOString(),
+            occurredAt: response.occurredAt.toISOString(),
+          }
+        : response
     return stubFor({
       request: {
         method: 'POST',
@@ -125,7 +132,7 @@ export default {
       response: {
         status: response && 'userMessage' in response ? response.status : 201,
         headers: { 'Content-Type': 'application/json;charset=UTF-8' },
-        ...(response ? { jsonBody: response } : {}),
+        jsonBody,
       },
     })
   },
