@@ -22,5 +22,5 @@ export function pageResponse<T>(
 }
 
 export function emptyPageResponse<T>(): PageResponse<T> {
-  return pageResponse([])
+  return pageResponse([], 0, 0)
 }

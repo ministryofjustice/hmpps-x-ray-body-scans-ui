@@ -1,4 +1,7 @@
 @use "govuk-frontend/dist/govuk/helpers/colour" as *;
+@use "govuk-frontend/dist/govuk/helpers/spacing" as *;
+@use "govuk-frontend/dist/govuk/helpers/typography" as *;
+@use "govuk-frontend/dist/govuk/settings/measurements" as *;
 
 @property --scan-count-accent-colour {
   syntax: '<color>';

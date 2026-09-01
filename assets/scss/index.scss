@@ -13,6 +13,7 @@ $govuk-page-width: $moj-page-width;
 @import "./overrides/local";
 
 @import "./components/info-box";
+@import "./components/pagination";
 @import "./components/scan-alerts";
 @import "./components/scan-summary";
 @import "./components/scan-table";

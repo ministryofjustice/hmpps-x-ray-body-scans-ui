@@ -1,8 +1,11 @@
+@use "govuk-frontend/dist/govuk/helpers/links" as *;
 @use "govuk-frontend/dist/govuk/helpers/media-queries" as *;
 @use "govuk-frontend/dist/govuk/helpers/typography" as *;
 
 .scan-table__container {
-  overflow-x: auto;
+  @include govuk-media-query($until: desktop) {
+    overflow-x: auto;
+  }
 }
 
 .scan-table {
@@ -22,7 +25,54 @@
 }
 
 .scan-table__action-th, .scan-table__action-td {
-  @include govuk-media-query($from: tablet) {
+  @include govuk-media-query($from: desktop) {
     text-align: right;
+  }
+}
+
+.scan-table__sort-link {
+  display: inline-block;
+  position: relative;
+  padding-right: 20px;
+  @include govuk-link-style-no-visited-state;
+  @include govuk-link-style-no-underline;
+
+  &::before, &::after {
+    display: none;
+    position: absolute;
+    font-size: 14px;
+    right: 0;
+  }
+
+  th[aria-sort="ascending"] &::before {
+    display: block;
+    content: ' ▲' / '';
+    top: 1px;
+  }
+
+  th[aria-sort="descending"] &::after {
+    display: block;
+    content: ' ▼' / '';
+    top: 2px;
+  }
+
+  th[aria-sort='none'] & {
+    &::before {
+      display: block;
+      content: ' ▲' / '';
+      font-size: 12px;
+      top: -2px;
+    }
+    &::after {
+      display: block;
+      content: ' ▼' / '';
+      font-size: 12px;
+      top: 10px;
+    }
+  }
+
+  @media print {
+    text-decoration: none;
+    color: #000;
   }
 }

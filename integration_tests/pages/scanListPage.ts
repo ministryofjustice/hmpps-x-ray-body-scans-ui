@@ -47,7 +47,54 @@ export default class ScanListPage extends AbstractPage {
     return this.page.locator('[data-testid="scan-alerts"] li')
   }
 
+  get yearTabs(): Locator {
+    return this.page.locator('.govuk-tabs__list li')
+  }
+
+  get historySection(): Locator {
+    return this.page.locator('[data-testid="scan-history"]')
+  }
+
+  get scanTable(): Locator {
+    return this.page.locator('.scan-table')
+  }
+
+  async getScanTableHeaders(): Promise<ScanTableHeader[]> {
+    return this.scanTable.locator('.govuk-table__head th').evaluateAll((ths: HTMLTableCellElement[]) =>
+      ths.map(th => {
+        const text = th.textContent.trim()
+        const anchor = th.querySelector('a')
+        if (anchor) {
+          return { text, href: anchor.href, ariaSort: th.ariaSort }
+        }
+        return { text }
+      }),
+    )
+  }
+
+  async getScanTableContents(): Promise<string[][]> {
+    return this.scanTable
+      .locator('.govuk-table__body tr')
+      .evaluateAll((trs: HTMLTableRowElement[]) =>
+        trs.map(tr => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())),
+      )
+  }
+
+  get pagination(): Locator {
+    return this.page.locator('.dps-pagination').first()
+  }
+
   get returnLink(): Locator {
     return this.page.getByRole('link', { name: 'Return to the prisoner’s profile' })
   }
 }
+
+type ScanTableHeader =
+  | {
+      text: string
+    }
+  | {
+      text: string
+      href: string
+      ariaSort: string
+    }

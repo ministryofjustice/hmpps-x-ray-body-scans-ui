@@ -1,0 +1,33 @@
+@use "govuk-frontend/dist/govuk/helpers/media-queries" as *;
+@use "govuk-frontend/dist/govuk/helpers/spacing" as *;
+@use "govuk-frontend/dist/govuk/helpers/typography" as *;
+
+.dps-pagination {
+  .dps-pagination__showing {
+    @include govuk-font($size: 19);
+    @include govuk-responsive-margin(4, 'bottom');
+
+    p {
+      @include govuk-responsive-margin(2, 'bottom');
+
+      span {
+        @include govuk-font($size: 19, $weight: bold);
+      }
+    }
+  }
+
+  @include govuk-media-query($from: desktop) {
+    display: flex;
+    flex-direction: row;
+    @include govuk-responsive-margin(2, 'bottom');
+
+    .govuk-pagination {
+      flex: 1 0 75%;
+    }
+
+    .dps-pagination__showing {
+      flex: 1 0 25%;
+      text-align: right;
+    }
+  }
+}

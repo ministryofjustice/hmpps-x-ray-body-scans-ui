@@ -10,7 +10,7 @@ import { initialiseName } from './utils'
 import type { Prisoner } from '../data/interfaces/prisonerSearchApi'
 import { errorMessageForField, errorSummary } from '../forms/formErrors'
 
-export default function nunjucksSetup(app: express.Express): void {
+export default function nunjucksSetup(app: express.Express): nunjucks.Environment {
   app.set('view engine', 'njk')
 
   app.locals.asset_path = '/assets/'
@@ -46,6 +46,8 @@ export default function nunjucksSetup(app: express.Express): void {
   njkEnv.addGlobal('dpsHomeUrl', config.serviceUrls.digitalPrison)
   njkEnv.addGlobal('prisonerProfileUrl', config.serviceUrls.prisonerProfile)
 
+  njkEnv.addGlobal('now', () => new Date())
+
   njkEnv.addGlobal('errorMessageForField', errorMessageForField)
   njkEnv.addGlobal('errorSummary', errorSummary)
 
@@ -56,4 +58,6 @@ export default function nunjucksSetup(app: express.Express): void {
     (prisoner: Prisoner) => `${config.serviceUrls.prisonerProfile}/prisoner/${prisoner.prisonerNumber}`,
   )
   njkEnv.addFilter('formatDisplayDate', formatDisplayDate)
+
+  return njkEnv
 }

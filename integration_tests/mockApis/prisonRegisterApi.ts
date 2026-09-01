@@ -10,7 +10,7 @@ export default {
     stubFor({
       request: {
         method: 'GET',
-        urlPath: '/prisons',
+        urlPath: '/prison-register/prisons',
       },
       response: {
         status: 200,
