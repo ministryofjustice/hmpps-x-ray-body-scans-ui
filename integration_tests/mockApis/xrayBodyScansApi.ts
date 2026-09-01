@@ -6,6 +6,7 @@ import type { PageResponse } from '../../server/data/interfaces/pagination'
 import { emptyPageResponse } from '../../server/testutils/pagination'
 import { mockScanSummaryResponse } from '../../server/testutils/mocks/xrayBodyScansApi'
 import type {
+  CreateScanCaseNoteRequest,
   CreateScanRequest,
   LegacyScanResponse,
   ListScansRequest,
@@ -82,6 +83,20 @@ export default {
         status: response && 'userMessage' in response ? response.status : 200,
         headers: { 'Content-Type': 'application/json;charset=UTF-8' },
         jsonBody,
+      },
+    })
+  },
+
+  stubCreateScanCaseNote(scanId: string, request?: CreateScanCaseNoteRequest): SuperAgentRequest {
+    return stubFor({
+      request: {
+        method: 'POST',
+        urlPath: `/xray-body-scans-api/scan/${scanId}/case-note`,
+        ...(request ? { bodyPatterns: [{ equalToJson: request }] } : {}),
+      },
+      response: {
+        status: 201,
+        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
       },
     })
   },

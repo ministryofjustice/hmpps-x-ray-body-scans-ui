@@ -258,6 +258,7 @@ export default class ScanController {
     try {
       await this.xrayBodyScansApiClient.createScanCaseNote(scanId, { text }, username)
 
+      // TODO: confirm required audit event info
       await this.auditService.logAuditEvent({
         what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
         who: username,
