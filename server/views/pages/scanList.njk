@@ -149,9 +149,9 @@
       {# TODO: what permissions are needed? #}
       {% set actionLink %}
         {% if scan.caseNoteId %}
-          <a href="#">View case note</a>
+          <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisonerNumber }}/update-case-note/{{ scan.caseNoteId }}" class="govuk-link">View case note</a>
         {% elseif scan.source === "DPS" %}
-          <a href="#">Add case note</a>
+          <a href="/prisoner/{{ prisonerNumber }}/scan/{{ scan.id }}/add-a-scan-case-note" class="govuk-link">Add case note</a>
         {% endif %}
       {% endset %}
 

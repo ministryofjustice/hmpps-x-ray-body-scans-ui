@@ -5,6 +5,7 @@ export enum Page {
   SCAN_LIST = 'SCAN_LIST',
   CREATE_SCAN = 'CREATE_SCAN',
   CREATE_SCAN_SUCCESS = 'CREATE_SCAN_SUCCESS',
+  ADD_SCAN_CASE_NOTE = 'ADD_SCAN_CASE_NOTE',
 }
 
 export interface PageViewEventDetails {

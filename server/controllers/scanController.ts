@@ -14,6 +14,7 @@ import type { PrisonUser } from '../interfaces/hmppsUser'
 import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest, ListScansRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
+
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 import { PrisonService } from '../services/prisonService'

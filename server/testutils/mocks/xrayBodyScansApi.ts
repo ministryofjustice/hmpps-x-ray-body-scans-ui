@@ -1,6 +1,7 @@
 import type {
   AlertResponse,
   LegacyScanResponse,
+  ScanCaseNoteResponse,
   ScanResponse,
   ScanSummaryResponse,
   ScanSummaryResponseWithAlerts,
@@ -116,6 +117,17 @@ export const mockInternalSecretorAlert: AlertResponse = {
   code: 'XIS',
   codeDescription: 'Internal Secretor',
 }
+export function mockScanCaseNoteResponse(overrides: Partial<ScanCaseNoteResponse> = {}): ScanCaseNoteResponse {
+  return {
+    title: 'X-Ray Body Scan',
+    createdBy: 'John Smith',
+    createdAt: new Date('2026-08-01T00:00:00'),
+    occurredAt: new Date('2026-08-01T00:00:00'),
+    text: 'X-ray body scan carried out with negative result.',
+    ...overrides,
+  }
+}
+
 export const mockDoNotScanAlert: AlertResponse = {
   id: '5a2d75f1-25ff-43b6-96a2-cf8d82e2e14e',
   type: 'X',

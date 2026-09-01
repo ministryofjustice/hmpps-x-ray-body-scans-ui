@@ -63,14 +63,12 @@
 
       {% endif %}
 
-      {#
       <p>You can create a case note if you need to record additional information about this scan.</p>
       {{ govukButton({
         text: "Add a case note",
         classes: "govuk-button--secondary",
-        href: "TODO"
+        href: "/prisoner/" + prisoner.prisonerNumber + "/scan/" + scan.id + "/add-a-scan-case-note"
       }) }}
-      #}
 
       <div class="govuk-button-group">
         {{ govukButton({

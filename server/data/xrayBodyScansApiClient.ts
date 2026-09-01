@@ -5,9 +5,11 @@ import logger from '../../logger'
 import { formatIsoDate } from '../utils/dates'
 import type { PageResponse } from './interfaces/pagination'
 import type {
+  CreateScanCaseNoteRequest,
   CreateScanRequest,
   LegacyScanResponse,
   ListScansRequest,
+  ScanCaseNoteResponse,
   ScanResponse,
   ScanSummaryRequest,
   ScanSummaryResponse,
@@ -47,6 +49,11 @@ export function convertRawScanResponse(
     createdAt: new Date(scan.createdAt),
     lastModifiedAt: new Date(scan.lastModifiedAt),
   }
+}
+
+interface RawScanCaseNoteResponse extends Omit<ScanCaseNoteResponse, 'createdAt' | 'occurredAt'> {
+  createdAt: string
+  occurredAt: string
 }
 
 interface RawScanSummaryResponse extends Omit<ScanSummaryResponse, 'fromScanDate' | 'toScanDate'> {
@@ -138,5 +145,32 @@ export class XrayBodyScansApiClient extends RestClient {
       },
       asSystem(username),
     ).then(response => convertRawScanResponse(response))
+  }
+
+  async getScanCaseNote(scanId: string, username: string): Promise<ScanCaseNoteResponse | null> {
+    const response = await this.get<RawScanCaseNoteResponse | null>(
+      {
+        path: `/scan/${encodeURIComponent(scanId)}/case-note`,
+        errorHandler: (path, method, error) => {
+          if (error?.responseStatus === 404) {
+            return null
+          }
+          return this.handleError(path, method, error)
+        },
+      },
+      asSystem(username),
+    )
+    if (!response) return null
+    return { ...response, createdAt: new Date(response.createdAt), occurredAt: new Date(response.occurredAt) }
+  }
+
+  createScanCaseNote(scanId: string, request: CreateScanCaseNoteRequest, username: string): Promise<void> {
+    return this.post(
+      {
+        path: `/scan/${encodeURIComponent(scanId)}/case-note`,
+        data: request,
+      },
+      asSystem(username),
+    )
   }
 }

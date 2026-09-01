@@ -1,0 +1,97 @@
+{% extends "partials/layout.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
+
+{% set pageTitle = applicationName + " – Add an X-ray body scan case note" %}
+{% if createCallFailed or errors %}
+  {% set pageTitle = "Error: " + pageTitle %}
+{% endif %}
+
+{% set breadcrumbs = [
+  { text: 'Digital Prison Services', href: dpsHomeUrl },
+  { text: prisoner.reversedDisplayName, href: prisoner | prisonerProfileUrl },
+  { text: 'X-ray body scans', href: '/prisoner/' + prisoner.prisonerNumber + '/scan-overview' }
+] %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {% if createCallFailed %}
+        {{ mojAlert({
+          variant: "error",
+          text: "The case note could not be saved. Try again. If the problem continues, try again later.",
+          role: "alert"
+        }) }}
+      {% endif %}
+
+      {% if errors %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorSummary(errors)
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Add an X-ray body scan case note</h1>
+
+      <form id="form" method="POST" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+        {% set whatHappenedHtml %}
+          <p class="govuk-body white-space-pre-line">{{ autoText }}</p>
+          {{ govukCharacterCount({
+            id: "additionalDetails",
+            name: "additionalDetails",
+            label: {
+              text: "Additional details (optional)",
+              classes: "govuk-label--s"
+            },
+            maxlength: 3500,
+            value: formValues.additionalDetails,
+            errorMessage: errorMessageForField("additionalDetails", errors)
+          }) }}
+        {% endset %}
+
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Title" },
+              value: { text: caseNoteTitle }
+            },
+            {
+              key: { text: "Type" },
+              value: { text: "General" }
+            },
+            {
+              key: { text: "Sub-type" },
+              value: { text: "X-ray body scan" }
+            },
+            {
+              key: { text: "What happened" },
+              value: { html: whatHappenedHtml }
+            },
+            {
+              key: { text: "Happened" },
+              value: { text: occurredAt }
+            }
+          ]
+        }) }}
+
+        <div class="govuk-button-group">
+          {{ govukButton({
+            text: "Save",
+            preventDoubleClick: true
+          }) }}
+
+          <a href="/prisoner/{{ prisoner.prisonerNumber }}/scan-overview" class="govuk-link">Cancel</a>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+{% endblock %}
