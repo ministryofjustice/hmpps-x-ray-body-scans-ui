@@ -15,12 +15,6 @@ import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest, ListScansRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 
-const longDateFormatter = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'Europe/London',
-})
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 import { PrisonService } from '../services/prisonService'
@@ -208,7 +202,7 @@ export default class ScanController {
   ): void {
     const { prisoner } = res.locals
     const autoText = this.buildCaseNoteAutoText(prisoner.displayName, scan)
-    const occurredAt = `${longDateFormatter.format(scan.scanDate)} at 00:00`
+    const occurredAt = `${formatDisplayDate(scan.scanDate)} at 00:00`
 
     res.render('pages/addScanCaseNote', {
       prisoner,
