@@ -1,6 +1,7 @@
 import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
 import type { HmppsUser } from '../../interfaces/hmppsUser'
 import type { Prisoner } from '../../data/interfaces/prisonerSearchApi'
+import type { ScanResponse } from '../../data/interfaces/xrayBodyScansApi'
 
 export declare module 'express-session' {
   // Declare that the session will potentially contain these additional fields
@@ -29,6 +30,7 @@ export declare global {
         displayName: string
         reversedDisplayName: string
       }
+      scan?: ScanResponse
       cspNonce: string
       csrfToken: string
       feComponents: {
