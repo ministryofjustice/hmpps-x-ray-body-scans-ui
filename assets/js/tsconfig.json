@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "types": ["@ministryofjustice/frontend-types", "../../server/@types/frontend"]
+    "types": ["@ministryofjustice/frontend-types"]
   },
   "exclude": [],
   "include": ["**/*.js", "**/*.ts"]
