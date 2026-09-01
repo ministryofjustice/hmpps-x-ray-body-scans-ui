@@ -130,15 +130,15 @@
         </li>
       </ul>
     </div>
-    <h3 class="govuk-heading-s">
-      {% if not yearFilter %}
-        Scans recorded this year
-      {% elseif yearFilter === "all" %}
-        All scans recorded
-      {% else %}
-        Scans recorded in {{ yearFilter }}
-      {% endif %}
-    </h3>
+
+    {% if not yearFilter %}
+      {% set tableDescription %}Scans recorded this year{% endset %}
+    {% elseif yearFilter === "all" %}
+      {% set tableDescription %}All scans recorded{% endset %}
+    {% else %}
+      {% set tableDescription %}Scans recorded in {{ yearFilter }}{% endset %}
+    {% endif %}
+    <h3 class="govuk-heading-s">{{ tableDescription }}</h3>
 
     {% set pagination = paginate(pagination) %}
     {{ pagination }}
@@ -189,7 +189,9 @@
             { text: "Action", classes: "scan-table__action-th" }
           ],
           rows: rows,
-          classes: "scan-table"
+          classes: "scan-table",
+          caption: tableDescription,
+          captionClasses: "govuk-visually-hidden"
         }) }}
       </div>
     {% else %}
