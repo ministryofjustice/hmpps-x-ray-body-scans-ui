@@ -1,7 +1,7 @@
-import session, { MemoryStore, Store } from 'express-session'
+import { randomUUID } from 'node:crypto'
 import { RedisStore } from 'connect-redis'
-import express, { Router } from 'express'
-import { randomUUID } from 'crypto'
+import { Router } from 'express'
+import session, { MemoryStore, type Store } from 'express-session'
 import { createRedisClient } from '../data/redisClient'
 import config from '../config'
 import logger from '../../logger'
@@ -16,7 +16,7 @@ export default function setUpWebSession(): Router {
     store = new MemoryStore()
   }
 
-  const router = express.Router()
+  const router = Router()
   router.use(
     session({
       store,

@@ -1,3 +1,5 @@
+import type { CaseLoad } from '../data/interfaces/prisonApi'
+
 export type AuthSource = 'nomis' | 'delius' | 'external' | 'azuread'
 
 /**
@@ -13,6 +15,8 @@ export interface BaseUser {
   token: string
 }
 
+type AllocationJobResponsibility = 'KEY_WORKER' | 'PERSONAL_OFFICER'
+
 /**
  * Prison users are those that have a user account in NOMIS.
  * HMPPS Auth automatically grants these users a `ROLE_PRISON` role.
@@ -20,11 +24,15 @@ export interface BaseUser {
  * a stringified version of the staffId. Some teams may need to separately
  * retrieve the user case load (which prisons that a prison user has access
  * to) and store it here, an example can be found in `hmpps-prisoner-profile`.
+ * NB: case load information comes from `@ministryofjustice/hmpps-connect-dps-components`
  */
 export interface PrisonUser extends BaseUser {
   authSource: 'nomis'
   staffId: number | undefined
+  caseLoads: CaseLoad[]
+  activeCaseLoad?: CaseLoad
   activeCaseLoadId?: string
+  allocationJobResponsibilities?: AllocationJobResponsibility[]
 }
 
 /**

@@ -1,4 +1,9 @@
-import { AuthenticationClient, InMemoryTokenStore, RedisTokenStore } from '@ministryofjustice/hmpps-auth-clients'
+import {
+  type TokenStore,
+  AuthenticationClient,
+  InMemoryTokenStore,
+  RedisTokenStore,
+} from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import logger from '../../logger'
 import applicationInfoSupplier from '../applicationInfo'
@@ -11,15 +16,15 @@ import { XrayBodyScansApiClient } from './xrayBodyScansApiClient'
 const applicationInfo = applicationInfoSupplier()
 
 export const dataAccess = () => {
-  const hmppsAuthClient = new AuthenticationClient(
-    config.apis.hmppsAuth,
-    logger,
-    config.redis.enabled ? new RedisTokenStore(createRedisClient()) : new InMemoryTokenStore(),
-  )
+  const tokenStore: TokenStore = config.redis.enabled
+    ? new RedisTokenStore(createRedisClient())
+    : new InMemoryTokenStore()
+  const hmppsAuthClient = new AuthenticationClient(config.apis.hmppsAuth, logger, tokenStore)
 
   return {
     applicationInfo,
     hmppsAuthClient,
+    tokenStore,
     hmppsAuditClient: new HmppsAuditClient(config.sqs.audit),
     prisonRegisterApiClient: new PrisonRegisterApiClient(hmppsAuthClient),
     prisonerSearchApiClient: new PrisonerSearchApiClient(hmppsAuthClient),
@@ -28,5 +33,3 @@ export const dataAccess = () => {
 }
 
 export type DataAccess = ReturnType<typeof dataAccess>
-
-export { AuthenticationClient, HmppsAuditClient }

@@ -2,11 +2,10 @@ import type { Express } from 'express'
 import request from 'supertest'
 import { appWithAllRoutes, user } from './testutils/appSetup'
 import AuditService, { Page } from '../services/auditService'
-import HmppsAuditClient from '../data/hmppsAuditClient'
 
 jest.mock('../services/auditService')
 
-const auditService = new AuditService({} as HmppsAuditClient) as jest.Mocked<AuditService>
+const auditService = jest.mocked(new AuditService({} as never))
 
 let app: Express
 

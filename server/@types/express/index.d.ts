@@ -1,5 +1,5 @@
 import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
-import type { HmppsUser } from '../../interfaces/hmppsUser'
+import type { PrisonUser } from '../../interfaces/hmppsUser'
 import type { Prisoner } from '../../data/interfaces/prisonerSearchApi'
 import type { ScanResponse } from '../../data/interfaces/xrayBodyScansApi'
 
@@ -25,7 +25,7 @@ export declare global {
     }
 
     interface Locals {
-      user: HmppsUser
+      user: PrisonUser
       prisoner: Prisoner & {
         displayName: string
         reversedDisplayName: string

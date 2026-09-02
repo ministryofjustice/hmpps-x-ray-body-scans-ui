@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import express from 'express'
 import nunjucks from 'nunjucks'
+import { setupNunjucksPermissions } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import config from '../config'
 import logger from '../../logger'
 import { formatDisplayDate, formatDisplayDateTime } from './dates'
@@ -42,6 +43,8 @@ export default function nunjucksSetup(app: express.Express): nunjucks.Environmen
       noCache: process.env.NODE_ENV !== 'production',
     },
   )
+
+  setupNunjucksPermissions(njkEnv)
 
   njkEnv.addGlobal('dpsHomeUrl', config.serviceUrls.digitalPrison)
   njkEnv.addGlobal('prisonerProfileUrl', config.serviceUrls.prisonerProfile)

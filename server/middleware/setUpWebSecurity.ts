@@ -1,11 +1,11 @@
-import crypto from 'crypto'
-import express, { Router, Request, Response, NextFunction } from 'express'
+import crypto from 'node:crypto'
+import { Router, type Request, type Response, type NextFunction } from 'express'
 import helmet from 'helmet'
-import { IncomingMessage, ServerResponse } from 'http'
+import type { IncomingMessage, ServerResponse } from 'http'
 import config from '../config'
 
 export default function setUpWebSecurity(): Router {
-  const router = express.Router()
+  const router = Router()
 
   // Secure code best practice - see:
   // 1. https://expressjs.com/en/advanced/best-practice-security.html,

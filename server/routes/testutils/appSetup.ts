@@ -1,17 +1,17 @@
+import { randomUUID } from 'node:crypto'
 import express, { Express } from 'express'
 import { NotFound } from 'http-errors'
-
-import { randomUUID } from 'crypto'
 import routes from '../index'
 import nunjucksSetup from '../../utils/nunjucksSetup'
 import errorHandler from '../../errorHandler'
 import type { Services } from '../../services'
 import AuditService from '../../services/auditService'
 import { PrisonService } from '../../services/prisonService'
-import type { PrisonUser, HmppsUser } from '../../interfaces/hmppsUser'
+import type { PrisonUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
 import createUserToken from '../../testutils/createUserToken'
 import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApi'
+import { caseloadMDI } from '../../testutils/mocks/prisonApi'
 
 jest.mock('../../services/auditService')
 
@@ -25,12 +25,14 @@ export const user: PrisonUser = {
   authSource: 'nomis',
   staffId: 1234,
   activeCaseLoadId: 'MDI',
+  activeCaseLoad: caseloadMDI,
+  caseLoads: [caseloadMDI],
   userRoles: [],
 }
 
 export const flashProvider = jest.fn()
 
-function appSetup(services: Services, production: boolean, userSupplier: () => HmppsUser): Express {
+function appSetup(services: Services, production: boolean, userSupplier: () => PrisonUser): Express {
   const app = express()
 
   app.set('view engine', 'njk')
@@ -93,7 +95,7 @@ export function appWithAllRoutes({
 }: {
   production?: boolean
   services?: Partial<Services>
-  userSupplier?: () => HmppsUser
+  userSupplier?: () => PrisonUser
 }): Express {
   return appSetup(services as Services, production, userSupplier)
 }
