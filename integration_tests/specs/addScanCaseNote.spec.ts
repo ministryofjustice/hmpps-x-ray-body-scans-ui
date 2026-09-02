@@ -90,8 +90,6 @@ test.describe('Add scan case note page', () => {
       scanId,
       {
         text: `
-X-ray body scan for John Smith
---
 Reason: Reasonable suspicion
 Result: Item detected
 Items found: Inorganic
@@ -112,8 +110,6 @@ Items found: Inorganic
       scanId,
       {
         text: `
-X-ray body scan for John Smith
---
 Reason: Reasonable suspicion
 Result: Item detected
 Items found: Inorganic

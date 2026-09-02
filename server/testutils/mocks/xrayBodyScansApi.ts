@@ -137,8 +137,6 @@ export function mockScanCaseNoteResponse(
     id: caseNoteId,
     title: `Result of X-ray body scan: ${scan.outcomeDescription}`,
     text: `
-X-ray body scan for ${scan.prisonerNumber}
---
 Reason: ${scan.justificationDescription}
 Result: ${scan.outcomeDescription}
 Items found: ${scan.typeOfFindDescription || 'None'}

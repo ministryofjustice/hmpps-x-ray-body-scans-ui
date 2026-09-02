@@ -41,9 +41,7 @@ export default class CaseNoteController {
       return
     }
 
-    const autoText = this.buildCaseNoteAutoText(prisoner.displayName, scan)
-    const additionalDetails = (req.body.additionalDetails ?? '').trim()
-
+    const additionalDetails = ((req.body.additionalDetails as string | undefined) ?? '').trim()
     if (additionalDetails.length > 3500) {
       this.renderAddScanCaseNoteForm(req, res, scan, false, {
         properties: {
@@ -52,8 +50,7 @@ export default class CaseNoteController {
       })
       return
     }
-
-    const text = additionalDetails ? `${autoText}\n--\n${additionalDetails}` : autoText
+    const text = this.buildCaseNoteText(scan, additionalDetails)
 
     try {
       const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
@@ -87,8 +84,7 @@ export default class CaseNoteController {
     createCallFailed = false,
     errors?: { properties?: { additionalDetails?: { errors: string[] } } },
   ): void {
-    const { prisoner } = res.locals
-    const autoText = this.buildCaseNoteAutoText(prisoner.displayName, scan)
+    const autoText = this.buildCaseNoteText(scan)
     const occurredAt = `${formatDisplayDate(scan.scanDate)} at 00:00`
 
     res.render('pages/addScanCaseNote', {
@@ -101,15 +97,13 @@ export default class CaseNoteController {
     })
   }
 
-  private buildCaseNoteAutoText(prisonerDisplayName: string, scan: ScanResponse): string {
-    const lines = [
-      `X-ray body scan for ${prisonerDisplayName}`,
-      '--',
-      `Reason: ${scan.justificationDescription}`,
-      `Result: ${scan.outcomeDescription}`,
-    ]
+  private buildCaseNoteText(scan: ScanResponse, additionalDetails?: string): string {
+    const lines = [`Reason: ${scan.justificationDescription}`, `Result: ${scan.outcomeDescription}`]
     if (scan.typeOfFindDescription) {
       lines.push(`Items found: ${scan.typeOfFindDescription}`)
+    }
+    if (additionalDetails) {
+      lines.push('--', additionalDetails)
     }
     return lines.join('\n')
   }

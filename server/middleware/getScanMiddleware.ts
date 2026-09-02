@@ -21,7 +21,6 @@ export function getScanMiddleware(xrayBodyScansApiClient: XrayBodyScansApiClient
       next(new NotFound())
       return
     }
-    // TODO: check that the case note type is XRBS to prevent reading any old case note?
     res.locals.scan = scanResponse
     next()
   }

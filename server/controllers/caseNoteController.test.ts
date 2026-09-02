@@ -44,7 +44,7 @@ beforeEach(() => {
   } as unknown as Request
 
   res = {
-    locals: { user: { ...user, username }, prisoner: { ...prisoner, displayName: 'John Smith' }, scan },
+    locals: { user: { ...user, username }, prisoner, scan },
     render: jest.fn(),
     redirect: jest.fn(),
     sendStatus: jest.fn(),
@@ -117,8 +117,6 @@ describe('postAddScanCaseNote', () => {
       scanId,
       {
         text: `
-X-ray body scan for John Smith
---
 Reason: Reasonable suspicion
 Result: Item detected
 Items found: Inorganic
@@ -148,8 +146,6 @@ Items found: Inorganic
       scanId,
       {
         text: `
-X-ray body scan for John Smith
---
 Reason: Reasonable suspicion
 Result: Item detected
 Items found: Inorganic
