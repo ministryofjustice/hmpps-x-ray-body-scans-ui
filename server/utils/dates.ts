@@ -14,6 +14,15 @@ const longDateFormatter = new Intl.DateTimeFormat('en-GB', {
   year: 'numeric',
   timeZone: 'Europe/London',
 })
+const longDateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour12: false,
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/London',
+})
 
 /**
  * Formats dates (ignoring time) in Europe/London ISO style, used when calling APIs.
@@ -42,4 +51,13 @@ export function formatIsoDate(dateTime: Date | null | undefined): string | undef
  */
 export function formatDisplayDate(dateTime: Date): string {
   return longDateFormatter.format(dateTime)
+}
+
+/**
+ * Formats dates (ignoring time) in Europe/London for display to users.
+ *
+ * Example: `1 January 2026 at 13:25`
+ */
+export function formatDisplayDateTime(dateTime: Date): string {
+  return longDateTimeFormatter.format(dateTime)
 }

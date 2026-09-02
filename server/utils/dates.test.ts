@@ -1,4 +1,4 @@
-import { formatDisplayDate, formatIsoDate } from './dates'
+import { formatDisplayDate, formatDisplayDateTime, formatIsoDate } from './dates'
 
 describe('formatIsoDate', () => {
   it.each([undefined, null])('should return undefined for nullish type %j', date => {
@@ -39,5 +39,24 @@ describe('formatDisplayDate', () => {
     [new Date('2021-10-31T01:00:01Z'), '31 October 2021'],
   ])('should format %s to %s', (date, expected) => {
     expect(formatDisplayDate(date)).toEqual(expected)
+  })
+})
+
+describe('formatDisplayDateTime', () => {
+  it.each([
+    // UTC+0
+    [new Date('2026-01-01T12:00:00Z'), '1 January 2026 at 12:00'],
+    // UTC+1
+    [new Date('2026-07-31T12:00:00+01:00'), '31 July 2026 at 12:00'],
+    [new Date('2026-07-31T00:00:00+01:00'), '31 July 2026 at 00:00'],
+    // near DST switch
+    [new Date('2021-10-30T23:59:59Z'), '31 October 2021 at 00:59'],
+    [new Date('2021-10-31T00:00:00Z'), '31 October 2021 at 01:00'],
+    [new Date('2021-10-31T00:00:01Z'), '31 October 2021 at 01:00'],
+    [new Date('2021-10-31T00:59:59Z'), '31 October 2021 at 01:59'],
+    [new Date('2021-10-31T01:00:00Z'), '31 October 2021 at 01:00'],
+    [new Date('2021-10-31T01:00:01Z'), '31 October 2021 at 01:00'],
+  ])('should format %s to %s', (date, expected) => {
+    expect(formatDisplayDateTime(date)).toEqual(expected)
   })
 })
