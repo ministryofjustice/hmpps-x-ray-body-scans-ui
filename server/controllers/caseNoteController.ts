@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-
+import { NotFound } from 'http-errors'
 import logger from '../../logger'
 import { formatDisplayDate } from '../utils/dates'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
@@ -18,13 +18,11 @@ export default class CaseNoteController {
     const { username } = res.locals.user
 
     if (!this.scanHasCaseNote(scan)) {
-      res.sendStatus(404)
-      return
+      throw new NotFound()
     }
     const caseNote = await this.xrayBodyScansApiClient.getScanCaseNote(scan.id, username)
     if (!scan || !caseNote || scan.caseNoteId !== caseNote.id) {
-      res.sendStatus(404)
-      return
+      throw new NotFound()
     }
 
     // TODO: determine if user can view case note
@@ -44,8 +42,7 @@ export default class CaseNoteController {
     const { username } = res.locals.user
 
     if (!this.scanHasNoCaseNote(scan)) {
-      res.sendStatus(404)
-      return
+      throw new NotFound()
     }
 
     await this.auditService.logPageView(Page.ADD_SCAN_CASE_NOTE, {
@@ -63,8 +60,7 @@ export default class CaseNoteController {
     const { username } = res.locals.user
 
     if (!this.scanHasNoCaseNote(scan)) {
-      res.sendStatus(404)
-      return
+      throw new NotFound()
     }
 
     const additionalDetails = ((req.body.additionalDetails as string | undefined) ?? '').trim()

@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express'
+import { NotFound } from 'http-errors'
 import logger from '../../logger'
 import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now } from '../testutils/fixedClock'
@@ -29,7 +30,7 @@ const scanWithCaseNote = { ...scan, caseNoteId }
 
 let caseNoteController: CaseNoteController
 let req: Request
-let res: Response & { render: jest.Mock; redirect: jest.Mock; sendStatus: jest.Mock }
+let res: Response & { render: jest.Mock; redirect: jest.Mock }
 
 beforeAll(() => {
   fixedClock()
@@ -48,8 +49,7 @@ beforeEach(() => {
     locals: { user: { ...user, username }, prisoner, scan },
     render: jest.fn(),
     redirect: jest.fn(),
-    sendStatus: jest.fn(),
-  } as unknown as Response & { render: jest.Mock; redirect: jest.Mock; sendStatus: jest.Mock }
+  } as unknown as Response & { render: jest.Mock; redirect: jest.Mock }
 })
 
 afterEach(() => {
@@ -76,9 +76,8 @@ describe('getScanCaseNote', () => {
   it('returns 404 when scan is not found', async () => {
     res.locals.scan = undefined
 
-    await caseNoteController.getScanCaseNote(req, res)
+    await expect(caseNoteController.getScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
     expect(res.render).not.toHaveBeenCalled()
   })
@@ -86,9 +85,8 @@ describe('getScanCaseNote', () => {
   it('returns 404 for a NOMIS scan', async () => {
     res.locals.scan = mockLegacyScanResponse(prisonerNumber, now) as unknown as ScanResponse
 
-    await caseNoteController.getScanCaseNote(req, res)
+    await expect(caseNoteController.getScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
     expect(res.render).not.toHaveBeenCalled()
   })
@@ -96,9 +94,8 @@ describe('getScanCaseNote', () => {
   it('returns 404 case note is not found', async () => {
     xrayBodyScansApiClient.getScanCaseNote.mockResolvedValueOnce(null)
 
-    await caseNoteController.getScanCaseNote(req, res)
+    await expect(caseNoteController.getScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
     expect(res.render).not.toHaveBeenCalled()
   })
@@ -127,18 +124,16 @@ describe('getAddScanCaseNote', () => {
 
   it('returns 404 when scan is not found', async () => {
     res.locals.scan = undefined
-    await caseNoteController.getAddScanCaseNote(req, res)
+    await expect(caseNoteController.getAddScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
   })
 
   it('returns 404 for a NOMIS scan', async () => {
     res.locals.scan = mockLegacyScanResponse(prisonerNumber, now) as unknown as ScanResponse
-    await caseNoteController.getAddScanCaseNote(req, res)
+    await expect(caseNoteController.getAddScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
   })
@@ -148,9 +143,8 @@ describe('getAddScanCaseNote', () => {
       ...scan,
       caseNoteId,
     }
-    await caseNoteController.getAddScanCaseNote(req, res)
+    await expect(caseNoteController.getAddScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
   })
@@ -242,18 +236,16 @@ Extra info
 
   it('returns 404 when scan is not found', async () => {
     res.locals.scan = undefined
-    await caseNoteController.postAddScanCaseNote(req, res)
+    await expect(caseNoteController.postAddScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
   })
 
   it('returns 404 for a NOMIS scan', async () => {
     res.locals.scan = mockLegacyScanResponse(prisonerNumber, now) as unknown as ScanResponse
-    await caseNoteController.postAddScanCaseNote(req, res)
+    await expect(caseNoteController.postAddScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
   })
@@ -263,9 +255,8 @@ Extra info
       ...scan,
       caseNoteId,
     }
-    await caseNoteController.postAddScanCaseNote(req, res)
+    await expect(caseNoteController.postAddScanCaseNote(req, res)).rejects.toThrow(new NotFound())
 
-    expect(res.sendStatus).toHaveBeenCalledWith(404)
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
   })
