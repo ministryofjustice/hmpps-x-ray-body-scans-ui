@@ -147,13 +147,14 @@
     {% set rows = [] %}
     {% for scan in scanRows %}
 
-      {# TODO: what permissions are needed? #}
       {% set actionLink %}
         {% if scan.caseNoteId %}
+          {# TODO: is the direct url sensible? permissions? #}
           <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisonerNumber }}/update-case-note/{{ scan.caseNoteId }}" class="govuk-link govuk-link--no-visited-state hmpps-modal__trigger-show" data-hmpps-modal-id="case-note-modal" data-hmpps-modal-url="/prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note">
             View case note
           </a>
         {% elseif scan.source === "DPS" %}
+          {# TODO: what permissions are needed? #}
           <a href="/prisoner/{{ prisonerNumber }}/scan/{{ scan.id }}/add-a-scan-case-note" class="govuk-link govuk-link--no-visited-state add-case-note-link">Add case note</a>
         {% endif %}
       {% endset %}

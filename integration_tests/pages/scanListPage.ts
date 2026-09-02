@@ -80,6 +80,14 @@ export default class ScanListPage extends AbstractPage {
       )
   }
 
+  async getScanTableActionUrls(): Promise<(string | undefined)[]> {
+    return this.scanTable
+      .locator(`.govuk-table__body .scan-table__action-td`)
+      .evaluateAll((actionCells: HTMLTableCellElement[]) =>
+        actionCells.map(actionCell => actionCell.querySelector('a')?.href),
+      )
+  }
+
   getNthRowActionLink(nth: number): Locator {
     return this.scanTable.locator(`.govuk-table__body tr:nth-child(${nth + 1}) td:last-child a`)
   }

@@ -371,6 +371,7 @@ test.describe('Scan list page', () => {
           pageResponse([
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000001',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
@@ -381,6 +382,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000002',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
@@ -392,6 +394,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000003',
               prisonId: 'LEI',
               justification: 'INTELLIGENCE',
               justificationDescription: 'Intelligence-led',
@@ -402,6 +405,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000004',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
@@ -412,6 +416,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000005',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
@@ -422,6 +427,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000006',
               prisonId: 'MDI',
               justification: 'INTELLIGENCE',
               justificationDescription: 'Intelligence-led',
@@ -450,6 +456,17 @@ test.describe('Scan list page', () => {
         [dateStr, 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
         [dateStr, '', '', '', '', ''],
         ['Not recorded', '', '', 'positive', '', ''],
+      ])
+      await expect(scanListPage.getScanTableActionUrls()).resolves.toEqual([
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000001/add-a-scan-case-note'),
+        // TODO: should direct case note link point to profile?
+        expect.stringContaining('/profile/prisoner/A1234BC/update-case-note/341c845e-fadc-4ec8-9330-81c83968c1a8'),
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000003/add-a-scan-case-note'),
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000004/add-a-scan-case-note'),
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000005/add-a-scan-case-note'),
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000006/add-a-scan-case-note'),
+        undefined,
+        undefined,
       ])
       await expect(scanListPage.pagination).not.toBeVisible()
     })
