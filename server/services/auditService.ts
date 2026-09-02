@@ -6,6 +6,7 @@ export enum Page {
   CREATE_SCAN = 'CREATE_SCAN',
   CREATE_SCAN_SUCCESS = 'CREATE_SCAN_SUCCESS',
   ADD_SCAN_CASE_NOTE = 'ADD_SCAN_CASE_NOTE',
+  VIEW_SCAN_CASE_NOTE = 'VIEW_SCAN_CASE_NOTE',
 }
 
 export interface PageViewEventDetails {

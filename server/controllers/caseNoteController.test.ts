@@ -25,6 +25,7 @@ const scan = mockScanResponse(prisonerNumber, now)
 const scanId = scan.id
 const caseNote = mockScanCaseNoteResponse(scan)
 const caseNoteId = caseNote.id
+const scanWithCaseNote = { ...scan, caseNoteId }
 
 let caseNoteController: CaseNoteController
 let req: Request
@@ -53,6 +54,54 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.resetAllMocks()
+})
+
+describe('getScanCaseNote', () => {
+  it('logs a page view and renders the case note', async () => {
+    res.locals.scan = scanWithCaseNote
+    xrayBodyScansApiClient.getScanCaseNote.mockResolvedValueOnce(caseNote)
+
+    await caseNoteController.getScanCaseNote(req, res)
+
+    expect(auditService.logPageView).toHaveBeenCalledWith(Page.VIEW_SCAN_CASE_NOTE, {
+      who: username,
+      subjectId: prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId,
+    })
+    expect(res.render).toHaveBeenCalledWith('pages/caseNote', { caseNote })
+    expect(xrayBodyScansApiClient.getScanCaseNote).toHaveBeenCalledWith(scanId, username)
+  })
+
+  it('returns 404 when scan is not found', async () => {
+    res.locals.scan = undefined
+
+    await caseNoteController.getScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
+    expect(res.render).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 for a NOMIS scan', async () => {
+    res.locals.scan = mockLegacyScanResponse(prisonerNumber, now) as unknown as ScanResponse
+
+    await caseNoteController.getScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
+    expect(res.render).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 case note is not found', async () => {
+    xrayBodyScansApiClient.getScanCaseNote.mockResolvedValueOnce(null)
+
+    await caseNoteController.getScanCaseNote(req, res)
+
+    expect(res.sendStatus).toHaveBeenCalledWith(404)
+    expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
+    expect(res.render).not.toHaveBeenCalled()
+  })
 })
 
 describe('getAddScanCaseNote', () => {

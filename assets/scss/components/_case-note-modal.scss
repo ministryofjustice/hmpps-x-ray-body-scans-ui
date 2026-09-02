@@ -1,0 +1,9 @@
+@use "govuk-frontend/dist/govuk/helpers/media-queries";
+
+#case-note-modal {
+  .hmpps-modal__dialogue-box {
+    @include media-queries.govuk-media-query($from: desktop) {
+      min-width: 600px;
+    }
+  }
+}

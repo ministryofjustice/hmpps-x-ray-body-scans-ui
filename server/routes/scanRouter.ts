@@ -38,6 +38,7 @@ function caseNoteRouter(auditService: AuditService, xrayBodyScansApiClient: Xray
   const caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
 
   const router = Router({ mergeParams: true })
+  router.get('/case-note', (req, res, next) => caseNoteController.getScanCaseNote(req, res).catch(next))
   router.get('/add-a-scan-case-note', (req, res, next) => caseNoteController.getAddScanCaseNote(req, res).catch(next))
   router.post('/add-a-scan-case-note', (req, res, next) => caseNoteController.postAddScanCaseNote(req, res).catch(next))
   return router

@@ -3,6 +3,7 @@
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "dps/components/alert-flag/macro.njk" import alertFlag %}
+{% from "dps/components/modal/macro.njk" import hmppsModal %}
 {% from "components/infoBox.njk" import infoBox %}
 {% from "components/pagination.njk" import paginate %}
 {% from "components/resultTag.njk" import resultTag %}
@@ -149,7 +150,9 @@
       {# TODO: what permissions are needed? #}
       {% set actionLink %}
         {% if scan.caseNoteId %}
-          <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisonerNumber }}/update-case-note/{{ scan.caseNoteId }}" class="govuk-link govuk-link--no-visited-state">View case note</a>
+          <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisonerNumber }}/update-case-note/{{ scan.caseNoteId }}" class="govuk-link govuk-link--no-visited-state hmpps-modal__trigger-show" data-hmpps-modal-id="case-note-modal" data-hmpps-modal-url="/prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note">
+            View case note
+          </a>
         {% elseif scan.source === "DPS" %}
           <a href="/prisoner/{{ prisonerNumber }}/scan/{{ scan.id }}/add-a-scan-case-note" class="govuk-link govuk-link--no-visited-state add-case-note-link">Add case note</a>
         {% endif %}
@@ -194,6 +197,11 @@
           captionClasses: "govuk-visually-hidden"
         }) }}
       </div>
+
+      {{ hmppsModal({
+        id: "case-note-modal",
+        title: "Case note details"
+      }) }}
     {% else %}
       {% if not yearFilter %}
         <p>No X-ray body scans have been recorded for this person in {{ now().getFullYear() }}.</p>

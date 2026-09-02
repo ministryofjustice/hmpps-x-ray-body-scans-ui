@@ -13,11 +13,37 @@ export default class CaseNoteController {
     private readonly xrayBodyScansApiClient: XrayBodyScansApiClient,
   ) {}
 
+  async getScanCaseNote(req: Request, res: Response): Promise<void> {
+    const { prisoner, scan } = res.locals
+    const { username } = res.locals.user
+
+    if (!this.scanHasCaseNote(scan)) {
+      res.sendStatus(404)
+      return
+    }
+    const caseNote = await this.xrayBodyScansApiClient.getScanCaseNote(scan.id, username)
+    if (!scan || !caseNote || scan.caseNoteId !== caseNote.id) {
+      res.sendStatus(404)
+      return
+    }
+
+    // TODO: determine if user can view case note
+
+    await this.auditService.logPageView(Page.VIEW_SCAN_CASE_NOTE, {
+      who: username,
+      subjectId: prisoner.prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId: req.id,
+    })
+
+    res.render('pages/caseNote', { caseNote })
+  }
+
   async getAddScanCaseNote(req: Request, res: Response): Promise<void> {
     const { prisoner, scan } = res.locals
     const { username } = res.locals.user
 
-    if (!this.checkScan(scan)) {
+    if (!this.scanHasNoCaseNote(scan)) {
       res.sendStatus(404)
       return
     }
@@ -36,7 +62,7 @@ export default class CaseNoteController {
     const { prisoner, scan } = res.locals
     const { username } = res.locals.user
 
-    if (!this.checkScan(scan)) {
+    if (!this.scanHasNoCaseNote(scan)) {
       res.sendStatus(404)
       return
     }
@@ -73,7 +99,11 @@ export default class CaseNoteController {
     }
   }
 
-  private checkScan(scan: ScanResponse | undefined): scan is ScanResponse {
+  private scanHasCaseNote(scan: ScanResponse | undefined): scan is ScanResponse {
+    return Boolean(scan && scan.source === 'DPS' && scan.caseNoteId)
+  }
+
+  private scanHasNoCaseNote(scan: ScanResponse | undefined): scan is ScanResponse {
     return Boolean(scan && scan.source === 'DPS' && !scan.caseNoteId)
   }
 
