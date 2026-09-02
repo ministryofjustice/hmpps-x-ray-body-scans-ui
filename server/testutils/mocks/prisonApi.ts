@@ -2,7 +2,7 @@ import type { CaseLoad } from '../../data/interfaces/prisonApi'
 
 export const caseloadLEI: CaseLoad = {
   caseLoadId: 'LEI',
-  description: 'Leeds (HMP & YOI)',
+  description: 'Leeds (HMP)',
   type: 'INST',
   caseloadFunction: 'GENERAL',
   currentlyActive: true,

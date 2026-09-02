@@ -34,11 +34,11 @@ describe('PrisonService', () => {
   })
 
   it('should fetch prisons from redis cache when available', async () => {
-    redisClient.hmGet.mockResolvedValueOnce(['Leeds (HMP & YOI)', 'Moorland (HMP & YOI)'])
+    redisClient.hmGet.mockResolvedValueOnce(['Leeds (HMP)', 'Moorland (HMP & YOI)'])
 
     await expect(prisonService.getPrisonNames(['LEI', 'MDI'])).resolves.toEqual(
       new Map([
-        ['LEI', 'Leeds (HMP & YOI)'],
+        ['LEI', 'Leeds (HMP)'],
         ['MDI', 'Moorland (HMP & YOI)'],
       ]),
     )
@@ -58,7 +58,7 @@ describe('PrisonService', () => {
     {
       scenario: 'cache is missing an item',
       // simulate a renamed and a new prison
-      redisCache: ['Leeds (HMP)', null],
+      redisCache: ['Leeds (HMP & YOI)', null],
     },
   ])('should refresh redis cache from prison register when $scenario', async ({ redisCache }) => {
     redisClient.hmGet.mockResolvedValueOnce(redisCache)
@@ -66,7 +66,7 @@ describe('PrisonService', () => {
 
     await expect(prisonService.getPrisonNames(['LEI', 'MDI'])).resolves.toEqual(
       new Map([
-        ['LEI', 'Leeds (HMP & YOI)'],
+        ['LEI', 'Leeds (HMP)'],
         ['MDI', 'Moorland (HMP & YOI)'],
       ]),
     )
@@ -74,7 +74,7 @@ describe('PrisonService', () => {
     expect(redisClient.hmGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, ['LEI', 'MDI'])
     expect(prisonRegisterApiClient.getAllPrisons).toHaveBeenCalledWith()
     expect(redisClient.hSet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, {
-      LEI: 'Leeds (HMP & YOI)',
+      LEI: 'Leeds (HMP)',
       MDI: 'Moorland (HMP & YOI)',
     })
     expect(logger.error).not.toHaveBeenCalled()
@@ -94,7 +94,7 @@ describe('PrisonService', () => {
     expect(redisClient.hmGet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, ['BXI', 'MDI'])
     expect(prisonRegisterApiClient.getAllPrisons).toHaveBeenCalledWith()
     expect(redisClient.hSet).toHaveBeenCalledWith(PrisonService.REDIS_CACHE_KEY, {
-      LEI: 'Leeds (HMP & YOI)',
+      LEI: 'Leeds (HMP)',
       MDI: 'Moorland (HMP & YOI)',
     })
     expect(logger.error).not.toHaveBeenCalled()

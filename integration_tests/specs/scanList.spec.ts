@@ -442,11 +442,11 @@ test.describe('Scan list page', () => {
       const scanListPage = await goToScanListPage(page)
       const dateStr = formatDisplayDate(now)
       await expect(scanListPage.getScanTableContents()).resolves.toEqual([
-        [dateStr, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
-        [dateStr, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
-        [dateStr, 'Leeds (HMP & YOI)', 'Intelligence-led', 'Item detected', 'Organic and inorganic', 'Add case note'],
-        [dateStr, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Not known', 'Add case note'],
-        [dateStr, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'No item detected', 'None', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
+        [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Item detected', 'Organic and inorganic', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Not known', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'No item detected', 'None', 'Add case note'],
         [dateStr, 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
         [dateStr, '', '', '', '', ''],
         ['Not recorded', '', '', 'positive', '', ''],
