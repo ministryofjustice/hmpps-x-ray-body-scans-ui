@@ -1,4 +1,5 @@
 import { type Page, expect, test } from '@playwright/test'
+import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import {
   mockScanCaseNoteResponse,
@@ -54,24 +55,55 @@ test.describe('Add scan case note page', () => {
     expect(response?.status()).toBe(404)
   })
 
-  async function goToAddScanCaseNotePage(page: Page): Promise<AddScanCaseNotePage> {
-    await Promise.all([login(page), xrayBodyScansApi.stubGetScan(scanId, scan)])
-    const response = await page.goto(`/prisoner/${prisonerNumber}/scan/${scanId}/add-a-scan-case-note`)
+  async function goToAddScanCaseNotePage(page: Page, stubScan: ScanResponse = scan): Promise<AddScanCaseNotePage> {
+    await Promise.all([login(page), xrayBodyScansApi.stubGetScan(stubScan.id, stubScan)])
+    const response = await page.goto(`/prisoner/${prisonerNumber}/scan/${stubScan.id}/add-a-scan-case-note`)
     expect(response?.status()).toBe(200)
     return AddScanCaseNotePage.verifyOnPage(page)
   }
 
-  test('Page shows with expected content', async ({ page }) => {
-    const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
+  const scanScenarios: { scenario: string; stubScan: ScanResponse; expectedDescription: string[] }[] = [
+    {
+      scenario: 'negative scan',
+      stubScan: {
+        ...scan,
+        outcome: 'NEGATIVE',
+        outcomeDescription: 'No item detected',
+        typeOfFind: null,
+        typeOfFindDescription: null,
+      },
+      expectedDescription: ['Reason: Reasonable suspicion', 'Result: No item detected', 'Items found: None'],
+    },
+    {
+      scenario: 'positive scan',
+      stubScan: {
+        ...scan,
+        justification: 'INTELLIGENCE',
+        justificationDescription: 'Intelligence-led',
+      },
+      expectedDescription: ['Reason: Intelligence-led', 'Result: Item detected', 'Items found: Inorganic'],
+    },
+  ]
+  for (const { scenario, stubScan, expectedDescription } of scanScenarios) {
+    test(`Page shows for a ${scenario} with expected content`, async ({ page }) => {
+      const addScanCaseNotePage = await goToAddScanCaseNotePage(page, stubScan)
 
-    await expect(addScanCaseNotePage.getBreadcrumbs()).resolves.toEqual([
-      { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
-      { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
-      { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scan-overview` },
-    ])
+      await expect(addScanCaseNotePage.getBreadcrumbs()).resolves.toEqual([
+        { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
+        { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
+        { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scan-overview` },
+      ])
 
-    await expect(addScanCaseNotePage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
-  })
+      await expect(addScanCaseNotePage.getSummaryList()).resolves.toEqual([
+        { key: 'Type', value: 'General' },
+        { key: 'Sub-type', value: 'X-ray body scan' },
+        { key: 'What happened', value: expect.stringMatching(expectedDescription.join('\\s+')) },
+        { key: 'Happened', value: expect.stringContaining('at 00:00') },
+      ])
+
+      await expect(addScanCaseNotePage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
+    })
+  }
 
   async function stubBlankScanListPage() {
     return Promise.all([

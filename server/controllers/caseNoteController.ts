@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express'
 import { NotFound } from 'http-errors'
 import logger from '../../logger'
-import { formatDisplayDate } from '../utils/dates'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import type AuditService from '../services/auditService'
@@ -34,7 +33,7 @@ export default class CaseNoteController {
       correlationId: req.id,
     })
 
-    res.render('pages/caseNote', { caseNote })
+    res.render('pages/scanCaseNote', { caseNote })
   }
 
   async getAddScanCaseNote(req: Request, res: Response): Promise<void> {
@@ -111,12 +110,10 @@ export default class CaseNoteController {
     errors?: { properties?: { additionalDetails?: { errors: string[] } } },
   ): void {
     const autoText = this.buildCaseNoteText(scan)
-    const occurredAt = `${formatDisplayDate(scan.scanDate)} at 00:00`
 
     res.render('pages/addScanCaseNote', {
+      scan,
       autoText,
-      occurredAt,
-      caseNoteTitle: `Result of X-ray body scan: ${scan.outcomeDescription}`,
       createCallFailed,
       errors,
       formValues: req.body,
@@ -124,10 +121,11 @@ export default class CaseNoteController {
   }
 
   private buildCaseNoteText(scan: ScanResponse, additionalDetails?: string): string {
-    const lines = [`Reason: ${scan.justificationDescription}`, `Result: ${scan.outcomeDescription}`]
-    if (scan.typeOfFindDescription) {
-      lines.push(`Items found: ${scan.typeOfFindDescription}`)
-    }
+    const lines = [
+      `Reason: ${scan.justificationDescription}`,
+      `Result: ${scan.outcomeDescription}`,
+      `Items found: ${scan.typeOfFindDescription ? scan.typeOfFindDescription : 'None'}`,
+    ]
     if (additionalDetails) {
       lines.push('--', additionalDetails)
     }

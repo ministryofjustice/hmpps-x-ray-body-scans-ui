@@ -69,7 +69,7 @@ describe('getScanCaseNote', () => {
       subjectType: 'PRISONER_ID',
       correlationId,
     })
-    expect(res.render).toHaveBeenCalledWith('pages/caseNote', { caseNote })
+    expect(res.render).toHaveBeenCalledWith('pages/scanCaseNote', { caseNote })
     expect(xrayBodyScansApiClient.getScanCaseNote).toHaveBeenCalledWith(scanId, username)
   })
 
@@ -114,8 +114,7 @@ describe('getAddScanCaseNote', () => {
     expect(res.render).toHaveBeenCalledWith(
       'pages/addScanCaseNote',
       expect.objectContaining({
-        occurredAt: '24 July 2026 at 00:00',
-        caseNoteTitle: `Result of X-ray body scan: ${scan.outcomeDescription}`,
+        scan,
         createCallFailed: false,
         errors: undefined,
       }),
@@ -151,33 +150,59 @@ describe('getAddScanCaseNote', () => {
 })
 
 describe('postAddScanCaseNote', () => {
-  it('creates a case note with only the auto-text and redirects', async () => {
-    xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(caseNote)
-
-    await caseNoteController.postAddScanCaseNote(req, res)
-
-    expect(xrayBodyScansApiClient.createScanCaseNote).toHaveBeenCalledWith(
-      scanId,
-      {
-        text: `
-Reason: Reasonable suspicion
-Result: Item detected
-Items found: Inorganic
-        `.trim(),
+  const scanScenarios: { scenario: string; scanScenario: ScanResponse; expectedText: string }[] = [
+    {
+      scenario: 'negative scan',
+      scanScenario: {
+        ...scan,
+        outcome: 'NEGATIVE',
+        outcomeDescription: 'No item detected',
+        typeOfFind: null,
+        typeOfFindDescription: null,
       },
-      username,
-    )
-    expect(auditService.logAuditEvent).toHaveBeenCalledWith({
-      what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
-      who: username,
-      subjectId: prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId,
-      details: { scanId },
-    })
-    expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)
-    expect(logger.info).toHaveBeenCalledWith(`Created case note ${caseNote.id} for scan ${scan.id}`)
-  })
+      expectedText: `
+Reason: Reasonable suspicion
+Result: No item detected
+Items found: None`,
+    },
+    {
+      scenario: 'positive scan',
+      scanScenario: {
+        ...scan,
+        justification: 'INTELLIGENCE',
+        justificationDescription: 'Intelligence-led',
+      },
+      expectedText: `
+Reason: Intelligence-led
+Result: Item detected
+Items found: Inorganic`,
+    },
+  ]
+  it.each(scanScenarios)(
+    'creates a case note for a $scenario with only the auto-text and redirects',
+    async ({ scanScenario, expectedText }) => {
+      res.locals.scan = scanScenario
+      xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(caseNote)
+
+      await caseNoteController.postAddScanCaseNote(req, res)
+
+      expect(xrayBodyScansApiClient.createScanCaseNote).toHaveBeenCalledWith(
+        scanId,
+        { text: expectedText.trim() },
+        username,
+      )
+      expect(auditService.logAuditEvent).toHaveBeenCalledWith({
+        what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
+        who: username,
+        subjectId: prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId,
+        details: { scanId },
+      })
+      expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)
+      expect(logger.info).toHaveBeenCalledWith(`Created case note ${caseNote.id} for scan ${scan.id}`)
+    },
+  )
 
   it('appends additional details to the auto-text', async () => {
     xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(caseNote)

@@ -42,7 +42,10 @@
         <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
         {% set whatHappenedHtml %}
-          <p class="govuk-body white-space-pre-line">{{ autoText }}{{ "\n--" }}</p>
+          <p class="white-space-pre-line">
+            {{- autoText -}}
+            {{- "\n--" -}}
+          </p>
           {{ govukCharacterCount({
             id: "additionalDetails",
             name: "additionalDetails",
@@ -55,13 +58,12 @@
             errorMessage: errorMessageForField("additionalDetails", errors)
           }) }}
         {% endset %}
+        {% set occurredAt %}
+          {{ scan.scanDate | formatDisplayDate }} at 00:00
+        {% endset %}
 
         {{ govukSummaryList({
           rows: [
-            {
-              key: { text: "Title" },
-              value: { text: caseNoteTitle }
-            },
             {
               key: { text: "Type" },
               value: { text: "General" }

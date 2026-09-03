@@ -135,7 +135,8 @@ export function mockScanCaseNoteResponse(
   occurredAt.setHours(0, 0, 0, 0)
   return {
     id: caseNoteId,
-    title: `Result of X-ray body scan: ${scan.outcomeDescription}`,
+    typeDescription: 'General',
+    subTypeDescription: 'X-ray body scan',
     text: `
 Reason: ${scan.justificationDescription}
 Result: ${scan.outcomeDescription}
