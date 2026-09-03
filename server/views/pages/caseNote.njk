@@ -1,0 +1,26 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+<div class="case-note-modal__content">
+  <p class="hmpps-secondary-text govuk-!-margin-bottom-0">
+    <span class="govuk-visually-hidden">Case note created:</span>
+    {{ caseNote.createdAt | formatDisplayDateTime }}
+  </p>
+  <h2 class="govuk-heading-m">{{ caseNote.title }}</h2>
+
+  <p>
+    <strong>Created by:</strong> {{ caseNote.createdBy }}
+  </p>
+  <p class="white-space-pre-line">
+    {{- caseNote.text.trim() -}}
+  </p>
+
+  <p class="hmpps-secondary-text">
+    <strong>Happened:</strong> {{ caseNote.occurredAt | formatDisplayDateTime }}
+  </p>
+
+  {{ govukButton({
+    text: "Close",
+    classes: "govuk-button--secondary hmpps-modal__trigger-hide",
+    href: "/prisoner/" + prisoner.prisonerNumber + "/scan-overview"
+  }) }}
+</div>

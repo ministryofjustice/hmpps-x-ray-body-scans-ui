@@ -1,0 +1,11 @@
+@use "govuk-frontend/dist/govuk/helpers/colour";
+@use "govuk-frontend/dist/govuk/helpers/typography";
+
+.hmpps-secondary-text {
+  color: colour.govuk-functional-colour(secondary-text);
+  @include typography.govuk-font($size: 16);
+}
+
+.white-space-pre-line {
+  white-space: pre-line;
+}

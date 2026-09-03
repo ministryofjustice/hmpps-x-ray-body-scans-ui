@@ -13,10 +13,40 @@ export default class CaseNoteController {
     private readonly xrayBodyScansApiClient: XrayBodyScansApiClient,
   ) {}
 
-  async getAddScanCaseNote(req: Request, res: Response): Promise<void> {
-    const { prisoner } = res.locals
+  async getScanCaseNote(req: Request, res: Response): Promise<void> {
+    const { prisoner, scan } = res.locals
     const { username } = res.locals.user
-    const scanId = req.params.scanId as string
+
+    if (!this.scanHasCaseNote(scan)) {
+      res.sendStatus(404)
+      return
+    }
+    const caseNote = await this.xrayBodyScansApiClient.getScanCaseNote(scan.id, username)
+    if (!scan || !caseNote || scan.caseNoteId !== caseNote.id) {
+      res.sendStatus(404)
+      return
+    }
+
+    // TODO: determine if user can view case note
+
+    await this.auditService.logPageView(Page.VIEW_SCAN_CASE_NOTE, {
+      who: username,
+      subjectId: prisoner.prisonerNumber,
+      subjectType: 'PRISONER_ID',
+      correlationId: req.id,
+    })
+
+    res.render('pages/caseNote', { caseNote })
+  }
+
+  async getAddScanCaseNote(req: Request, res: Response): Promise<void> {
+    const { prisoner, scan } = res.locals
+    const { username } = res.locals.user
+
+    if (!this.scanHasNoCaseNote(scan)) {
+      res.sendStatus(404)
+      return
+    }
 
     await this.auditService.logPageView(Page.ADD_SCAN_CASE_NOTE, {
       who: username,
@@ -25,29 +55,19 @@ export default class CaseNoteController {
       correlationId: req.id,
     })
 
-    const scan = await this.xrayBodyScansApiClient.getScan(scanId, username)
-    if (!scan || scan.source !== 'DPS') {
-      res.sendStatus(404)
-      return
-    }
-
     this.renderAddScanCaseNoteForm(req, res, scan)
   }
 
   async postAddScanCaseNote(req: Request, res: Response): Promise<void> {
-    const { prisoner } = res.locals
+    const { prisoner, scan } = res.locals
     const { username } = res.locals.user
-    const scanId = req.params.scanId as string
 
-    const scan = await this.xrayBodyScansApiClient.getScan(scanId, username)
-    if (!scan || scan.source !== 'DPS') {
+    if (!this.scanHasNoCaseNote(scan)) {
       res.sendStatus(404)
       return
     }
 
-    const autoText = this.buildCaseNoteAutoText(prisoner.displayName, scan)
-    const additionalDetails = (req.body.additionalDetails ?? '').trim()
-
+    const additionalDetails = ((req.body.additionalDetails as string | undefined) ?? '').trim()
     if (additionalDetails.length > 3500) {
       this.renderAddScanCaseNoteForm(req, res, scan, false, {
         properties: {
@@ -56,11 +76,11 @@ export default class CaseNoteController {
       })
       return
     }
-
-    const text = additionalDetails ? `${autoText}\n${additionalDetails}` : autoText
+    const text = this.buildCaseNoteText(scan, additionalDetails)
 
     try {
-      await this.xrayBodyScansApiClient.createScanCaseNote(scanId, { text }, username)
+      const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
+      logger.info(`Created case note ${caseNote.id} for scan ${scan.id}`)
 
       // TODO: confirm required audit event info
       await this.auditService.logAuditEvent({
@@ -69,7 +89,7 @@ export default class CaseNoteController {
         subjectId: prisoner.prisonerNumber,
         subjectType: 'PRISONER_ID',
         correlationId: req.id,
-        details: { scanId },
+        details: { scanId: scan.id },
       })
 
       res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview`)
@@ -79,6 +99,14 @@ export default class CaseNoteController {
     }
   }
 
+  private scanHasCaseNote(scan: ScanResponse | undefined): scan is ScanResponse {
+    return Boolean(scan && scan.source === 'DPS' && scan.caseNoteId)
+  }
+
+  private scanHasNoCaseNote(scan: ScanResponse | undefined): scan is ScanResponse {
+    return Boolean(scan && scan.source === 'DPS' && !scan.caseNoteId)
+  }
+
   private renderAddScanCaseNoteForm(
     req: Request,
     res: Response,
@@ -86,13 +114,10 @@ export default class CaseNoteController {
     createCallFailed = false,
     errors?: { properties?: { additionalDetails?: { errors: string[] } } },
   ): void {
-    const { prisoner } = res.locals
-    const autoText = this.buildCaseNoteAutoText(prisoner.displayName, scan)
+    const autoText = this.buildCaseNoteText(scan)
     const occurredAt = `${formatDisplayDate(scan.scanDate)} at 00:00`
 
     res.render('pages/addScanCaseNote', {
-      prisoner,
-      scan,
       autoText,
       occurredAt,
       caseNoteTitle: `Result of X-ray body scan: ${scan.outcomeDescription}`,
@@ -102,17 +127,14 @@ export default class CaseNoteController {
     })
   }
 
-  private buildCaseNoteAutoText(prisonerDisplayName: string, scan: ScanResponse): string {
-    const lines = [
-      `X-ray body scan for ${prisonerDisplayName}`,
-      '--',
-      `Reason: ${scan.justificationDescription}`,
-      `Result: ${scan.outcomeDescription}`,
-    ]
+  private buildCaseNoteText(scan: ScanResponse, additionalDetails?: string): string {
+    const lines = [`Reason: ${scan.justificationDescription}`, `Result: ${scan.outcomeDescription}`]
     if (scan.typeOfFindDescription) {
       lines.push(`Items found: ${scan.typeOfFindDescription}`)
     }
-    lines.push('--')
+    if (additionalDetails) {
+      lines.push('--', additionalDetails)
+    }
     return lines.join('\n')
   }
 }

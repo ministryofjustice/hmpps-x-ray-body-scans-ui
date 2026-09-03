@@ -1,11 +1,13 @@
 import { type Page, expect, test } from '@playwright/test'
 import { formatDisplayDate } from '../../server/utils/dates'
-import { notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
+import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
+import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { emptyPageResponse, pageResponse } from '../../server/testutils/pagination'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
   mockLegacyScanResponse,
+  mockScanCaseNoteResponse,
   mockScanResponse,
   mockScanSummaryResponse,
 } from '../../server/testutils/mocks/xrayBodyScansApi'
@@ -369,6 +371,7 @@ test.describe('Scan list page', () => {
           pageResponse([
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000001',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
@@ -379,6 +382,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000002',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
@@ -386,10 +390,11 @@ test.describe('Scan list page', () => {
               outcomeDescription: 'Item detected',
               typeOfFind: 'INORGANIC',
               typeOfFindDescription: 'Inorganic',
-              caseNoteId: '019f94a7-17cd-746f-b1df-5d4848da42e1',
+              caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8',
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000003',
               prisonId: 'LEI',
               justification: 'INTELLIGENCE',
               justificationDescription: 'Intelligence-led',
@@ -400,6 +405,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000004',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
@@ -410,6 +416,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000005',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
@@ -420,6 +427,7 @@ test.describe('Scan list page', () => {
             },
             {
               ...mockScanResponse(prisonerNumber, now),
+              id: '019fc832-0000-7000-0000-000000000006',
               prisonId: 'MDI',
               justification: 'INTELLIGENCE',
               justificationDescription: 'Intelligence-led',
@@ -440,14 +448,25 @@ test.describe('Scan list page', () => {
       const scanListPage = await goToScanListPage(page)
       const dateStr = formatDisplayDate(now)
       await expect(scanListPage.getScanTableContents()).resolves.toEqual([
-        [dateStr, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
-        [dateStr, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
-        [dateStr, 'Leeds (HMP & YOI)', 'Intelligence-led', 'Item detected', 'Organic and inorganic', 'Add case note'],
-        [dateStr, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Not known', 'Add case note'],
-        [dateStr, 'Leeds (HMP & YOI)', 'Reasonable suspicion', 'No item detected', 'None', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
+        [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Item detected', 'Organic and inorganic', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Not known', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'No item detected', 'None', 'Add case note'],
         [dateStr, 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
         [dateStr, '', '', '', '', ''],
         ['Not recorded', '', '', 'positive', '', ''],
+      ])
+      await expect(scanListPage.getScanTableActionUrls()).resolves.toEqual([
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000001/add-a-scan-case-note'),
+        // TODO: should direct case note link point to profile?
+        expect.stringContaining('/profile/prisoner/A1234BC/update-case-note/341c845e-fadc-4ec8-9330-81c83968c1a8'),
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000003/add-a-scan-case-note'),
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000004/add-a-scan-case-note'),
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000005/add-a-scan-case-note'),
+        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000006/add-a-scan-case-note'),
+        undefined,
+        undefined,
       ])
       await expect(scanListPage.pagination).not.toBeVisible()
     })
@@ -605,6 +624,72 @@ test.describe('Scan list page', () => {
           },
         ]),
       )
+    })
+
+    test('Can open case note in a modal window', async ({ page }) => {
+      const scans: ScanResponse[] = [
+        {
+          ...mockScanResponse(prisonerNumber, now),
+          id: '019fc832-0000-7000-0000-000000000001',
+          prisonId: 'LEI',
+          justification: 'REASONABLE_SUSPICION',
+          justificationDescription: 'Reasonable suspicion',
+          outcome: 'POSITIVE',
+          outcomeDescription: 'Item detected',
+          typeOfFind: 'ORGANIC',
+          typeOfFindDescription: 'Organic',
+        },
+        {
+          ...mockScanResponse(prisonerNumber, now),
+          id: '019fc832-0000-7000-0000-000000000002',
+          prisonId: 'LEI',
+          justification: 'REASONABLE_SUSPICION',
+          justificationDescription: 'Reasonable suspicion',
+          outcome: 'POSITIVE',
+          outcomeDescription: 'Item detected',
+          typeOfFind: 'INORGANIC',
+          typeOfFindDescription: 'Inorganic',
+          caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8',
+        },
+      ]
+      const caseNote = mockScanCaseNoteResponse(scans[1])
+      scans[1].caseNoteId = caseNote.id
+
+      await Promise.all([
+        xrayBodyScansApi.stubGetScanSummary(
+          prisonerNumber,
+          mockScanSummaryResponse({
+            prisonerNumber,
+            now,
+            relevantAlerts: [],
+          }),
+        ),
+        xrayBodyScansApi.stubListScans(prisonerNumber, pageResponse(scans)),
+        login(page),
+      ])
+
+      const scanListPage = await goToScanListPage(page)
+      await expect(scanListPage.modal).not.toBeVisible()
+      await expect(scanListPage.getNthRowActionLink(0)).toContainText('Add case note')
+
+      await Promise.all([
+        xrayBodyScansApi.stubGetScan(scans[1].id, scans[1]),
+        xrayBodyScansApi.stubGetScanCaseNote(scans[1].id, caseNote),
+      ])
+      await scanListPage.getNthRowActionLink(1).click()
+      await expect(scanListPage.modal).toBeVisible()
+      await expect(scanListPage.modalHeader).toContainText('Case note details')
+      await expect(scanListPage.modal).toContainText(caseNote.text)
+      await scanListPage.modalContent.getByRole('button', { name: 'Close' }).click()
+      await expect(scanListPage.modal).not.toBeVisible()
+
+      await xrayBodyScansApi.stubGetScanCaseNote(scans[1].id, internalServerErrorResponse)
+      await scanListPage.getNthRowActionLink(1).click()
+      await expect(scanListPage.modal).toBeVisible()
+      await expect(scanListPage.modalHeader).toContainText('Case note details')
+      await expect(scanListPage.modal).toContainText('The error has been logged. Please try again.')
+      await scanListPage.modalHeader.getByRole('button', { name: 'Close' }).click()
+      await expect(scanListPage.modal).not.toBeVisible()
     })
   })
 

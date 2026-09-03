@@ -117,16 +117,6 @@ export const mockInternalSecretorAlert: AlertResponse = {
   code: 'XIS',
   codeDescription: 'Internal Secretor',
 }
-export function mockScanCaseNoteResponse(overrides: Partial<ScanCaseNoteResponse> = {}): ScanCaseNoteResponse {
-  return {
-    title: 'X-Ray Body Scan',
-    createdBy: 'John Smith',
-    createdAt: new Date('2026-08-01T00:00:00'),
-    occurredAt: new Date('2026-08-01T00:00:00'),
-    text: 'X-ray body scan carried out with negative result.',
-    ...overrides,
-  }
-}
 
 export const mockDoNotScanAlert: AlertResponse = {
   id: '5a2d75f1-25ff-43b6-96a2-cf8d82e2e14e',
@@ -134,4 +124,26 @@ export const mockDoNotScanAlert: AlertResponse = {
   typeDescription: 'Security',
   code: 'XXRAY',
   codeDescription: 'Do Not X-Ray Body Scan',
+}
+
+const caseNoteId = '341c845e-fadc-4ec8-9330-81c83968c1a8'
+export function mockScanCaseNoteResponse(
+  scan: ScanResponse,
+  additionalDetails: string | undefined = 'some notes',
+): ScanCaseNoteResponse {
+  const occurredAt = new Date(scan.scanDate)
+  occurredAt.setHours(0, 0, 0, 0)
+  return {
+    id: caseNoteId,
+    title: `Result of X-ray body scan: ${scan.outcomeDescription}`,
+    text: `
+Reason: ${scan.justificationDescription}
+Result: ${scan.outcomeDescription}
+Items found: ${scan.typeOfFindDescription || 'None'}
+${additionalDetails ? `--\n${additionalDetails}` : ''}
+    `.trim(),
+    occurredAt,
+    createdBy: scan.createdBy,
+    createdAt: new Date(),
+  }
 }

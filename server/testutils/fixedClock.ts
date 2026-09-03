@@ -9,6 +9,6 @@ export const startOfYear = new Date('2026-01-01T12:00:00+00:00')
 
 /** Fixes clock during tests so that now is 24/7/2026 12:07:41 Europe/London */
 export function fixedClock(fixedNow: Date = now): void {
-  jest.useFakeTimers({ now: fixedNow })
+  jest.useFakeTimers({ now: fixedNow, advanceTimers: true })
   jest.setSystemTime(fixedNow)
 }

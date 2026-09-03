@@ -181,7 +181,7 @@ describe('getScanList', () => {
         expect.objectContaining({
           source: 'DPS',
           scanDateDescription: '24 July 2026',
-          prisonDescription: 'Leeds (HMP & YOI)',
+          prisonDescription: 'Leeds (HMP)',
           justificationDescription: 'Reasonable suspicion',
           outcomeDescription: 'Item detected',
           typeOfFindDescription: 'Organic',

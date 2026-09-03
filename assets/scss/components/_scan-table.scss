@@ -1,22 +1,23 @@
-@use "govuk-frontend/dist/govuk/helpers/links" as *;
-@use "govuk-frontend/dist/govuk/helpers/media-queries" as *;
-@use "govuk-frontend/dist/govuk/helpers/typography" as *;
+@use "govuk-frontend/dist/govuk/helpers/colour";
+@use "govuk-frontend/dist/govuk/helpers/links";
+@use "govuk-frontend/dist/govuk/helpers/media-queries";
+@use "govuk-frontend/dist/govuk/helpers/typography";
 
 .scan-table__container {
-  @include govuk-media-query($until: desktop) {
+  @include media-queries.govuk-media-query($until: desktop) {
     overflow-x: auto;
   }
 }
 
 .scan-table {
-  @include govuk-media-query($until: desktop) {
+  @include media-queries.govuk-media-query($until: desktop) {
     min-width: 70rem;
   }
 
-  @include govuk-font($size: 16);
+  @include typography.govuk-font($size: 16);
 
   .govuk-tag {
-    @include govuk-font($size: 16);
+    @include typography.govuk-font($size: 16);
   }
 }
 
@@ -25,7 +26,7 @@
 }
 
 .scan-table__action-th, .scan-table__action-td {
-  @include govuk-media-query($from: desktop) {
+  @include media-queries.govuk-media-query($from: desktop) {
     text-align: right;
   }
 }
@@ -34,8 +35,8 @@
   display: inline-block;
   position: relative;
   padding-right: 20px;
-  @include govuk-link-style-no-visited-state;
-  @include govuk-link-style-no-underline;
+  @include links.govuk-link-style-no-visited-state;
+  @include links.govuk-link-style-no-underline;
 
   &::before, &::after {
     display: none;
@@ -74,5 +75,11 @@
   @media print {
     text-decoration: none;
     color: #000;
+  }
+}
+
+.add-case-note-link {
+  &:link, &:visited, &:hover {
+    color: colour.govuk-functional-colour(text);
   }
 }

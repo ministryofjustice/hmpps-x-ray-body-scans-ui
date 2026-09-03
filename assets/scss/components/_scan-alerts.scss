@@ -1,9 +1,10 @@
-@use "govuk-frontend/dist/govuk/helpers/colour" as *;
-@use "govuk-frontend/dist/govuk/helpers/media-queries" as *;
+@use "govuk-frontend/dist/govuk/helpers/colour";
+@use "govuk-frontend/dist/govuk/helpers/media-queries";
+@use "govuk-frontend/dist/govuk/helpers/spacing";
 
 .scan-alerts {
-  @include govuk-media-query($from: tablet) {
-    border-left: 2px solid #{govuk-functional-colour(border)};
-    @include govuk-responsive-padding(6, "left");
+  @include media-queries.govuk-media-query($from: tablet) {
+    border-left: 2px solid #{colour.govuk-functional-colour(border)};
+    @include spacing.govuk-responsive-padding(6, "left");
   }
 }

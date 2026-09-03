@@ -11,7 +11,9 @@ $govuk-page-width: $moj-page-width;
 @import "@ministryofjustice/hmpps-connect-dps-shared-items/dist/assets/scss/all";
 
 @import "./overrides/local";
+@import "./overrides/typography";
 
+@import "./components/case-note-modal";
 @import "./components/info-box";
 @import "./components/pagination";
 @import "./components/scan-alerts";

@@ -3,55 +3,48 @@ import type { Interceptor } from 'nock'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../testutils/mocks/errorResponse'
-import { convertRawScanResponse, convertRawScanSummaryResponse, XrayBodyScansApiClient } from './xrayBodyScansApiClient'
+import { fixedClock, now, yesterday } from '../testutils/fixedClock'
+import { mockScanResponse, mockLegacyScanResponse, mockScanCaseNoteResponse } from '../testutils/mocks/xrayBodyScansApi'
+import {
+  convertRawScanCaseNoteResponse,
+  convertRawScanResponse,
+  convertRawScanSummaryResponse,
+  XrayBodyScansApiClient,
+} from './xrayBodyScansApiClient'
 import type {
+  CreateScanCaseNoteRequest,
   CreateScanRequest,
   LegacyScanResponse,
   ListScansRequest,
   ScanResponse,
 } from './interfaces/xrayBodyScansApi'
 
-const now = new Date()
-const nowString = now.toISOString()
+beforeAll(() => {
+  fixedClock()
+})
+
+const nowString = '2026-07-24T11:07:41.000Z'
 
 const prisonerNumber = 'A1234BC'
 const prisonId = 'LEI'
 const username = 'abc12a'
-const scanDate = new Date(2026, 6, 20, 12)
-const scanDateString = '2026-07-20'
-
-const sampleId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
-const scanResponse: ScanResponse = {
-  source: 'DPS',
-  id: sampleId,
-  prisonerNumber,
-  prisonId,
-  scanDate,
-  justification: 'REASONABLE_SUSPICION',
-  justificationDescription: 'Reasonable suspicion',
-  outcome: 'POSITIVE',
-  outcomeDescription: 'Item detected',
-  typeOfFind: 'INORGANIC',
-  typeOfFindDescription: 'Inorganic',
-  caseNoteId: null,
-  mergedFromPrisonerNumber: null,
-  mergedAt: null,
-  createdAt: now,
-  createdBy: username,
-  lastModifiedAt: now,
-  lastModifiedBy: username,
-}
-
-const sampleLegacyId = '715262'
-const legacyScanResponse: LegacyScanResponse = {
-  source: 'NOMIS',
-  id: sampleLegacyId,
-  prisonerNumber,
-  scanDate,
-  scanDetails: null,
-}
+const scanDate = yesterday
+const scanDateString = '2026-07-23'
 
 describe('X-ray body scans API client', () => {
+  const scanResponse: ScanResponse = {
+    ...mockScanResponse(prisonerNumber, scanDate, prisonId, username),
+    caseNoteId: 'd971493e-d961-40d9-9c3b-7b564cb6a9c2',
+    createdAt: now,
+    lastModifiedAt: now,
+  }
+  const scanId = scanResponse.id
+  const legacyScanResponse: LegacyScanResponse = mockLegacyScanResponse(prisonerNumber, scanDate, 'pos')
+  const caseNoteResponse = {
+    ...mockScanCaseNoteResponse(scanResponse, 'nothing of interest detected'),
+    createdAt: now,
+  }
+
   let xrayBodyScansApiClient: XrayBodyScansApiClient
   let mockAuthenticationClient: jest.Mocked<AuthenticationClient>
 
@@ -108,6 +101,16 @@ describe('X-ray body scans API client', () => {
         scanDate: null,
       })
       expect(legacyResponse.scanDate).toBeNull()
+    })
+
+    it('should convert case notes', () => {
+      const response = convertRawScanCaseNoteResponse({
+        ...caseNoteResponse,
+        createdAt: '2026-07-24T12:07:41',
+        occurredAt: '2026-07-23T00:00:00',
+      })
+      expect(response.createdAt).toBeInstanceOf(Date)
+      expect(response.occurredAt).toBeInstanceOf(Date)
     })
 
     it('should convert scan summaries', () => {
@@ -167,21 +170,74 @@ describe('X-ray body scans API client', () => {
   describe('getScan', () => {
     it('should return a scan', async () => {
       nock(config.apis.xrayBodyScansApi.url)
-        .get(`/scans/${sampleId}`)
+        .get(`/scan/${scanId}`)
         .reply(200, { ...scanResponse, scanDate: scanDateString, createdAt: nowString, lastModifiedAt: nowString })
-      const response = await xrayBodyScansApiClient.getScan(sampleId, username)
-      expect(response).toEqual(scanResponse)
+      const response = await xrayBodyScansApiClient.getScan(scanId, username)
+      const expected = {
+        ...scanResponse,
+        scanDate: expect.any(Date),
+      }
+      expect(response).toEqual(expected)
     })
 
     it('should return null instead of a 404', async () => {
-      nock(config.apis.xrayBodyScansApi.url).get(`/scans/${sampleId}`).reply(404, notFoundErrorResponse)
-      const response = await xrayBodyScansApiClient.getScan(sampleId, username)
+      nock(config.apis.xrayBodyScansApi.url).get(`/scan/${scanId}`).reply(404, notFoundErrorResponse)
+      const response = await xrayBodyScansApiClient.getScan(scanId, username)
       expect(response).toBeNull()
     })
 
     it('should throw for non-404 errors', async () => {
-      nock(config.apis.xrayBodyScansApi.url).get(`/scans/${sampleId}`).times(5).reply(500, internalServerErrorResponse)
-      await expect(xrayBodyScansApiClient.getScan(sampleId, username)).rejects.toThrow('Internal Server Error')
+      nock(config.apis.xrayBodyScansApi.url).get(`/scan/${scanId}`).times(5).reply(500, internalServerErrorResponse)
+      await expect(xrayBodyScansApiClient.getScan(scanId, username)).rejects.toThrow('Internal Server Error')
+    })
+  })
+
+  describe('getScanCaseNote', () => {
+    it('should return a case note', async () => {
+      nock(config.apis.xrayBodyScansApi.url)
+        .get(`/scan/${scanId}/case-note`)
+        .reply(200, { ...caseNoteResponse, occurredAt: `${scanDateString}T00:00:00`, createdAt: nowString })
+      const response = await xrayBodyScansApiClient.getScanCaseNote(scanId, username)
+      expect(response).toEqual(caseNoteResponse)
+    })
+
+    it('should return null instead of a 404', async () => {
+      nock(config.apis.xrayBodyScansApi.url).get(`/scan/${scanId}/case-note`).reply(404, notFoundErrorResponse)
+      const response = await xrayBodyScansApiClient.getScanCaseNote(scanId, username)
+      expect(response).toBeNull()
+    })
+
+    it('should throw for non-404 errors', async () => {
+      nock(config.apis.xrayBodyScansApi.url)
+        .get(`/scan/${scanId}/case-note`)
+        .times(5)
+        .reply(500, internalServerErrorResponse)
+      await expect(xrayBodyScansApiClient.getScanCaseNote(scanId, username)).rejects.toThrow('Internal Server Error')
+    })
+  })
+
+  describe('createScanCaseNote', () => {
+    it('should post to create a case note and return nothing', async () => {
+      const request: CreateScanCaseNoteRequest = {
+        text: 'nothing of interest detected',
+      }
+
+      nock(config.apis.xrayBodyScansApi.url)
+        .post(`/scan/${scanId}/case-note`)
+        .matchHeader('authorization', 'Bearer test-system-token')
+        .reply(201, (_uri, body) => {
+          expect(body).toEqual(request)
+          return {
+            ...caseNoteResponse,
+            occurredAt: `${scanDateString}T00:00:00`,
+            createdAt: nowString,
+          }
+        })
+
+      const response = await xrayBodyScansApiClient.createScanCaseNote(scanId, request, username)
+
+      expect(response).toEqual(caseNoteResponse)
+      expect(mockAuthenticationClient.getToken).toHaveBeenCalledWith(username)
     })
   })
 

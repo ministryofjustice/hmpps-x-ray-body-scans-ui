@@ -42,7 +42,7 @@
         <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
         {% set whatHappenedHtml %}
-          <p class="govuk-body white-space-pre-line">{{ autoText }}</p>
+          <p class="govuk-body white-space-pre-line">{{ autoText }}{{ "\n--" }}</p>
           {{ govukCharacterCount({
             id: "additionalDetails",
             name: "additionalDetails",

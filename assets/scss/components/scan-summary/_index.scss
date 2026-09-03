@@ -1,5 +1,5 @@
-@import "./count";
-@import "./outcome";
+@use "./count";
+@use "./outcome";
 
 @media (min-width: 55rem) {
   .scan-summary {
