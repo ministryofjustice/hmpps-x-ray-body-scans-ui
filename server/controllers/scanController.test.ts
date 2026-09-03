@@ -175,7 +175,7 @@ describe('getScanList', () => {
       alertFlags: [],
       yearFilter: expectedYearFilter,
       historicYears: [2025, 2024],
-      pagination: null,
+      pagination: { showing: [1, 3, 3] },
       sorter: expect.any(Function),
       scanRows: [
         expect.objectContaining({
@@ -265,7 +265,7 @@ describe('getScanList', () => {
       'pages/scanList',
       expect.objectContaining({
         yearFilter: expectedYearFilter,
-        pagination: null,
+        pagination: { showing: [1, 31, 31] },
         sorter: expect.any(Function),
       }),
     )

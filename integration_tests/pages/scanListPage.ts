@@ -96,6 +96,12 @@ export default class ScanListPage extends AbstractPage {
     return this.page.locator('.dps-pagination').first()
   }
 
+  async getPaginationShowingDescription(): Promise<string> {
+    return this.pagination
+      .locator('.dps-pagination__showing')
+      .evaluate((div: HTMLDivElement) => div.textContent.replace(/\s+/, ' ').trim())
+  }
+
   get modal(): Locator {
     return this.page.locator('#case-note-modal')
   }

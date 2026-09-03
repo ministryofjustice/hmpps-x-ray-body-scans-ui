@@ -21,7 +21,7 @@
     flex-direction: row;
     @include spacing.govuk-responsive-margin(2, 'bottom');
 
-    .govuk-pagination {
+    .dps-pagination__pages {
       flex: 1 0 75%;
     }
 
