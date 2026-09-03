@@ -50,6 +50,7 @@ function appSetup(services: Services, production: boolean, userSupplier: () => P
         displayName: 'John Smith',
         reversedDisplayName: 'Smith, John',
       },
+      prisonerPermissions: {} as never,
       cspNonce: '',
       csrfToken: '',
       feComponents: {

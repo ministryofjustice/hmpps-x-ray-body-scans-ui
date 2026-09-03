@@ -9,6 +9,7 @@ import AuditService from '../services/auditService'
 import { PrisonService } from '../services/prisonService'
 import { PrisonerSearchApiClient } from '../data/prisonerSearchApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
+import { mockGrantMinimalPrisonerPermissions } from '../testutils/mocks/prisonPermissionsService'
 import { mockPrisonNamesImpl } from '../testutils/mocks/prisonService'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApi'
@@ -41,6 +42,7 @@ const unauthorisedUser = { ...user, token: createUserToken([]) }
 
 beforeEach(() => {
   auditService.logPageView.mockResolvedValue(undefined)
+  mockGrantMinimalPrisonerPermissions()
   prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
   prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce(mockPrisoner(prisonerNumber))
 })

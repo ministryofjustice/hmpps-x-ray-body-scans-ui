@@ -1,4 +1,5 @@
 import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
+import type { PrisonerPermissions } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import type { PrisonUser } from '../../interfaces/hmppsUser'
 import type { Prisoner } from '../../data/interfaces/prisonerSearchApi'
 import type { ScanResponse } from '../../data/interfaces/xrayBodyScansApi'
@@ -22,6 +23,7 @@ export declare global {
       verified?: boolean
       id: string
       logout(done: (err: unknown) => void): void
+      middleware?: { prisonerData: Prisoner }
     }
 
     interface Locals {
@@ -30,6 +32,7 @@ export declare global {
         displayName: string
         reversedDisplayName: string
       }
+      prisonerPermissions: PrisonerPermissions
       scan?: ScanResponse
       cspNonce: string
       csrfToken: string

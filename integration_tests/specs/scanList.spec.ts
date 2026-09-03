@@ -372,7 +372,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000001',
-              prisonId: 'LEI',
+              prisonId: 'MDI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
               outcome: 'POSITIVE',
@@ -383,7 +383,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000002',
-              prisonId: 'LEI',
+              prisonId: 'MDI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
               outcome: 'POSITIVE',
@@ -428,7 +428,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000006',
-              prisonId: 'MDI',
+              prisonId: 'LEI',
               justification: 'INTELLIGENCE',
               justificationDescription: 'Intelligence-led',
               outcome: 'INCONCLUSIVE',
@@ -448,12 +448,12 @@ test.describe('Scan list page', () => {
       const scanListPage = await goToScanListPage(page)
       const dateStr = formatDisplayDate(now)
       await expect(scanListPage.getScanTableContents()).resolves.toEqual([
-        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
-        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
+        [dateStr, 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
+        [dateStr, 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
         [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Item detected', 'Organic and inorganic', 'Add case note'],
         [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Not known', 'Add case note'],
         [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'No item detected', 'None', 'Add case note'],
-        [dateStr, 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
         [dateStr, '', '', '', '', ''],
         ['Not recorded', '', '', 'positive', '', ''],
       ])
@@ -631,7 +631,7 @@ test.describe('Scan list page', () => {
         {
           ...mockScanResponse(prisonerNumber, now),
           id: '019fc832-0000-7000-0000-000000000001',
-          prisonId: 'LEI',
+          prisonId: 'MDI',
           justification: 'REASONABLE_SUSPICION',
           justificationDescription: 'Reasonable suspicion',
           outcome: 'POSITIVE',
@@ -642,7 +642,7 @@ test.describe('Scan list page', () => {
         {
           ...mockScanResponse(prisonerNumber, now),
           id: '019fc832-0000-7000-0000-000000000002',
-          prisonId: 'LEI',
+          prisonId: 'MDI',
           justification: 'REASONABLE_SUSPICION',
           justificationDescription: 'Reasonable suspicion',
           outcome: 'POSITIVE',
