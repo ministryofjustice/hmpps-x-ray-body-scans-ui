@@ -1,8 +1,11 @@
 import type { Request, Response } from 'express'
 import { NotFound } from 'http-errors'
+import * as z from 'zod'
 import logger from '../../logger'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
+import { type AddScanCaseNoteForm, addScanCaseNoteForm } from '../forms/addScanCaseNoteForm'
+import type { ZodErrorTree } from '../forms/formErrors'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 
@@ -62,16 +65,16 @@ export default class CaseNoteController {
       throw new NotFound()
     }
 
-    const additionalDetails = ((req.body.additionalDetails as string | undefined) ?? '').trim()
-    if (additionalDetails.length > 3500) {
-      this.renderAddScanCaseNoteForm(req, res, scan, false, {
-        properties: {
-          additionalDetails: { errors: ['The additional details must be 3,500 characters or less'] },
-        },
-      })
+    // TODO: determine if user allowed to create case note
+
+    const result = addScanCaseNoteForm.safeParse(req.body)
+    if (!result.success) {
+      const errors = z.treeifyError(result.error)
+      this.renderAddScanCaseNoteForm(req, res, scan, false, errors)
       return
     }
-    const text = this.buildCaseNoteText(scan, additionalDetails)
+
+    const text = this.buildCaseNoteText(scan, result.data.additionalDetails)
 
     try {
       const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
@@ -107,7 +110,7 @@ export default class CaseNoteController {
     res: Response,
     scan: ScanResponse,
     createCallFailed = false,
-    errors?: { properties?: { additionalDetails?: { errors: string[] } } },
+    errors?: ZodErrorTree<AddScanCaseNoteForm>,
   ): void {
     const autoText = this.buildCaseNoteText(scan)
 
@@ -116,7 +119,7 @@ export default class CaseNoteController {
       autoText,
       createCallFailed,
       errors,
-      formValues: req.body,
+      formValues: errors ? req.body : undefined,
     })
   }
 

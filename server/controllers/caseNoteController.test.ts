@@ -7,7 +7,7 @@ import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockLegacyScanResponse, mockScanResponse, mockScanCaseNoteResponse } from '../testutils/mocks/xrayBodyScansApi'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
+import type { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import AuditService, { Page } from '../services/auditService'
 import CaseNoteController from './caseNoteController'
 
@@ -235,8 +235,11 @@ Extra info
       'pages/addScanCaseNote',
       expect.objectContaining({
         errors: {
+          errors: [],
           properties: {
-            additionalDetails: { errors: ['The additional details must be 3,500 characters or less'] },
+            additionalDetails: expect.objectContaining({
+              errors: ['The additional details must be 3,500 characters or less'],
+            }),
           },
         },
         createCallFailed: false,
