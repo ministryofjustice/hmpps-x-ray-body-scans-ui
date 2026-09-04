@@ -48,7 +48,7 @@ beforeEach(() => {
     originalUrl: `/prisoner/${prisonerNumber}/scan-overview`,
     params: { prisonerNumber },
     query: {},
-    body: {},
+    session: {},
     id: correlationId,
   } as unknown as Request
 
@@ -127,6 +127,7 @@ describe('getScanList', () => {
       pagination: null,
       sorter: expect.any(Function),
       scanRows: [],
+      addedCaseNoteToScan: undefined,
     })
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, { page: 0 }, username)
     expect(prisonService.getPrisonNames).not.toHaveBeenCalled()
@@ -185,6 +186,7 @@ describe('getScanList', () => {
           justificationDescription: 'Reasonable suspicion',
           outcomeDescription: 'Item detected',
           typeOfFindDescription: 'Organic',
+          highlightedRow: false,
         }),
         expect.objectContaining({
           source: 'NOMIS',
@@ -197,6 +199,7 @@ describe('getScanList', () => {
           scanDetails: 'pos',
         }),
       ],
+      addedCaseNoteToScan: undefined,
     })
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, expectedListScansRequest, username)
     expect(prisonService.getPrisonNames).toHaveBeenCalledWith(['LEI'])

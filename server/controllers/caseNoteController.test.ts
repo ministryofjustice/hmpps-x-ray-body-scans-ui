@@ -42,6 +42,7 @@ beforeEach(() => {
   req = {
     params: { prisonerNumber, scanId },
     body: {},
+    session: {},
     id: correlationId,
   } as unknown as Request
 
@@ -199,7 +200,8 @@ Items found: Inorganic`,
         correlationId,
         details: { scanId },
       })
-      expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)
+      expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview#scan-history`)
+      expect(req.session.addedCaseNoteToScan).toEqual(scan.id)
       expect(logger.info).toHaveBeenCalledWith(`Created case note ${caseNote.id} for scan ${scan.id}`)
     },
   )
@@ -223,7 +225,8 @@ Extra info
       },
       username,
     )
-    expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview`)
+    expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview#scan-history`)
+    expect(req.session.addedCaseNoteToScan).toEqual(scan.id)
     expect(logger.info).toHaveBeenCalledWith(`Created case note ${caseNote.id} for scan ${scan.id}`)
   })
 
@@ -247,6 +250,7 @@ Extra info
     )
     expect(xrayBodyScansApiClient.createScanCaseNote).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
+    expect(req.session.addedCaseNoteToScan).toBeUndefined()
   })
 
   it('shows an error when the API call fails', async () => {
@@ -260,6 +264,7 @@ Extra info
     )
     expect(res.redirect).not.toHaveBeenCalled()
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ responseStatus: 500 }))
+    expect(req.session.addedCaseNoteToScan).toBeUndefined()
   })
 
   it('returns 404 when scan is not found', async () => {
@@ -268,6 +273,7 @@ Extra info
 
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
+    expect(req.session.addedCaseNoteToScan).toBeUndefined()
   })
 
   it('returns 404 for a NOMIS scan', async () => {
@@ -276,6 +282,7 @@ Extra info
 
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
+    expect(req.session.addedCaseNoteToScan).toBeUndefined()
   })
 
   it('returns 404 for a scan that already has a case note', async () => {
@@ -287,5 +294,6 @@ Extra info
 
     expect(res.render).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
+    expect(req.session.addedCaseNoteToScan).toBeUndefined()
   })
 })

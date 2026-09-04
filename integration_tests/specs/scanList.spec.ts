@@ -94,6 +94,9 @@ test.describe('Scan list page', () => {
         'All scans',
       ])
 
+      // no flash message
+      await expect(scanListPage.flashMessage).not.toBeVisible()
+
       // return link
       await expect(scanListPage.returnLink).toHaveAttribute(
         'href',

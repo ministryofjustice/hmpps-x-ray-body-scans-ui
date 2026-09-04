@@ -90,7 +90,8 @@ export default class CaseNoteController {
         details: { scanId: scan.id },
       })
 
-      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview`)
+      req.session.addedCaseNoteToScan = scan.id
+      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview#scan-history`)
     } catch (error) {
       logger.error(error)
       this.renderAddScanCaseNoteForm(req, res, scan, true)

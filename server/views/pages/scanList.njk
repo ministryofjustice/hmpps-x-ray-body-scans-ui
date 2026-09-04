@@ -4,6 +4,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "dps/components/alert-flag/macro.njk" import alertFlag %}
 {% from "dps/components/modal/macro.njk" import hmppsModal %}
+{% from "components/flashMessage.njk" import flashMessage %}
 {% from "components/infoBox.njk" import infoBox %}
 {% from "components/pagination.njk" import paginate %}
 {% from "components/resultTag.njk" import resultTag %}
@@ -107,7 +108,7 @@
 
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
 
-  <section data-testid="scan-history">
+  <section id="scan-history" data-testid="scan-history">
     <h2 class="govuk-heading-m">X-ray body scan history</h2>
 
     <div class="govuk-tabs">
@@ -141,12 +142,10 @@
     {% endif %}
     <h3 class="govuk-heading-s">{{ tableDescription }}</h3>
 
-    {% set pagination = paginate(pagination) %}
-    {{ pagination }}
-
     {% set rows = [] %}
     {% for scan in scanRows %}
 
+      {% set cellClasses = "scan-table__highlighted-cell" if scan.highlightedRow else "" %}
       {% set actionLink %}
         {% if scan.caseNoteId %}
           {# TODO: is the direct url sensible? permissions? #}
@@ -160,15 +159,23 @@
       {% endset %}
 
       {% set _ = rows.push([
-        { text: scan.scanDateDescription },
-        { text: scan.prisonDescription },
-        { text: scan.justificationDescription },
-        { html: resultTag(scan) },
-        { text: scan.typeOfFindDescription | default("None", true) if scan.source === "DPS" else "" },
-        { html: actionLink, classes: "scan-table__action-td" }
+        { text: scan.scanDateDescription, classes: cellClasses },
+        { text: scan.prisonDescription, classes: cellClasses },
+        { text: scan.justificationDescription, classes: cellClasses },
+        { html: resultTag(scan), classes: cellClasses },
+        { text: scan.typeOfFindDescription | default("None", true) if scan.source === "DPS" else "", classes: cellClasses },
+        { html: actionLink, classes: "scan-table__action-td " + cellClasses }
       ]) %}
     {% endfor %}
     {% if rows.length > 0 %}
+
+      {% if addedCaseNoteToScan %}
+        {{ flashMessage({ message: "Case note added" }) }}
+      {% endif %}
+
+      {% set pagination = paginate(pagination) %}
+      {{ pagination }}
+
       <div class="scan-table__container">
         {% set sortOptions = sorter("scanDate") %}
         {% set scanDateHtml %}
@@ -199,6 +206,8 @@
         }) }}
       </div>
 
+      {{ pagination }}
+
       {{ hmppsModal({
         id: "case-note-modal",
         title: "Case note details"
@@ -212,8 +221,6 @@
         <p>No X-ray body scans have been recorded for this person in {{ yearFilter }}.</p>
       {% endif %}
     {% endif %}
-
-    {{ pagination }}
 
   </section>
 

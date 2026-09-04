@@ -7,7 +7,8 @@ import type { ScanResponse } from '../../data/interfaces/xrayBodyScansApi'
 export declare module 'express-session' {
   // Declare that the session will potentially contain these additional fields
   interface SessionData {
-    returnTo: string
+    addedCaseNoteToScan?: string
+    returnTo?: string
   }
 }
 

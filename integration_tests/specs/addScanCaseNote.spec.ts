@@ -1,6 +1,7 @@
 import { type Page, expect, test } from '@playwright/test'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
+import { pageResponse } from '../../server/testutils/pagination'
 import {
   mockScanCaseNoteResponse,
   mockScanResponse,
@@ -11,6 +12,7 @@ import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import AddScanCaseNotePage from '../pages/addScanCaseNotePage'
+import ScanListPage from '../pages/scanListPage'
 
 const prisonerNumber = 'A1234BC'
 const scanId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
@@ -105,14 +107,24 @@ test.describe('Add scan case note page', () => {
     })
   }
 
-  async function stubBlankScanListPage() {
+  async function stubScanListPage() {
     return Promise.all([
       xrayBodyScansApi.stubGetScanSummary(
         prisonerNumber,
         mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
       ),
-      xrayBodyScansApi.stubListScans(prisonerNumber),
+      xrayBodyScansApi.stubListScans(
+        prisonerNumber,
+        pageResponse([{ ...mockScanResponse(prisonerNumber, now), id: '019fc832-0000-7000-0000-000000000001' }, scan]),
+      ),
     ])
+  }
+
+  async function expectCaseNoteSaved(page: Page) {
+    await expect(page).toHaveURL(`/prisoner/${prisonerNumber}/scan-overview#scan-history`)
+    const scanListPage = await ScanListPage.verifyOnPage(page)
+    await expect(scanListPage.flashMessage).toContainText('Case note added')
+    await expect(scanListPage.getScanTableHighlightedRows()).resolves.toEqual([false, true])
   }
 
   test('Saves case note and redirects to scan overview', async ({ page }) => {
@@ -129,10 +141,10 @@ Items found: Inorganic
       },
       caseNote,
     )
-    await stubBlankScanListPage()
+    await stubScanListPage()
     await addScanCaseNotePage.saveButton.click()
 
-    await expect(page).toHaveURL(`/prisoner/${prisonerNumber}/scan-overview`)
+    await expectCaseNoteSaved(page)
   })
 
   test('Saves case note with additional details', async ({ page }) => {
@@ -151,11 +163,11 @@ Some extra details
       },
       caseNote,
     )
-    await stubBlankScanListPage()
+    await stubScanListPage()
     await addScanCaseNotePage.additionalDetailsInput.fill('Some extra details')
     await addScanCaseNotePage.saveButton.click()
 
-    await expect(page).toHaveURL(`/prisoner/${prisonerNumber}/scan-overview`)
+    await expectCaseNoteSaved(page)
   })
 
   test('Shows validation error when additional details exceeds 3500 characters', async ({ page }) => {
