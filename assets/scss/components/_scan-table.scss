@@ -47,26 +47,26 @@
 
   th[aria-sort="ascending"] &::before {
     display: block;
-    content: ' ▲' / '';
+    content: " ▲" / "";
     top: 1px;
   }
 
   th[aria-sort="descending"] &::after {
     display: block;
-    content: ' ▼' / '';
+    content: " ▼" / "";
     top: 2px;
   }
 
-  th[aria-sort='none'] & {
+  th[aria-sort="none"] & {
     &::before {
       display: block;
-      content: ' ▲' / '';
+      content: " ▲" / "";
       font-size: 12px;
       top: -2px;
     }
     &::after {
       display: block;
-      content: ' ▼' / '';
+      content: " ▼" / "";
       font-size: 12px;
       top: 10px;
     }

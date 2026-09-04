@@ -1,0 +1,43 @@
+@use "govuk-frontend/dist/govuk/helpers/colour";
+@use "govuk-frontend/dist/govuk/helpers/media-queries";
+@use "govuk-frontend/dist/govuk/helpers/spacing";
+@use "govuk-frontend/dist/govuk/helpers/typography";
+@use "govuk-frontend/dist/govuk/settings/measurements";
+
+.hmpps-profile-banner {
+  display: flex;
+  gap: measurements.$govuk-gutter;
+  background: colour.govuk-colour(black, $variant: "tint-95");
+  @include spacing.govuk-responsive-padding(3);
+  @include spacing.govuk-responsive-margin(7, "bottom");
+  margin-top: -#{spacing.govuk-spacing(4)};
+
+  @media #{media-queries.govuk-from-breakpoint(tablet)} {
+    margin-top: -#{spacing.govuk-spacing(7)};
+  }
+
+  dt, dd {
+    margin: 0;
+  }
+
+  dt {
+    @include typography.govuk-font($size: 19, $weight: bold);
+    @include spacing.govuk-responsive-margin(1, "bottom");
+  }
+
+  dd {
+    @include typography.govuk-font($size: 19);
+
+    img, svg {
+      float: left;
+    }
+
+    img {
+      object-fit: cover;
+    }
+  }
+}
+
+.hmpps-profile-banner__name {
+  @include spacing.govuk-responsive-padding(9, "right");
+}

@@ -4,18 +4,18 @@
 @use "govuk-frontend/dist/govuk/settings/measurements";
 
 @property --info-box-colour {
-  syntax: '<color>';
+  syntax: "<color>";
   inherits: true;
-  initial-value: #{colour.govuk-colour('blue')};
+  initial-value: #{colour.govuk-colour(blue)};
 }
 
 // NB: this is _nearly_ identical to the MoJ alert 🤷
 .info-box {
-  --info-box-colour: #{colour.govuk-colour('blue')};
+  --info-box-colour: #{colour.govuk-colour(blue)};
   display: flex;
   flex-direction: row;
   gap: measurements.$govuk-gutter-half;
-  @include spacing.govuk-responsive-margin(4, 'bottom');
+  @include spacing.govuk-responsive-margin(4, "bottom");
   padding: measurements.$govuk-gutter-half;
   border: 2px solid var(--info-box-colour);
 

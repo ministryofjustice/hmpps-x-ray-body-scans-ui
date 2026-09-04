@@ -7,6 +7,7 @@
 {% from "components/flashMessage.njk" import flashMessage %}
 {% from "components/infoBox.njk" import infoBox %}
 {% from "components/pagination.njk" import paginate %}
+{% from "components/profileBanner.njk" import profileBanner %}
 {% from "components/resultTag.njk" import resultTag %}
 {% from "components/scanCount.njk" import scanCount %}
 
@@ -17,6 +18,11 @@
 ] %}
 
 {% block content %}
+
+  {{ profileBanner({
+    prisoner: prisoner,
+    prisonerPermissions: prisonerPermissions
+  }) }}
 
   <h1 class="govuk-heading-l">X-ray body scans</h1>
 

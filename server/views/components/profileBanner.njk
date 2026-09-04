@@ -1,0 +1,32 @@
+{% macro profileBanner(params) %}
+  <dl class="hmpps-profile-banner">
+    <div>
+      <dt class="govuk-visually-hidden">Photo</dt>
+      <dd>
+        {% if isGranted(CorePersonRecordPermission.read_photo, params.prisonerPermissions) %}
+          <img src="{{ '?????' }}" alt="Photo of {{ params.prisoner.displayName }}" width="80" height="100"/>
+        {% else %}
+          <svg aria-label="Photo of {{ params.prisoner.displayName }} is not available" role="img" width="80" height="100" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#fff" stroke="#6f777b" d="M.5.5h79v99H.5z"/>
+            <path fill="#6f777b" d="M40.421 82.344c14.969 0 28.632-24.786 28.632-41.394 0-19.44-14.362-30.073-28.632-30.073S11.79 21.511 11.79 40.95c0 16.608 13.664 41.394 28.632 41.394"/>
+            <path fill="#6f777b" d="M19.368 80.662h8.382c3.966 3.148 8.27 5.045 12.671 5.045 4.402 0 8.705-1.897 12.67-5.045h7.54C71.33 80.662 80 89.32 80 100H0c0-10.68 8.672-19.338 19.368-19.338"/>
+          </svg>
+        {% endif %}
+      </dd>
+    </div>
+    <div class="hmpps-profile-banner__name">
+      <dt>
+        <a href="{{ params.prisoner | prisonerProfileUrl }}">{{ params.prisoner.displayName }}</a>
+      </dt>
+      <dd>{{ params.prisoner.prisonerNumber }}</dd>
+    </div>
+    <div>
+      <dt>Location</dt>
+      <dd>???</dd>
+    </div>
+    <div>
+      <dt>Category</dt>
+      <dd>???</dd>
+    </div>
+  </dl>
+{% endmacro %}

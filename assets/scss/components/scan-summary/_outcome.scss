@@ -8,29 +8,29 @@
   display: flex;
   flex-direction: row;
   gap: measurements.$govuk-gutter;
-  @include spacing.govuk-responsive-margin(4, 'bottom');
+  @include spacing.govuk-responsive-margin(4, "bottom");
 }
 
 @property --scan-outcome-background-colour {
   syntax: "<color>";
   inherits: true;
-  initial-value: #{colour.govuk-colour("black", $variant: "tint-80")};
+  initial-value: #{colour.govuk-colour(black, $variant: "tint-80")};
 }
 @property --scan-outcome-border-colour {
   syntax: "<color>";
   inherits: true;
-  initial-value: #{colour.govuk-colour("black")};
+  initial-value: #{colour.govuk-colour(black)};
 }
 @property --scan-outcome-text-colour {
   syntax: "<color>";
   inherits: true;
-  initial-value: #{colour.govuk-colour("black")};
+  initial-value: #{colour.govuk-colour(black)};
 }
 
 .scan-outcome {
-  --scan-outcome-background-colour: #{colour.govuk-colour("black", $variant: "tint-80")};
-  --scan-outcome-border-colour: #{colour.govuk-colour("black", $variant: "tint-50")};
-  --scan-outcome-text-colour: #{colour.govuk-colour("black")};
+  --scan-outcome-background-colour: #{colour.govuk-colour(black, $variant: "tint-80")};
+  --scan-outcome-border-colour: #{colour.govuk-colour(black, $variant: "tint-50")};
+  --scan-outcome-text-colour: #{colour.govuk-colour(black)};
 
   flex: 1 1 auto;
   margin: 0;
@@ -39,7 +39,7 @@
   background: var(--scan-outcome-background-colour);
   border: 1px solid var(--scan-outcome-border-colour);
   color: var(--scan-outcome-text-colour);
-  box-shadow: 0 4px #{color.adjust(colour.govuk-colour("black"), $lightness: 80%)};
+  box-shadow: 0 4px #{color.adjust(colour.govuk-colour(black), $lightness: 80%)};
 
   p {
     margin: 0;
@@ -53,13 +53,13 @@
 }
 
 .scan-outcome--positive {
-  --scan-outcome-background-colour: #{colour.govuk-colour("red", $variant: "tint-80")};
-  --scan-outcome-border-colour: #{colour.govuk-colour("red", $variant: "tint-50")};
-  --scan-outcome-text-colour: #{colour.govuk-colour("red", $variant: "shade-50")};
+  --scan-outcome-background-colour: #{colour.govuk-colour(red, $variant: "tint-80")};
+  --scan-outcome-border-colour: #{colour.govuk-colour(red, $variant: "tint-50")};
+  --scan-outcome-text-colour: #{colour.govuk-colour(red, $variant: "shade-50")};
 }
 
 .scan-outcome--negative {
-  --scan-outcome-background-colour: #{colour.govuk-colour("blue", $variant: "tint-80")};
-  --scan-outcome-border-colour: #{colour.govuk-colour("blue", $variant: "tint-50")};
-  --scan-outcome-text-colour: #{colour.govuk-colour("blue", $variant: "shade-50")};
+  --scan-outcome-background-colour: #{colour.govuk-colour(blue, $variant: "tint-80")};
+  --scan-outcome-border-colour: #{colour.govuk-colour(blue, $variant: "tint-50")};
+  --scan-outcome-text-colour: #{colour.govuk-colour(blue, $variant: "shade-50")};
 }
