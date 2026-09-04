@@ -3,7 +3,11 @@
 {% macro paginate(pagination) %}
   {% if pagination %}
     <div class="dps-pagination">
-      {{ govukPagination(pagination.govukPagination) }}
+      <div class="dps-pagination__pages">
+        {% if pagination.govukPagination %}
+          {{ govukPagination(pagination.govukPagination) }}
+        {% endif %}
+      </div>
       <div class="dps-pagination__showing">
         <p>
           Showing <span>{{ pagination.showing[0] }}</span> to <span>{{ pagination.showing[1] }}</span> of <span>{{ pagination.showing[2] }}</span> {% if pagination.showing[2] === 1 %}result{% else %}results{% endif %}

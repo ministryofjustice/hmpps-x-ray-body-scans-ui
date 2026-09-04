@@ -1,0 +1,43 @@
+@use "sass:color";
+@use "govuk-frontend/dist/govuk/helpers/colour";
+@use "govuk-frontend/dist/govuk/helpers/spacing";
+@use "govuk-frontend/dist/govuk/helpers/typography";
+
+.hmpps-flash-message {
+  position: absolute;
+  left: 50%;
+  margin: 0;
+  padding: 0;
+
+  div {
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    left: -50%;
+    padding: spacing.govuk-spacing(2) spacing.govuk-spacing(4);
+    background: colour.govuk-colour(green);
+    color: colour.govuk-colour(white);
+    box-shadow: 0 2px 2px 0 color.change(colour.govuk-colour(black), $alpha: 25%);
+    animation: 1s ease-out 4s both flashMessageFadeOut;
+  }
+
+  svg, p {
+    float: left;
+  }
+
+  p {
+    margin: 0;
+    padding-left: spacing.govuk-spacing(2);
+    color: inherit;
+    @include typography.govuk-font(19, $weight: bold);
+  }
+}
+
+@keyframes flashMessageFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

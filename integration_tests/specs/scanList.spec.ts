@@ -94,6 +94,9 @@ test.describe('Scan list page', () => {
         'All scans',
       ])
 
+      // no flash message
+      await expect(scanListPage.flashMessage).not.toBeVisible()
+
       // return link
       await expect(scanListPage.returnLink).toHaveAttribute(
         'href',
@@ -372,7 +375,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000001',
-              prisonId: 'LEI',
+              prisonId: 'MDI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
               outcome: 'POSITIVE',
@@ -383,7 +386,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000002',
-              prisonId: 'LEI',
+              prisonId: 'MDI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
               outcome: 'POSITIVE',
@@ -428,7 +431,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000006',
-              prisonId: 'MDI',
+              prisonId: 'LEI',
               justification: 'INTELLIGENCE',
               justificationDescription: 'Intelligence-led',
               outcome: 'INCONCLUSIVE',
@@ -448,12 +451,12 @@ test.describe('Scan list page', () => {
       const scanListPage = await goToScanListPage(page)
       const dateStr = formatDisplayDate(now)
       await expect(scanListPage.getScanTableContents()).resolves.toEqual([
-        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
-        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
+        [dateStr, 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
+        [dateStr, 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
         [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Item detected', 'Organic and inorganic', 'Add case note'],
         [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Not known', 'Add case note'],
         [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'No item detected', 'None', 'Add case note'],
-        [dateStr, 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
         [dateStr, '', '', '', '', ''],
         ['Not recorded', '', '', 'positive', '', ''],
       ])
@@ -468,7 +471,8 @@ test.describe('Scan list page', () => {
         undefined,
         undefined,
       ])
-      await expect(scanListPage.pagination).not.toBeVisible()
+      await expect(scanListPage.pagination).toBeVisible()
+      await expect(scanListPage.getPaginationShowingDescription()).resolves.toEqual('Showing 1 to 8 of 8 results')
     })
 
     const pageScenarios = [
@@ -480,7 +484,8 @@ test.describe('Scan list page', () => {
           toScanDate: new Date(now.getFullYear() - 1, 11, 31, 12),
         },
         goToPage: 'page 10',
-        finalPage: 10,
+        finalPage: 9,
+        expectShowing: 'Showing 181 to 200 of 200 results',
       },
       {
         scenario: 'all years',
@@ -490,9 +495,10 @@ test.describe('Scan list page', () => {
         },
         goToPage: 'next page',
         finalPage: 1,
+        expectShowing: 'Showing 21 to 40 of 200 results',
       },
     ]
-    for (const { scenario, yearTabIndex, listScanRequest, goToPage, finalPage } of pageScenarios) {
+    for (const { scenario, yearTabIndex, listScanRequest, goToPage, finalPage, expectShowing } of pageScenarios) {
       const response = pageResponse(Array.from({ length: 20 }).map(() => mockLegacyScanResponse(prisonerNumber, now)))
       response.totalElements = 200
       response.totalPages = 10
@@ -512,12 +518,23 @@ test.describe('Scan list page', () => {
         ])
 
         const scanListPage = await goToScanListPage(page)
+        await expect(scanListPage.getPaginationShowingDescription()).resolves.toContain(
+          'Showing 1 to 20 of 200 results',
+        )
 
         await xrayBodyScansApi.stubListScans(prisonerNumber, response, { ...listScanRequest, page: 0 })
         await scanListPage.yearTabs.nth(yearTabIndex).getByRole('link').click()
+        await expect(scanListPage.getPaginationShowingDescription()).resolves.toContain(
+          'Showing 1 to 20 of 200 results',
+        )
 
-        await xrayBodyScansApi.stubListScans(prisonerNumber, response, { ...listScanRequest, page: finalPage })
+        await xrayBodyScansApi.stubListScans(
+          prisonerNumber,
+          { ...response, number: finalPage },
+          { ...listScanRequest, page: finalPage },
+        )
         await scanListPage.pagination.getByRole('link', { name: goToPage === 'page 10' ? '10' : 'Next' }).click()
+        await expect(scanListPage.getPaginationShowingDescription()).resolves.toContain(expectShowing)
 
         if (scenario === 'all years') {
           await expect(scanListPage.pagination.getByRole('link', { name: 'View all' })).not.toBeVisible()
@@ -534,7 +551,10 @@ test.describe('Scan list page', () => {
             { ...listScanRequest, page: 0 },
           )
           await scanListPage.pagination.getByRole('link', { name: 'View all' }).click()
-          await expect(scanListPage.pagination).not.toBeVisible()
+          await expect(scanListPage.getPaginationShowingDescription()).resolves.toEqual(
+            'Showing 1 to 200 of 200 results',
+          )
+          await expect(scanListPage.pagination.getByRole('link', { name: 'View all' })).not.toBeVisible()
         }
       })
     }
@@ -631,7 +651,7 @@ test.describe('Scan list page', () => {
         {
           ...mockScanResponse(prisonerNumber, now),
           id: '019fc832-0000-7000-0000-000000000001',
-          prisonId: 'LEI',
+          prisonId: 'MDI',
           justification: 'REASONABLE_SUSPICION',
           justificationDescription: 'Reasonable suspicion',
           outcome: 'POSITIVE',
@@ -642,7 +662,7 @@ test.describe('Scan list page', () => {
         {
           ...mockScanResponse(prisonerNumber, now),
           id: '019fc832-0000-7000-0000-000000000002',
-          prisonId: 'LEI',
+          prisonId: 'MDI',
           justification: 'REASONABLE_SUSPICION',
           justificationDescription: 'Reasonable suspicion',
           outcome: 'POSITIVE',

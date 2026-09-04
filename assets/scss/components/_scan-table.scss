@@ -78,6 +78,21 @@
   }
 }
 
+.scan-table__highlighted-cell {
+  background-color: colour.govuk-colour(green, $variant: "tint-80");
+  animation: 1s ease-out 4s both highlightedCellFadeOut;
+  transition: background-color 4s;
+}
+
+@keyframes highlightedCellFadeOut {
+  0% {
+    background-color: colour.govuk-colour(green, $variant: "tint-80");
+  }
+  100% {
+    background-color: #fff0;
+  }
+}
+
 .add-case-note-link {
   &:link, &:visited, &:hover {
     color: colour.govuk-functional-colour(text);

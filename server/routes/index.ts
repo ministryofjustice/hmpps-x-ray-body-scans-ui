@@ -1,5 +1,5 @@
 import { Router } from 'express'
-
+import { PrisonerBasePermission, prisonerPermissionsGuard } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import type { Services } from '../services'
 import { Page } from '../services/auditService'
 import authorisationMiddleware from '../middleware/authorisationMiddleware'
@@ -9,7 +9,8 @@ import scanRouter from './scanRouter'
 
 export default function routes(services: Services): Router {
   const router = Router()
-  const { auditService, prisonService, prisonerSearchApiClient, xrayBodyScansApiClient } = services
+  const { auditService, prisonPermissionsService, prisonService, prisonerSearchApiClient, xrayBodyScansApiClient } =
+    services
 
   router.use(authorisationMiddleware(['DPS_APPLICATION_DEVELOPER']))
 
@@ -23,6 +24,7 @@ export default function routes(services: Services): Router {
     '/prisoner/:prisonerNumber',
     requireActiveCaseload(),
     getPrisonerMiddleware(prisonerSearchApiClient),
+    prisonerPermissionsGuard(prisonPermissionsService, { requestDependentOn: [PrisonerBasePermission.read] }),
     scanRouter(auditService, prisonService, xrayBodyScansApiClient),
   )
 

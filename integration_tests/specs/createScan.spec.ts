@@ -86,7 +86,7 @@ test.describe('Create scan page', () => {
       xrayBodyScansApi.stubCreateScan(
         prisonerNumber,
         {
-          prisonId: 'LEI',
+          prisonId: 'MDI',
           scanDate: formatIsoDate(now),
           justification: 'INTELLIGENCE',
           outcome: 'NEGATIVE',
@@ -165,7 +165,7 @@ test.describe('Create scan page', () => {
       xrayBodyScansApi.stubCreateScan(
         prisonerNumber,
         {
-          prisonId: 'LEI',
+          prisonId: 'MDI',
           scanDate: yesterdayString,
           justification: 'REASONABLE_SUSPICION',
           outcome: 'POSITIVE',
@@ -291,7 +291,7 @@ test.describe('Create scan page', () => {
     await xrayBodyScansApi.stubCreateScan(
       prisonerNumber,
       {
-        prisonId: 'LEI',
+        prisonId: 'MDI',
         scanDate: formatIsoDate(new Date()),
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',

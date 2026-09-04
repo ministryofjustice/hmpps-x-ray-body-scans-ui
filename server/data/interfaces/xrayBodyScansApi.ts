@@ -102,7 +102,8 @@ export interface CreateScanCaseNoteRequest extends Record<string, unknown> {
 
 export interface ScanCaseNoteResponse {
   id: string
-  title: string
+  typeDescription: string
+  subTypeDescription: string
   createdBy: string
   createdAt: Date
   occurredAt: Date

@@ -60,6 +60,13 @@ export default class ScanController {
     const prisonNames =
       prisonIds.length > 0 ? await this.prisonService.getPrisonNames(prisonIds) : new Map<string, string>()
 
+    const queryParameters = new URLSearchParams(req.originalUrl.split('?', 2)[1] ?? '')
+    const returnParameters = queryParameters.size ? `?${queryParameters}` : ''
+    const { addedCaseNoteToScan } = req.session
+    if (addedCaseNoteToScan) {
+      delete req.session.addedCaseNoteToScan
+    }
+
     const scanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'
         ? {
@@ -70,6 +77,7 @@ export default class ScanController {
             ...scan,
             scanDateDescription: formatDisplayDate(scan.scanDate),
             prisonDescription: prisonNames.get(scan.prisonId),
+            highlightedRow: addedCaseNoteToScan === scan.id,
           },
     )
 
@@ -88,6 +96,8 @@ export default class ScanController {
       sorter,
       pagination,
       scanRows,
+      returnParameters,
+      addedCaseNoteToScan,
     })
   }
 

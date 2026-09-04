@@ -2,7 +2,7 @@ import type { SuperAgentRequest } from 'superagent'
 import type CaseLoad from '@ministryofjustice/hmpps-connect-dps-components/dist/types/CaseLoad'
 import type Service from '@ministryofjustice/hmpps-connect-dps-components/dist/types/Service'
 import { stubFor, stubPing } from './wiremock'
-import { caseloadLEI } from '../../server/testutils/mocks/prisonApi'
+import { caseloadMDI } from '../../server/testutils/mocks/prisonApi'
 
 export default {
   stubPing: (httpStatus = 200): SuperAgentRequest => stubPing('/frontend-components', httpStatus),
@@ -23,7 +23,7 @@ export default {
       services?: Service[]
     } = {},
   ): SuperAgentRequest {
-    const caseLoads = options.caseLoads ?? [caseloadLEI]
+    const caseLoads = options.caseLoads ?? [caseloadMDI]
 
     return stubFor({
       request: {

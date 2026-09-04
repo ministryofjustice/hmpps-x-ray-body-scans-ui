@@ -5,7 +5,10 @@
     <span class="govuk-visually-hidden">Case note created:</span>
     {{ caseNote.createdAt | formatDisplayDateTime }}
   </p>
-  <h2 class="govuk-heading-m">{{ caseNote.title }}</h2>
+  <h2 class="govuk-heading-m">
+    {{ caseNote.typeDescription }}:
+    {{ caseNote.subTypeDescription }}
+  </h2>
 
   <p>
     <strong>Created by:</strong> {{ caseNote.createdBy }}
