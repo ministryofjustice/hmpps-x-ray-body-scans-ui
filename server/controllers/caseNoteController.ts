@@ -90,8 +90,11 @@ export default class CaseNoteController {
         details: { scanId: scan.id },
       })
 
+      const queryParameters = new URLSearchParams(req.originalUrl.split('?', 2)[1] ?? '')
+      const returnParameters = queryParameters.size ? `?${queryParameters}` : ''
       req.session.addedCaseNoteToScan = scan.id
-      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview#scan-history`)
+
+      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview${returnParameters}#scan-history`)
     } catch (error) {
       logger.error(error)
       this.renderAddScanCaseNoteForm(req, res, scan, true)

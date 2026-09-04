@@ -45,7 +45,6 @@ beforeEach(() => {
   prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
 
   req = {
-    originalUrl: `/prisoner/${prisonerNumber}/scan-overview`,
     params: { prisonerNumber },
     query: {},
     session: {},
@@ -64,6 +63,10 @@ afterEach(() => {
 })
 
 describe('getScanList', () => {
+  beforeEach(() => {
+    req.originalUrl = `/prisoner/${prisonerNumber}/scan-overview`
+  })
+
   afterEach(() => {
     // list page should always log an audit event
     expect(auditService.logPageView).toHaveBeenCalledWith(Page.SCAN_LIST, {
@@ -127,6 +130,7 @@ describe('getScanList', () => {
       pagination: null,
       sorter: expect.any(Function),
       scanRows: [],
+      returnParameters: '',
       addedCaseNoteToScan: undefined,
     })
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, { page: 0 }, username)
@@ -168,6 +172,9 @@ describe('getScanList', () => {
     )
 
     req.query.year = year
+    if (year) {
+      req.originalUrl += `?year=${year}`
+    }
     await scanController.getScanList(req, res)
 
     expect(res.render).toHaveBeenCalledWith('pages/scanList', {
@@ -199,10 +206,40 @@ describe('getScanList', () => {
           scanDetails: 'pos',
         }),
       ],
+      returnParameters: year ? `?year=${year}` : '',
       addedCaseNoteToScan: undefined,
     })
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, expectedListScansRequest, username)
     expect(prisonService.getPrisonNames).toHaveBeenCalledWith(['LEI'])
+  })
+
+  it('should highlight the scan that had a case note added', async () => {
+    const scanSummary = mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] })
+    xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(scanSummary)
+    const scan = mockScanResponse(prisonerNumber, yesterday)
+    xrayBodyScansApiClient.listScans.mockResolvedValueOnce(
+      pageResponse([
+        {
+          ...mockScanResponse(prisonerNumber, now),
+          id: '019fc832-0000-7000-0000-000000000001',
+        },
+        scan,
+        mockLegacyScanResponse(prisonerNumber, now),
+      ]),
+    )
+
+    req.session.addedCaseNoteToScan = scan.id
+    req.query.year = 'all'
+    req.originalUrl += '?year=all'
+
+    await scanController.getScanList(req, res)
+
+    expect(res.render).toHaveBeenCalledWith(
+      'pages/scanList',
+      expect.objectContaining({
+        addedCaseNoteToScan: scan.id,
+      }),
+    )
   })
 
   it('should show pagination for long lists', async () => {
@@ -284,6 +321,10 @@ describe('getScanList', () => {
 })
 
 describe('getCreateScan', () => {
+  beforeEach(() => {
+    req.originalUrl = `/prisoner/${prisonerNumber}/record-scan`
+  })
+
   it('logs a page view and renders the create scan form', async () => {
     await scanController.getCreateScan(req, res)
 
@@ -309,6 +350,10 @@ describe('getCreateScan', () => {
 })
 
 describe('postCreateScan', () => {
+  beforeEach(() => {
+    req.originalUrl = `/prisoner/${prisonerNumber}/record-scan`
+  })
+
   it.each([
     {
       scenario: 'a positive organic intelligence scan for today',

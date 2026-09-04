@@ -154,7 +154,9 @@
           </a>
         {% elseif scan.source === "DPS" %}
           {# TODO: what permissions are needed? #}
-          <a href="/prisoner/{{ prisonerNumber }}/scan/{{ scan.id }}/add-a-scan-case-note" class="govuk-link govuk-link--no-visited-state add-case-note-link">Add case note</a>
+          <a href="/prisoner/{{ prisonerNumber }}/scan/{{ scan.id }}/add-a-scan-case-note{{ returnParameters }}" class="govuk-link govuk-link--no-visited-state add-case-note-link">
+            Add case note
+          </a>
         {% endif %}
       {% endset %}
 

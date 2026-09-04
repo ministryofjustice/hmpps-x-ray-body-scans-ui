@@ -58,6 +58,10 @@ afterEach(() => {
 })
 
 describe('getScanCaseNote', () => {
+  beforeEach(() => {
+    req.originalUrl = `/prisoner/${prisonerNumber}/scan/${scanId}/case-note`
+  })
+
   it('logs a page view and renders the case note', async () => {
     res.locals.scan = scanWithCaseNote
     xrayBodyScansApiClient.getScanCaseNote.mockResolvedValueOnce(caseNote)
@@ -103,6 +107,10 @@ describe('getScanCaseNote', () => {
 })
 
 describe('getAddScanCaseNote', () => {
+  beforeEach(() => {
+    req.originalUrl = `/prisoner/${prisonerNumber}/scan/${scanId}/add-a-scan-case-note`
+  })
+
   it('logs a page view and renders the form', async () => {
     await caseNoteController.getAddScanCaseNote(req, res)
 
@@ -151,6 +159,10 @@ describe('getAddScanCaseNote', () => {
 })
 
 describe('postAddScanCaseNote', () => {
+  beforeEach(() => {
+    req.originalUrl = `/prisoner/${prisonerNumber}/scan/${scanId}/add-a-scan-case-note`
+  })
+
   const scanScenarios: { scenario: string; scanScenario: ScanResponse; expectedText: string }[] = [
     {
       scenario: 'negative scan',
@@ -228,6 +240,15 @@ Extra info
     expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview#scan-history`)
     expect(req.session.addedCaseNoteToScan).toEqual(scan.id)
     expect(logger.info).toHaveBeenCalledWith(`Created case note ${caseNote.id} for scan ${scan.id}`)
+  })
+
+  it('returns the user to the list page preserving filters', async () => {
+    xrayBodyScansApiClient.createScanCaseNote.mockResolvedValueOnce(caseNote)
+
+    req.originalUrl += '?year=all&page=2'
+    await caseNoteController.postAddScanCaseNote(req, res)
+
+    expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview?year=all&page=2#scan-history`)
   })
 
   it('shows a validation error when additional details exceeds 3500 characters', async () => {

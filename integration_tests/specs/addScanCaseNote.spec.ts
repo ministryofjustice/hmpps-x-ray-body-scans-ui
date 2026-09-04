@@ -120,11 +120,12 @@ test.describe('Add scan case note page', () => {
     ])
   }
 
-  async function expectCaseNoteSaved(page: Page) {
-    await expect(page).toHaveURL(`/prisoner/${prisonerNumber}/scan-overview#scan-history`)
+  async function expectCaseNoteSaved(page: Page, queryString = '') {
+    await expect(page).toHaveURL(`/prisoner/${prisonerNumber}/scan-overview${queryString}#scan-history`)
     const scanListPage = await ScanListPage.verifyOnPage(page)
     await expect(scanListPage.flashMessage).toContainText('Case note added')
     await expect(scanListPage.getScanTableHighlightedRows()).resolves.toEqual([false, true])
+    return scanListPage
   }
 
   test('Saves case note and redirects to scan overview', async ({ page }) => {
@@ -168,6 +169,21 @@ Some extra details
     await addScanCaseNotePage.saveButton.click()
 
     await expectCaseNoteSaved(page)
+  })
+
+  test('Returns the user to the list page preserving filters', async ({ page }) => {
+    const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
+    await page.goto(`/prisoner/${prisonerNumber}/scan/${scan.id}/add-a-scan-case-note?year=all&sort=scanDate`)
+
+    await xrayBodyScansApi.stubCreateScanCaseNote(scanId, undefined, caseNote)
+
+    await stubScanListPage()
+    await addScanCaseNotePage.saveButton.click()
+
+    const scanListPage = await expectCaseNoteSaved(page, '?year=all&sort=scanDate')
+    await expect(
+      scanListPage.historySection.getByRole('heading', { name: 'All scans recorded', level: 3 }),
+    ).toBeVisible()
   })
 
   test('Shows validation error when additional details exceeds 3500 characters', async ({ page }) => {
