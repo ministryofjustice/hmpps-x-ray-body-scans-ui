@@ -46,6 +46,18 @@ export default class AbstractPage {
     )
   }
 
+  get profileBanner(): Locator {
+    return this.page.locator('.hmpps-profile-banner')
+  }
+
+  get profileBannerPhoto(): Locator {
+    return this.profileBanner.getByRole('img')
+  }
+
+  get profileBannerLink(): Locator {
+    return this.profileBanner.getByRole('link')
+  }
+
   async getErrorSummary(): Promise<Anchor[] | null> {
     const errorSummary = this.page.locator('.govuk-error-summary')
     if ((await errorSummary.count()) === 0) {

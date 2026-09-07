@@ -3,6 +3,7 @@ import { formatDisplayDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { emptyPageResponse, pageResponse } from '../../server/testutils/pagination'
+import { mockPrisoner } from '../../server/testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
@@ -13,6 +14,7 @@ import {
 } from '../../server/testutils/mocks/xrayBodyScansApi'
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
+import prisonApi from '../mockApis/prisonApi'
 import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
@@ -20,13 +22,15 @@ import ScanListPage from '../pages/scanListPage'
 
 const now = new Date() // cannot fix clock since backend runs in separate process with no mocking
 const prisonerNumber = 'A1234BC'
+const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
 
 test.describe('Scan list page', () => {
   test.beforeEach(async () => {
     await Promise.all([
       microFrontendComponents.stubComponents(),
+      prisonApi.stubPrisonerPhoto(prisoner.currentFacialImageId!),
       prisonRegisterApi.stubAllPrisons(),
-      prisonerSearchApi.stubGetPrisoner(prisonerNumber),
+      prisonerSearchApi.stubGetPrisoner(prisonerNumber, prisoner),
     ])
   })
 
@@ -62,13 +66,21 @@ test.describe('Scan list page', () => {
 
       const scanListPage = await goToScanListPage(page)
 
+      // breadcrumbs
       await expect(scanListPage.getBreadcrumbs()).resolves.toEqual([
         { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
         { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
       ])
 
-      // TODO: profile banner
+      // profile banner
+      await expect(scanListPage.profileBannerLink).toContainText('Smith, John')
+      await expect(scanListPage.profileBannerLink).toHaveAttribute(
+        'href',
+        `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
+      )
+      await expect(scanListPage.profileBannerPhoto).toHaveAttribute('alt', 'Photo of John Smith')
 
+      // record button
       await expect(page.getByRole('button', { name: 'Record a new scan' })).toHaveAttribute(
         'href',
         `/prisoner/${prisonerNumber}/record-scan`,

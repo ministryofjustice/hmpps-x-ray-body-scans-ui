@@ -45,10 +45,7 @@ const services: Services = {
 }
 
 const prisonerNumber = 'A1234BC'
-const prisoner = {
-  ...mockPrisoner(prisonerNumber),
-  currentFacialImageId: '1008971246',
-}
+const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
 const photoUrl = `/prisoner/${prisonerNumber}/photo`
 
 const jpegMockImageSize = 3260

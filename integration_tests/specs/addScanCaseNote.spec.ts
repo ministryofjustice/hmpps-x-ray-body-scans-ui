@@ -2,6 +2,7 @@ import { type Page, expect, test } from '@playwright/test'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { pageResponse } from '../../server/testutils/pagination'
+import { mockPrisoner } from '../../server/testutils/mocks/prisonerSearchApi'
 import {
   mockScanCaseNoteResponse,
   mockScanResponse,
@@ -9,12 +10,14 @@ import {
 } from '../../server/testutils/mocks/xrayBodyScansApi'
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
+import prisonApi from '../mockApis/prisonApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import AddScanCaseNotePage from '../pages/addScanCaseNotePage'
 import ScanListPage from '../pages/scanListPage'
 
 const prisonerNumber = 'A1234BC'
+const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
 const scanId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
 const now = new Date()
 
@@ -23,7 +26,11 @@ const caseNote = mockScanCaseNoteResponse(scan)
 
 test.describe('Add scan case note page', () => {
   test.beforeEach(async () => {
-    await Promise.all([microFrontendComponents.stubComponents(), prisonerSearchApi.stubGetPrisoner(prisonerNumber)])
+    await Promise.all([
+      microFrontendComponents.stubComponents(),
+      prisonApi.stubPrisonerPhoto(prisoner.currentFacialImageId!),
+      prisonerSearchApi.stubGetPrisoner(prisonerNumber, prisoner),
+    ])
   })
 
   test.afterEach(async () => {
@@ -90,12 +97,22 @@ test.describe('Add scan case note page', () => {
     test(`Page shows for a ${scenario} with expected content`, async ({ page }) => {
       const addScanCaseNotePage = await goToAddScanCaseNotePage(page, stubScan)
 
+      // breadcrumbs
       await expect(addScanCaseNotePage.getBreadcrumbs()).resolves.toEqual([
         { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
         { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
         { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scan-overview` },
       ])
 
+      // profile banner
+      await expect(addScanCaseNotePage.profileBannerLink).toContainText('Smith, John')
+      await expect(addScanCaseNotePage.profileBannerLink).toHaveAttribute(
+        'href',
+        `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
+      )
+      await expect(addScanCaseNotePage.profileBannerPhoto).toHaveAttribute('alt', 'Photo of John Smith')
+
+      // case note details
       await expect(addScanCaseNotePage.getSummaryList()).resolves.toEqual([
         { key: 'Type', value: 'General' },
         { key: 'Sub-type', value: 'X-ray body scan' },
@@ -103,6 +120,7 @@ test.describe('Add scan case note page', () => {
         { key: 'Happened', value: expect.stringContaining('at 00:00') },
       ])
 
+      // cancel link
       await expect(addScanCaseNotePage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
     })
   }
