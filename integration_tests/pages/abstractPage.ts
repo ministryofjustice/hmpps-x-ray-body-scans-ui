@@ -46,6 +46,18 @@ export default class AbstractPage {
     )
   }
 
+  get profileBanner(): Locator {
+    return this.page.locator('.hmpps-profile-banner')
+  }
+
+  get profileBannerPhoto(): Locator {
+    return this.profileBanner.getByRole('img')
+  }
+
+  get profileBannerLink(): Locator {
+    return this.profileBanner.getByRole('link')
+  }
+
   async getErrorSummary(): Promise<Anchor[] | null> {
     const errorSummary = this.page.locator('.govuk-error-summary')
     if ((await errorSummary.count()) === 0) {
@@ -53,7 +65,7 @@ export default class AbstractPage {
     }
     // a page with an error summary should have a prefix in the title
     await expect(this.page.title()).resolves.toMatch(/^\s*Error:\s+/)
-    return errorSummary.locator('.govuk-error-summary__list a').evaluateAll(anchors =>
+    return errorSummary.locator('.govuk-error-summary__list a').evaluateAll((anchors: HTMLAnchorElement[]) =>
       anchors.map(anchor => ({
         text: anchor.textContent,
         href: anchor.getAttribute('href'),
@@ -64,9 +76,24 @@ export default class AbstractPage {
   get alert(): Locator {
     return this.page.locator('.moj-alert')
   }
+
+  getSummaryList(): Promise<SummaryListItem[]> {
+    return this.page.locator('.govuk-summary-list__row').evaluateAll((rows: HTMLDivElement[]) =>
+      rows.map(row => {
+        const key = row.getElementsByClassName('govuk-summary-list__key').item(0)?.textContent?.trim()
+        const value = row.getElementsByClassName('govuk-summary-list__value').item(0)?.textContent?.trim()
+        return { key, value }
+      }),
+    )
+  }
 }
 
 interface Anchor {
   text: string
   href: string | null
+}
+
+interface SummaryListItem {
+  key: string | undefined
+  value: string | undefined
 }

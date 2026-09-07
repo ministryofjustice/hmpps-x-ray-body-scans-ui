@@ -25,16 +25,26 @@ describe('paginate', () => {
       .replaceAll(/<\/?[^>]+>/g, '') // remove all html tags to get pure text content
   }
 
-  it.each([
-    { scenario: 'an empty page response', response: emptyPageResponse() },
-    { scenario: 'one result', response: pageResponse([1]) },
-    { scenario: 'one page of results', response: pageResponse([1, 2, 3]) },
-  ])('should handle $scenario and render nothing', ({ response }) => {
-    const pagination = paginate(response, '/')
+  it('should handle an empty page response and render nothing', () => {
+    const pagination = paginate(emptyPageResponse(), '/')
     expect(pagination).toBeNull()
 
     const rendered = renderPagination(pagination)
     expect(rendered).toEqual('')
+  })
+
+  it.each([
+    { scenario: 'one result', response: pageResponse([1]), n: 1 },
+    { scenario: 'one page of results', response: pageResponse([1, 2, 3]), n: 3 },
+  ])('should handle $scenario and render no links', ({ response, n }) => {
+    const pagination = paginate(response, '/')
+    expect(pagination).toEqual<Pagination>({
+      showing: [1, n, n],
+    })
+
+    const rendered = renderPagination(pagination)
+    expect(rendered).toContain(`Showing 1 to ${n} of ${n} result`)
+    expect(rendered).not.toContain('View all')
   })
 
   it('should handle first page of 8 with all links showing', () => {
@@ -309,7 +319,7 @@ describe('paginate', () => {
     const pagination = paginate(
       {
         content: [], // invalid, but ignored anyway
-        numberOfElements: 0,
+        numberOfElements: 10,
         totalElements: 20,
         number,
         totalPages: 2,
@@ -317,10 +327,21 @@ describe('paginate', () => {
       },
       '/',
     )
-    expect(pagination).toBeNull()
+    expect(pagination).toEqual<Pagination>({
+      govukPagination: {
+        items: [
+          { number: '1', href: '/?page=0', current: true },
+          { number: '2', href: '/?page=1', current: false },
+        ],
+        next: { href: '/?page=1' },
+      },
+      showing: [1, 10, 20],
+      viewAllUrl: '/?page=all',
+    })
 
     const rendered = renderPagination(pagination)
-    expect(rendered).toEqual('')
+    expect(rendered).toContain('Showing 1 to 10 of 20 result')
+    expect(rendered).toContain('View all')
   })
 
   it('should override page query parameter keeping others', () => {

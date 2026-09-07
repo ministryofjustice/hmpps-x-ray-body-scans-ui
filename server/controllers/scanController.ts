@@ -34,12 +34,14 @@ export default class ScanController {
 
     // TODO: determine if user can see list
 
-    await this.auditService.logPageView(Page.SCAN_LIST, {
-      who: username,
-      subjectId: prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId: req.id,
-    })
+    this.auditService
+      .logPageView(Page.SCAN_LIST, {
+        who: username,
+        subjectId: prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+      })
+      .catch(error => logger.error(error))
 
     const result = listScansForm.safeParse(req.query)
     const historicYears = result.data?.historicYears ?? []
@@ -60,6 +62,13 @@ export default class ScanController {
     const prisonNames =
       prisonIds.length > 0 ? await this.prisonService.getPrisonNames(prisonIds) : new Map<string, string>()
 
+    const queryParameters = new URLSearchParams(req.originalUrl.split('?', 2)[1] ?? '')
+    const returnParameters = queryParameters.size ? `?${queryParameters}` : ''
+    const { addedCaseNoteToScan } = req.session
+    if (addedCaseNoteToScan) {
+      delete req.session.addedCaseNoteToScan
+    }
+
     const scanRows = scans.content.map(scan =>
       scan.source === 'NOMIS'
         ? {
@@ -70,6 +79,7 @@ export default class ScanController {
             ...scan,
             scanDateDescription: formatDisplayDate(scan.scanDate),
             prisonDescription: prisonNames.get(scan.prisonId),
+            highlightedRow: addedCaseNoteToScan === scan.id,
           },
     )
 
@@ -88,6 +98,8 @@ export default class ScanController {
       sorter,
       pagination,
       scanRows,
+      returnParameters,
+      addedCaseNoteToScan,
     })
   }
 
@@ -96,12 +108,14 @@ export default class ScanController {
 
     // TODO: determine if user can create scan
 
-    await this.auditService.logPageView(Page.CREATE_SCAN, {
-      who: user.username,
-      subjectId: prisoner.prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId: req.id,
-    })
+    this.auditService
+      .logPageView(Page.CREATE_SCAN, {
+        who: user.username,
+        subjectId: prisoner.prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+      })
+      .catch(error => logger.error(error))
 
     this.renderCreateScanForm(req, res)
   }
@@ -152,14 +166,16 @@ export default class ScanController {
       logger.info(`Scan ${createScanResponse.id} recorded`)
 
       // TODO: confirm required audit event info
-      await this.auditService.logAuditEvent({
-        what: 'CREATE_XRAY_BODY_SCAN',
-        who: username,
-        subjectId: prisonerNumber,
-        subjectType: 'PRISONER_ID',
-        correlationId: req.id,
-        details: { scanId: createScanResponse.id },
-      })
+      this.auditService
+        .logAuditEvent({
+          what: 'CREATE_XRAY_BODY_SCAN',
+          who: username,
+          subjectId: prisonerNumber,
+          subjectType: 'PRISONER_ID',
+          correlationId: req.id,
+          details: { scanId: createScanResponse.id },
+        })
+        .catch(error => logger.error(error))
 
       await this.renderCreateScanSuccess(req, res, createScanResponse)
     } catch (error) {
@@ -183,12 +199,14 @@ export default class ScanController {
     )
     const internalSecretorAlert = relevantAlerts.find(alert => alert.code === internalSecretorCode)
 
-    await this.auditService.logPageView(Page.CREATE_SCAN_SUCCESS, {
-      who: username,
-      subjectId: prisoner.prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId: req.id,
-    })
+    this.auditService
+      .logPageView(Page.CREATE_SCAN_SUCCESS, {
+        who: username,
+        subjectId: prisoner.prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+      })
+      .catch(error => logger.error(error))
 
     res.render('pages/createScanSuccess', {
       prisoner,

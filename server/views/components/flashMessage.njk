@@ -1,0 +1,10 @@
+{% macro flashMessage(params) %}
+  <div class="hmpps-flash-message" data-module="hmpps-flash-message">
+    <div data-testid="flash-message">
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0m5.473 7L19.5 9.033l-9.385 9.36L4.5 12.807l2.207-1.858 3.389 3.408z"/>
+      </svg>
+      <p role="alert">{{ params.message }}</p>
+    </div>
+  </div>
+{% endmacro %}

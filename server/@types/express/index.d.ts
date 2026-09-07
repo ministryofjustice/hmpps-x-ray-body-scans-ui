@@ -1,12 +1,14 @@
 import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
-import type { HmppsUser } from '../../interfaces/hmppsUser'
+import type { PrisonerPermissions } from '@ministryofjustice/hmpps-prison-permissions-lib'
+import type { PrisonUser } from '../../interfaces/hmppsUser'
 import type { Prisoner } from '../../data/interfaces/prisonerSearchApi'
 import type { ScanResponse } from '../../data/interfaces/xrayBodyScansApi'
 
 export declare module 'express-session' {
   // Declare that the session will potentially contain these additional fields
   interface SessionData {
-    returnTo: string
+    addedCaseNoteToScan?: string
+    returnTo?: string
   }
 }
 
@@ -22,14 +24,16 @@ export declare global {
       verified?: boolean
       id: string
       logout(done: (err: unknown) => void): void
+      middleware?: { prisonerData: Prisoner }
     }
 
     interface Locals {
-      user: HmppsUser
+      user: PrisonUser
       prisoner: Prisoner & {
         displayName: string
         reversedDisplayName: string
       }
+      prisonerPermissions: PrisonerPermissions
       scan?: ScanResponse
       cspNonce: string
       csrfToken: string

@@ -72,11 +72,23 @@ export default class ScanListPage extends AbstractPage {
     )
   }
 
+  get flashMessage(): Locator {
+    return this.page.locator('.hmpps-flash-message')
+  }
+
   async getScanTableContents(): Promise<string[][]> {
     return this.scanTable
       .locator('.govuk-table__body tr')
       .evaluateAll((trs: HTMLTableRowElement[]) =>
         trs.map(tr => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())),
+      )
+  }
+
+  async getScanTableHighlightedRows(): Promise<boolean[]> {
+    return this.scanTable
+      .locator('.govuk-table__body tr td:first-child')
+      .evaluateAll((tds: HTMLTableCellElement[]) =>
+        tds.map(td => td.classList.contains('scan-table__highlighted-cell')),
       )
   }
 
@@ -94,6 +106,12 @@ export default class ScanListPage extends AbstractPage {
 
   get pagination(): Locator {
     return this.page.locator('.dps-pagination').first()
+  }
+
+  async getPaginationShowingDescription(): Promise<string> {
+    return this.pagination
+      .locator('.dps-pagination__showing')
+      .evaluate((div: HTMLDivElement) => div.textContent.replace(/\s+/, ' ').trim())
   }
 
   get modal(): Locator {

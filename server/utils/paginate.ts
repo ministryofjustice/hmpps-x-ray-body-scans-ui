@@ -1,7 +1,7 @@
 import type { PageRequest, PageResponse } from '../data/interfaces/pagination'
 
 export interface Pagination {
-  govukPagination: {
+  govukPagination?: {
     previous?: { href: string }
     items: (
       | {
@@ -23,11 +23,25 @@ export function paginate<T = unknown>(
   url: string,
   allowViewAll = true,
 ): Pagination | null {
-  const { number, totalPages, size, numberOfElements, totalElements } = pageResponse
+  const { number: rawNumber, totalPages, size, numberOfElements, totalElements } = pageResponse
 
-  // nothing to paginate
-  if (!totalElements || !totalPages || number < 0 || number >= totalPages || totalPages < 2) {
+  // no results
+  if (!totalElements) {
     return null
+  }
+
+  let number: number
+  if (rawNumber < 0 || rawNumber >= totalPages) {
+    number = 0
+  } else {
+    number = rawNumber
+  }
+
+  const showing: Pagination['showing'] = [number * size + 1, number * size + numberOfElements, totalElements]
+
+  // not enough to paginate
+  if (!totalPages || totalPages < 2) {
+    return { showing }
   }
 
   // 0-based pages to display
@@ -78,7 +92,7 @@ export function paginate<T = unknown>(
       ),
       next: number < totalPages - 1 ? { href: buildUrl(number + 1) } : undefined,
     },
-    showing: [number * size + 1, number * size + numberOfElements, totalElements],
+    showing,
     viewAllUrl: allowViewAll ? buildUrl('all') : undefined,
   }
 }

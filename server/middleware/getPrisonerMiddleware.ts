@@ -18,6 +18,7 @@ export function getPrisonerMiddleware(prisonerSearchApiClient: PrisonerSearchApi
         displayName: name.join(' '),
         reversedDisplayName: name.toReversed().join(', '),
       }
+      req.middleware = { ...req.middleware, prisonerData: prisoner }
       next()
     }
   }

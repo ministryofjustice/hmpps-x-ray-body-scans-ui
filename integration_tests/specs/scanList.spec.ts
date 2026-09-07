@@ -3,6 +3,7 @@ import { formatDisplayDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { emptyPageResponse, pageResponse } from '../../server/testutils/pagination'
+import { mockPrisoner } from '../../server/testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
@@ -13,6 +14,7 @@ import {
 } from '../../server/testutils/mocks/xrayBodyScansApi'
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
+import prisonApi from '../mockApis/prisonApi'
 import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
@@ -20,13 +22,15 @@ import ScanListPage from '../pages/scanListPage'
 
 const now = new Date() // cannot fix clock since backend runs in separate process with no mocking
 const prisonerNumber = 'A1234BC'
+const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
 
 test.describe('Scan list page', () => {
   test.beforeEach(async () => {
     await Promise.all([
       microFrontendComponents.stubComponents(),
+      prisonApi.stubPrisonerPhoto(prisoner.currentFacialImageId!),
       prisonRegisterApi.stubAllPrisons(),
-      prisonerSearchApi.stubGetPrisoner(prisonerNumber),
+      prisonerSearchApi.stubGetPrisoner(prisonerNumber, prisoner),
     ])
   })
 
@@ -62,13 +66,21 @@ test.describe('Scan list page', () => {
 
       const scanListPage = await goToScanListPage(page)
 
+      // breadcrumbs
       await expect(scanListPage.getBreadcrumbs()).resolves.toEqual([
         { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
         { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
       ])
 
-      // TODO: profile banner
+      // profile banner
+      await expect(scanListPage.profileBannerLink).toContainText('Smith, John')
+      await expect(scanListPage.profileBannerLink).toHaveAttribute(
+        'href',
+        `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
+      )
+      await expect(scanListPage.profileBannerPhoto).toHaveAttribute('alt', 'Photo of John Smith')
 
+      // record button
       await expect(page.getByRole('button', { name: 'Record a new scan' })).toHaveAttribute(
         'href',
         `/prisoner/${prisonerNumber}/record-scan`,
@@ -93,6 +105,9 @@ test.describe('Scan list page', () => {
         `${currentYear - 2} scans`,
         'All scans',
       ])
+
+      // no flash message
+      await expect(scanListPage.flashMessage).not.toBeVisible()
 
       // return link
       await expect(scanListPage.returnLink).toHaveAttribute(
@@ -372,7 +387,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000001',
-              prisonId: 'LEI',
+              prisonId: 'MDI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
               outcome: 'POSITIVE',
@@ -383,7 +398,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000002',
-              prisonId: 'LEI',
+              prisonId: 'MDI',
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
               outcome: 'POSITIVE',
@@ -428,7 +443,7 @@ test.describe('Scan list page', () => {
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000006',
-              prisonId: 'MDI',
+              prisonId: 'LEI',
               justification: 'INTELLIGENCE',
               justificationDescription: 'Intelligence-led',
               outcome: 'INCONCLUSIVE',
@@ -448,12 +463,12 @@ test.describe('Scan list page', () => {
       const scanListPage = await goToScanListPage(page)
       const dateStr = formatDisplayDate(now)
       await expect(scanListPage.getScanTableContents()).resolves.toEqual([
-        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
-        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
+        [dateStr, 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Organic', 'Add case note'],
+        [dateStr, 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Inorganic', 'View case note'],
         [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Item detected', 'Organic and inorganic', 'Add case note'],
         [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'Item detected', 'Not known', 'Add case note'],
         [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'No item detected', 'None', 'Add case note'],
-        [dateStr, 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
+        [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Inconclusive', 'None', 'Add case note'],
         [dateStr, '', '', '', '', ''],
         ['Not recorded', '', '', 'positive', '', ''],
       ])
@@ -468,7 +483,8 @@ test.describe('Scan list page', () => {
         undefined,
         undefined,
       ])
-      await expect(scanListPage.pagination).not.toBeVisible()
+      await expect(scanListPage.pagination).toBeVisible()
+      await expect(scanListPage.getPaginationShowingDescription()).resolves.toEqual('Showing 1 to 8 of 8 results')
     })
 
     const pageScenarios = [
@@ -480,7 +496,8 @@ test.describe('Scan list page', () => {
           toScanDate: new Date(now.getFullYear() - 1, 11, 31, 12),
         },
         goToPage: 'page 10',
-        finalPage: 10,
+        finalPage: 9,
+        expectShowing: 'Showing 181 to 200 of 200 results',
       },
       {
         scenario: 'all years',
@@ -490,9 +507,10 @@ test.describe('Scan list page', () => {
         },
         goToPage: 'next page',
         finalPage: 1,
+        expectShowing: 'Showing 21 to 40 of 200 results',
       },
     ]
-    for (const { scenario, yearTabIndex, listScanRequest, goToPage, finalPage } of pageScenarios) {
+    for (const { scenario, yearTabIndex, listScanRequest, goToPage, finalPage, expectShowing } of pageScenarios) {
       const response = pageResponse(Array.from({ length: 20 }).map(() => mockLegacyScanResponse(prisonerNumber, now)))
       response.totalElements = 200
       response.totalPages = 10
@@ -512,12 +530,23 @@ test.describe('Scan list page', () => {
         ])
 
         const scanListPage = await goToScanListPage(page)
+        await expect(scanListPage.getPaginationShowingDescription()).resolves.toContain(
+          'Showing 1 to 20 of 200 results',
+        )
 
         await xrayBodyScansApi.stubListScans(prisonerNumber, response, { ...listScanRequest, page: 0 })
         await scanListPage.yearTabs.nth(yearTabIndex).getByRole('link').click()
+        await expect(scanListPage.getPaginationShowingDescription()).resolves.toContain(
+          'Showing 1 to 20 of 200 results',
+        )
 
-        await xrayBodyScansApi.stubListScans(prisonerNumber, response, { ...listScanRequest, page: finalPage })
+        await xrayBodyScansApi.stubListScans(
+          prisonerNumber,
+          { ...response, number: finalPage },
+          { ...listScanRequest, page: finalPage },
+        )
         await scanListPage.pagination.getByRole('link', { name: goToPage === 'page 10' ? '10' : 'Next' }).click()
+        await expect(scanListPage.getPaginationShowingDescription()).resolves.toContain(expectShowing)
 
         if (scenario === 'all years') {
           await expect(scanListPage.pagination.getByRole('link', { name: 'View all' })).not.toBeVisible()
@@ -534,7 +563,10 @@ test.describe('Scan list page', () => {
             { ...listScanRequest, page: 0 },
           )
           await scanListPage.pagination.getByRole('link', { name: 'View all' }).click()
-          await expect(scanListPage.pagination).not.toBeVisible()
+          await expect(scanListPage.getPaginationShowingDescription()).resolves.toEqual(
+            'Showing 1 to 200 of 200 results',
+          )
+          await expect(scanListPage.pagination.getByRole('link', { name: 'View all' })).not.toBeVisible()
         }
       })
     }
@@ -631,7 +663,7 @@ test.describe('Scan list page', () => {
         {
           ...mockScanResponse(prisonerNumber, now),
           id: '019fc832-0000-7000-0000-000000000001',
-          prisonId: 'LEI',
+          prisonId: 'MDI',
           justification: 'REASONABLE_SUSPICION',
           justificationDescription: 'Reasonable suspicion',
           outcome: 'POSITIVE',
@@ -642,7 +674,7 @@ test.describe('Scan list page', () => {
         {
           ...mockScanResponse(prisonerNumber, now),
           id: '019fc832-0000-7000-0000-000000000002',
-          prisonId: 'LEI',
+          prisonId: 'MDI',
           justification: 'REASONABLE_SUSPICION',
           justificationDescription: 'Reasonable suspicion',
           outcome: 'POSITIVE',
