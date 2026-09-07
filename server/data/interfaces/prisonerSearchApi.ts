@@ -9,4 +9,5 @@ export interface Prisoner {
   prisonName?: string
   previousPrisonId?: string
   previousPrisonLeavingDate?: string
+  currentFacialImageId?: string
 }

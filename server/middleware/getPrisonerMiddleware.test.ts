@@ -25,6 +25,7 @@ describe('getPrisonerMiddleware', () => {
     expect(res.locals.prisoner.prisonerNumber).toEqual('A1234AA')
     expect(res.locals.prisoner.displayName).toEqual('John Smith')
     expect(res.locals.prisoner.reversedDisplayName).toEqual('Smith, John')
+    expect(req.middleware?.prisonerData?.prisonerNumber).toEqual('A1234AA')
     expect(next).toHaveBeenCalledWith()
   })
 
@@ -38,6 +39,7 @@ describe('getPrisonerMiddleware', () => {
     await getPrisonerMiddleware(prisonerSearchApiClient)(req, res, next)
 
     expect(res.locals.prisoner).toBeUndefined()
+    expect(req.middleware?.prisonerData?.prisonerNumber).toBeUndefined()
     expect(next).toHaveBeenCalledWith(new NotFound())
   })
 })

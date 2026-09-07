@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import type { Readable } from 'node:stream'
 import type { CaseLoad } from '../../data/interfaces/prisonApi'
 
 export const caseloadLEI: CaseLoad = {
@@ -14,4 +16,9 @@ export const caseloadMDI: CaseLoad = {
   type: 'INST',
   caseloadFunction: 'GENERAL',
   currentlyActive: true,
+}
+
+/** Returns the JPEG as returned by prison-api, not the usual placeholder PNG */
+export function mockPhotoReadable(): Promise<Readable> {
+  return Promise.resolve(fs.createReadStream('assets/images/photo-unavailable.jpeg'))
 }

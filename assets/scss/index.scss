@@ -14,8 +14,10 @@ $govuk-page-width: $moj-page-width;
 @import "./overrides/typography";
 
 @import "./components/case-note-modal";
+@import "./components/flash-message";
 @import "./components/info-box";
 @import "./components/pagination";
+@import "./components/profile-banner";
 @import "./components/scan-alerts";
 @import "./components/scan-summary";
 @import "./components/scan-table";

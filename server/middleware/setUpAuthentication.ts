@@ -5,7 +5,7 @@ import { Strategy } from 'passport-oauth2'
 import { VerificationClient, type AuthenticatedRequest } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import logger from '../../logger'
-import type { HmppsUser } from '../interfaces/hmppsUser'
+import type { PrisonUser } from '../interfaces/hmppsUser'
 import generateOauthClientToken from '../utils/clientCredentials'
 
 passport.serializeUser((user, done) => {
@@ -83,7 +83,7 @@ export default function setupAuthentication() {
   })
 
   router.use((req, res, next) => {
-    res.locals.user = req.user as HmppsUser
+    res.locals.user = req.user as PrisonUser
     next()
   })
 

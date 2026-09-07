@@ -1,9 +1,11 @@
 import type { Request, Response } from 'express'
-
+import { NotFound } from 'http-errors'
+import * as z from 'zod'
 import logger from '../../logger'
-import { formatDisplayDate } from '../utils/dates'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
+import { type AddScanCaseNoteForm, addScanCaseNoteForm } from '../forms/addScanCaseNoteForm'
+import type { ZodErrorTree } from '../forms/formErrors'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 
@@ -18,25 +20,25 @@ export default class CaseNoteController {
     const { username } = res.locals.user
 
     if (!this.scanHasCaseNote(scan)) {
-      res.sendStatus(404)
-      return
+      throw new NotFound()
     }
     const caseNote = await this.xrayBodyScansApiClient.getScanCaseNote(scan.id, username)
     if (!scan || !caseNote || scan.caseNoteId !== caseNote.id) {
-      res.sendStatus(404)
-      return
+      throw new NotFound()
     }
 
     // TODO: determine if user can view case note
 
-    await this.auditService.logPageView(Page.VIEW_SCAN_CASE_NOTE, {
-      who: username,
-      subjectId: prisoner.prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId: req.id,
-    })
+    this.auditService
+      .logPageView(Page.VIEW_SCAN_CASE_NOTE, {
+        who: username,
+        subjectId: prisoner.prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+      })
+      .catch(error => logger.error(error))
 
-    res.render('pages/caseNote', { caseNote })
+    res.render('pages/scanCaseNote', { caseNote })
   }
 
   async getAddScanCaseNote(req: Request, res: Response): Promise<void> {
@@ -44,16 +46,17 @@ export default class CaseNoteController {
     const { username } = res.locals.user
 
     if (!this.scanHasNoCaseNote(scan)) {
-      res.sendStatus(404)
-      return
+      throw new NotFound()
     }
 
-    await this.auditService.logPageView(Page.ADD_SCAN_CASE_NOTE, {
-      who: username,
-      subjectId: prisoner.prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId: req.id,
-    })
+    this.auditService
+      .logPageView(Page.ADD_SCAN_CASE_NOTE, {
+        who: username,
+        subjectId: prisoner.prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+      })
+      .catch(error => logger.error(error))
 
     this.renderAddScanCaseNoteForm(req, res, scan)
   }
@@ -63,36 +66,41 @@ export default class CaseNoteController {
     const { username } = res.locals.user
 
     if (!this.scanHasNoCaseNote(scan)) {
-      res.sendStatus(404)
+      throw new NotFound()
+    }
+
+    // TODO: determine if user allowed to create case note
+
+    const result = addScanCaseNoteForm.safeParse(req.body)
+    if (!result.success) {
+      const errors = z.treeifyError(result.error)
+      this.renderAddScanCaseNoteForm(req, res, scan, false, errors)
       return
     }
 
-    const additionalDetails = ((req.body.additionalDetails as string | undefined) ?? '').trim()
-    if (additionalDetails.length > 3500) {
-      this.renderAddScanCaseNoteForm(req, res, scan, false, {
-        properties: {
-          additionalDetails: { errors: ['The additional details must be 3,500 characters or less'] },
-        },
-      })
-      return
-    }
-    const text = this.buildCaseNoteText(scan, additionalDetails)
+    const text = this.buildCaseNoteText(scan, result.data.additionalDetails)
 
     try {
       const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
       logger.info(`Created case note ${caseNote.id} for scan ${scan.id}`)
 
       // TODO: confirm required audit event info
-      await this.auditService.logAuditEvent({
-        what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
-        who: username,
-        subjectId: prisoner.prisonerNumber,
-        subjectType: 'PRISONER_ID',
-        correlationId: req.id,
-        details: { scanId: scan.id },
-      })
+      this.auditService
+        .logAuditEvent({
+          what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
+          who: username,
+          subjectId: prisoner.prisonerNumber,
+          subjectType: 'PRISONER_ID',
+          correlationId: req.id,
+          details: { scanId: scan.id },
+        })
+        .catch(error => logger.error(error))
 
-      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview`)
+      const queryParameters = new URLSearchParams(req.originalUrl.split('?', 2)[1] ?? '')
+      const returnParameters = queryParameters.size ? `?${queryParameters}` : ''
+      req.session.addedCaseNoteToScan = scan.id
+
+      res.redirect(`/prisoner/${prisoner.prisonerNumber}/scan-overview${returnParameters}#scan-history`)
     } catch (error) {
       logger.error(error)
       this.renderAddScanCaseNoteForm(req, res, scan, true)
@@ -112,26 +120,25 @@ export default class CaseNoteController {
     res: Response,
     scan: ScanResponse,
     createCallFailed = false,
-    errors?: { properties?: { additionalDetails?: { errors: string[] } } },
+    errors?: ZodErrorTree<AddScanCaseNoteForm>,
   ): void {
     const autoText = this.buildCaseNoteText(scan)
-    const occurredAt = `${formatDisplayDate(scan.scanDate)} at 00:00`
 
     res.render('pages/addScanCaseNote', {
+      scan,
       autoText,
-      occurredAt,
-      caseNoteTitle: `Result of X-ray body scan: ${scan.outcomeDescription}`,
       createCallFailed,
       errors,
-      formValues: req.body,
+      formValues: errors ? req.body : undefined,
     })
   }
 
   private buildCaseNoteText(scan: ScanResponse, additionalDetails?: string): string {
-    const lines = [`Reason: ${scan.justificationDescription}`, `Result: ${scan.outcomeDescription}`]
-    if (scan.typeOfFindDescription) {
-      lines.push(`Items found: ${scan.typeOfFindDescription}`)
-    }
+    const lines = [
+      `Reason: ${scan.justificationDescription}`,
+      `Result: ${scan.outcomeDescription}`,
+      `Items found: ${scan.typeOfFindDescription ? scan.typeOfFindDescription : 'None'}`,
+    ]
     if (additionalDetails) {
       lines.push('--', additionalDetails)
     }

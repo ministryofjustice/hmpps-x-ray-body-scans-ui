@@ -5,7 +5,8 @@
     "lib": ["es5", "dom", "es2015.promise"],
     "types": ["@playwright/test"],
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noUnusedParameters": true
   },
   "include": ["**/*.ts"]
 }

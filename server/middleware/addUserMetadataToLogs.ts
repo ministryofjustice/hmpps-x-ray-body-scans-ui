@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express'
 import { trace } from '@ministryofjustice/hmpps-azure-telemetry'
-import { HmppsUser } from '../interfaces/hmppsUser'
+import type { HmppsUser } from '../interfaces/hmppsUser'
 
 export default function addUserMetadataToLogs(): RequestHandler {
   return async (_req, res, next) => {

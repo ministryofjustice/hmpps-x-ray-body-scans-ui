@@ -4,7 +4,7 @@
 @use "govuk-frontend/dist/govuk/settings/measurements";
 
 @property --scan-count-accent-colour {
-  syntax: '<color>';
+  syntax: "<color>";
   inherits: true;
   initial-value: #{colour.govuk-functional-colour(border)};
 }
@@ -14,7 +14,7 @@
 
   border-left: measurements.$govuk-border-width solid var(--scan-count-accent-colour);
   padding-left: measurements.$govuk-border-width-wide;
-  @include spacing.govuk-responsive-margin(4, 'bottom');
+  @include spacing.govuk-responsive-margin(4, "bottom");
 
   .scan-count__number, .scan-count__limit-warning {
     display: block;
@@ -33,9 +33,9 @@
 }
 
 .scan-count--nearing-limit {
-  --scan-count-accent-colour: #{colour.govuk-colour('orange', $variant: 'shade-25')};
+  --scan-count-accent-colour: #{colour.govuk-colour(orange, $variant: "shade-25")};
 }
 
 .scan-count--at-limit {
-  --scan-count-accent-colour: #{colour.govuk-colour('red', $variant: 'shade-25')};
+  --scan-count-accent-colour: #{colour.govuk-colour(red, $variant: "shade-25")};
 }
