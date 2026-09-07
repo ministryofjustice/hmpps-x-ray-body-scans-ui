@@ -13,6 +13,7 @@ export const services = () => {
     applicationInfo,
     hmppsAuditClient,
     tokenStore,
+    prisonApiClient,
     prisonRegisterApiClient,
     prisonerSearchApiClient,
     xrayBodyScansApiClient,
@@ -35,6 +36,7 @@ export const services = () => {
   return {
     applicationInfo,
     auditService,
+    prisonApiClient,
     prisonPermissionsService,
     prisonService,
     prisonerSearchApiClient,

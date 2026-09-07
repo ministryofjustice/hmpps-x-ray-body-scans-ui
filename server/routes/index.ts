@@ -5,12 +5,19 @@ import { Page } from '../services/auditService'
 import authorisationMiddleware from '../middleware/authorisationMiddleware'
 import { getPrisonerMiddleware } from '../middleware/getPrisonerMiddleware'
 import { requireActiveCaseload } from '../middleware/requireActiveCaseload'
+import { photoRouter } from './photoRouter'
 import scanRouter from './scanRouter'
 
 export default function routes(services: Services): Router {
   const router = Router()
-  const { auditService, prisonPermissionsService, prisonService, prisonerSearchApiClient, xrayBodyScansApiClient } =
-    services
+  const {
+    auditService,
+    prisonApiClient,
+    prisonPermissionsService,
+    prisonService,
+    prisonerSearchApiClient,
+    xrayBodyScansApiClient,
+  } = services
 
   router.use(authorisationMiddleware(['DPS_APPLICATION_DEVELOPER']))
 
@@ -26,6 +33,7 @@ export default function routes(services: Services): Router {
     getPrisonerMiddleware(prisonerSearchApiClient),
     prisonerPermissionsGuard(prisonPermissionsService, { requestDependentOn: [PrisonerBasePermission.read] }),
     scanRouter(auditService, prisonService, xrayBodyScansApiClient),
+    photoRouter(auditService, prisonApiClient),
   )
 
   return router

@@ -7,6 +7,7 @@ import { emptyPageResponse } from '../testutils/pagination'
 import type { Services } from '../services'
 import AuditService from '../services/auditService'
 import { PrisonService } from '../services/prisonService'
+import { PrisonApiClient } from '../data/prisonApi'
 import { PrisonerSearchApiClient } from '../data/prisonerSearchApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import { mockGrantMinimalPrisonerPermissions } from '../testutils/mocks/prisonPermissionsService'
@@ -15,12 +16,14 @@ import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApi'
 
 jest.mock('@ministryofjustice/hmpps-prison-permissions-lib')
+jest.mock('../data/prisonApi')
 jest.mock('../data/prisonerSearchApiClient')
 jest.mock('../data/xrayBodyScansApiClient')
 jest.mock('../services/auditService')
 jest.mock('../services/prisonService')
 
 const auditService = jest.mocked(new AuditService({} as never))
+const prisonApiClient = jest.mocked(new PrisonApiClient({} as never))
 const prisonPermissionsService = jest.mocked(PermissionsService.create({} as never))
 const prisonService = jest.mocked(new PrisonService({} as never, {} as never))
 const prisonerSearchApiClient = jest.mocked(new PrisonerSearchApiClient({} as never))
@@ -28,6 +31,7 @@ const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as neve
 const services: Services = {
   applicationInfo: {} as never,
   auditService,
+  prisonApiClient,
   prisonPermissionsService,
   prisonService,
   prisonerSearchApiClient,

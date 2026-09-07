@@ -1,3 +1,4 @@
+import type { Readable } from 'node:stream'
 import { asUser, RestClient } from '@ministryofjustice/hmpps-rest-client'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
@@ -15,6 +16,15 @@ export class PrisonApiClient extends RestClient {
       {
         path: '/api/users/me/caseLoads',
         query: { allCaseloads: 'true' },
+      },
+      asUser(userToken),
+    )
+  }
+
+  getPhoto(imageId: string, getFullSizedImage: boolean, userToken: string): Promise<Readable> {
+    return this.stream(
+      {
+        path: `/api/images/${imageId}/data?fullSizeImage=${getFullSizedImage}`,
       },
       asUser(userToken),
     )

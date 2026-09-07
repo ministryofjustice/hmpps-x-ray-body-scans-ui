@@ -9,6 +9,7 @@ import logger from '../../logger'
 import applicationInfoSupplier from '../applicationInfo'
 import HmppsAuditClient from './hmppsAuditClient'
 import { createRedisClient } from './redisClient'
+import { PrisonApiClient } from './prisonApi'
 import { PrisonRegisterApiClient } from './prisonRegisterApiClient'
 import { PrisonerSearchApiClient } from './prisonerSearchApiClient'
 import { XrayBodyScansApiClient } from './xrayBodyScansApiClient'
@@ -26,6 +27,7 @@ export const dataAccess = () => {
     hmppsAuthClient,
     tokenStore,
     hmppsAuditClient: new HmppsAuditClient(config.sqs.audit),
+    prisonApiClient: new PrisonApiClient(hmppsAuthClient),
     prisonRegisterApiClient: new PrisonRegisterApiClient(hmppsAuthClient),
     prisonerSearchApiClient: new PrisonerSearchApiClient(hmppsAuthClient),
     xrayBodyScansApiClient: new XrayBodyScansApiClient(hmppsAuthClient),
