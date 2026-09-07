@@ -111,6 +111,16 @@ test.describe('Add scan case note page', () => {
         `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
       )
       await expect(addScanCaseNotePage.profileBannerPhoto).toHaveAttribute('alt', 'Photo of John Smith')
+      await expect(addScanCaseNotePage.getProfileBannerProperties()).resolves.toEqual([
+        {
+          title: 'Location',
+          description: 'A-1-205',
+        },
+        {
+          title: 'Category',
+          description: 'C',
+        },
+      ])
 
       // case note details
       await expect(addScanCaseNotePage.getSummaryList()).resolves.toEqual([
@@ -124,6 +134,9 @@ test.describe('Add scan case note page', () => {
       await expect(addScanCaseNotePage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
     })
   }
+
+  // TODO: add test for "recently in caseloads but not now"
+  // TODO: add test for "fails base check"
 
   async function stubScanListPage() {
     return Promise.all([

@@ -8,11 +8,14 @@ export function mockPrisoner(prisonerNumber: string, overrides?: Partial<Prisone
 
     inOutStatus: 'IN',
     status: 'ACTIVE IN',
+    cellLocation: 'A-1-205',
 
     prisonId: 'MDI',
     prisonName: 'Moorland (HMP & YOI)',
     previousPrisonId: 'LEI',
     previousPrisonLeavingDate: '2026-08-10T10:50',
+
+    category: 'C',
 
     ...overrides,
     prisonerNumber,

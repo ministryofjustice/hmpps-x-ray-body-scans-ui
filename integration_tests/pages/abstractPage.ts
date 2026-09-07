@@ -58,6 +58,20 @@ export default class AbstractPage {
     return this.profileBanner.getByRole('link')
   }
 
+  async getProfileBannerProperties(): Promise<{ title: string; description: string; href?: string }[]> {
+    return this.page.locator('.hmpps-profile-banner__properties > div').evaluateAll((divs: HTMLDivElement[]) =>
+      divs
+        .filter(div => !div.classList.contains('hmpps-profile-banner__name'))
+        .map(div => {
+          return {
+            title: div.querySelector('dt')!.textContent.trim(),
+            description: div.querySelector('dd')!.textContent.trim(),
+            href: div.querySelector<HTMLAnchorElement>('dd a')?.href,
+          }
+        }),
+    )
+  }
+
   async getErrorSummary(): Promise<Anchor[] | null> {
     const errorSummary = this.page.locator('.govuk-error-summary')
     if ((await errorSummary.count()) === 0) {

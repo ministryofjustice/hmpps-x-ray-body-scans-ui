@@ -79,6 +79,16 @@ test.describe('Scan list page', () => {
         `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
       )
       await expect(scanListPage.profileBannerPhoto).toHaveAttribute('alt', 'Photo of John Smith')
+      await expect(scanListPage.getProfileBannerProperties()).resolves.toEqual([
+        {
+          title: 'Location',
+          description: 'A-1-205',
+        },
+        {
+          title: 'Category',
+          description: 'C',
+        },
+      ])
 
       // record button
       await expect(page.getByRole('button', { name: 'Record a new scan' })).toHaveAttribute(
@@ -115,6 +125,9 @@ test.describe('Scan list page', () => {
         `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
       )
     })
+
+    // TODO: add test for "recently in caseloads but not now"
+    // TODO: add test for "fails base check"
   })
 
   test.describe('Scan summary', () => {
