@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { PrisonerBasePermission, prisonerPermissionsGuard } from '@ministryofjustice/hmpps-prison-permissions-lib'
+import logger from '../../logger'
 import type { Services } from '../services'
 import { Page } from '../services/auditService'
 import authorisationMiddleware from '../middleware/authorisationMiddleware'
@@ -22,7 +23,9 @@ export default function routes(services: Services): Router {
   router.use(authorisationMiddleware(['DPS_APPLICATION_DEVELOPER']))
 
   router.get('/', async (req, res, _next) => {
-    await auditService.logPageView(Page.HOME, { who: res.locals.user.username, correlationId: req.id })
+    auditService
+      .logPageView(Page.HOME, { who: res.locals.user.username, correlationId: req.id })
+      .catch(error => logger.error(error))
 
     return res.render('pages/index')
   })

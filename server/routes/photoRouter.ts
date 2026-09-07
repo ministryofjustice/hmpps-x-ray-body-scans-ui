@@ -34,14 +34,16 @@ export function photoRouter(auditService: AuditService, prisonApiClient: PrisonA
       user?.token &&
       isGranted(CorePersonRecordPermission.read_photo, prisonerPermissions)
     ) {
-      await auditService.logAuditEvent({
-        what: 'VIEW_PHOTO',
-        who: user.username,
-        subjectId: prisoner.prisonerNumber,
-        subjectType: 'PRISONER_ID',
-        correlationId: req.id,
-        details: { photoId: prisoner.currentFacialImageId },
-      })
+      auditService
+        .logAuditEvent({
+          what: 'VIEW_PHOTO',
+          who: user.username,
+          subjectId: prisoner.prisonerNumber,
+          subjectType: 'PRISONER_ID',
+          correlationId: req.id,
+          details: { photoId: prisoner.currentFacialImageId },
+        })
+        .catch(error => logger.error(error))
 
       try {
         const imageStream = await prisonApiClient.getPhoto(prisoner.currentFacialImageId, false, user.token)

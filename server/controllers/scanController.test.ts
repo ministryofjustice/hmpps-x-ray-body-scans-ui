@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import logger from '../../logger'
 import { user } from '../routes/testutils/appSetup'
+import { mockAuditService } from '../testutils/mocks/auditService'
 import { fixedClock, now, yesterday } from '../testutils/fixedClock'
 import { emptyPageResponse, pageResponse } from '../testutils/pagination'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
@@ -41,6 +42,7 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
+  mockAuditService(auditService)
   scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
   prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
 

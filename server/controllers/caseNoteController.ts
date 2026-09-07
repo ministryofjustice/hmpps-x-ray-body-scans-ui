@@ -29,12 +29,14 @@ export default class CaseNoteController {
 
     // TODO: determine if user can view case note
 
-    await this.auditService.logPageView(Page.VIEW_SCAN_CASE_NOTE, {
-      who: username,
-      subjectId: prisoner.prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId: req.id,
-    })
+    this.auditService
+      .logPageView(Page.VIEW_SCAN_CASE_NOTE, {
+        who: username,
+        subjectId: prisoner.prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+      })
+      .catch(error => logger.error(error))
 
     res.render('pages/scanCaseNote', { caseNote })
   }
@@ -47,12 +49,14 @@ export default class CaseNoteController {
       throw new NotFound()
     }
 
-    await this.auditService.logPageView(Page.ADD_SCAN_CASE_NOTE, {
-      who: username,
-      subjectId: prisoner.prisonerNumber,
-      subjectType: 'PRISONER_ID',
-      correlationId: req.id,
-    })
+    this.auditService
+      .logPageView(Page.ADD_SCAN_CASE_NOTE, {
+        who: username,
+        subjectId: prisoner.prisonerNumber,
+        subjectType: 'PRISONER_ID',
+        correlationId: req.id,
+      })
+      .catch(error => logger.error(error))
 
     this.renderAddScanCaseNoteForm(req, res, scan)
   }
@@ -81,14 +85,16 @@ export default class CaseNoteController {
       logger.info(`Created case note ${caseNote.id} for scan ${scan.id}`)
 
       // TODO: confirm required audit event info
-      await this.auditService.logAuditEvent({
-        what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
-        who: username,
-        subjectId: prisoner.prisonerNumber,
-        subjectType: 'PRISONER_ID',
-        correlationId: req.id,
-        details: { scanId: scan.id },
-      })
+      this.auditService
+        .logAuditEvent({
+          what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
+          who: username,
+          subjectId: prisoner.prisonerNumber,
+          subjectType: 'PRISONER_ID',
+          correlationId: req.id,
+          details: { scanId: scan.id },
+        })
+        .catch(error => logger.error(error))
 
       const queryParameters = new URLSearchParams(req.originalUrl.split('?', 2)[1] ?? '')
       const returnParameters = queryParameters.size ? `?${queryParameters}` : ''

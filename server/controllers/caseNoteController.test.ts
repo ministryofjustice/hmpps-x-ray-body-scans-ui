@@ -3,6 +3,7 @@ import { NotFound } from 'http-errors'
 import logger from '../../logger'
 import { user } from '../routes/testutils/appSetup'
 import { fixedClock, now } from '../testutils/fixedClock'
+import { mockAuditService } from '../testutils/mocks/auditService'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockLegacyScanResponse, mockScanResponse, mockScanCaseNoteResponse } from '../testutils/mocks/xrayBodyScansApi'
@@ -37,6 +38,7 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
+  mockAuditService(auditService)
   caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
 
   req = {
