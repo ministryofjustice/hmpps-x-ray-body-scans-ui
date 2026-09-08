@@ -155,9 +155,9 @@
       {% set actionLink %}
         {% if scan.caseNoteId %}
           {% set caseNoteLink %}
-            {%- if isGranted and isGranted(CaseNotesPermission.edit, prisonerPermissions) -%}
+            {%- if isGranted(CaseNotesPermission.edit, prisonerPermissions) -%}
               {{ prisoner | prisonerProfileUrl }}/update-case-note/{{ scan.caseNoteId }}
-            {%- elseif isGranted and isGranted(CaseNotesPermission.read, prisonerPermissions) -%}
+            {%- elseif isGranted(CaseNotesPermission.read, prisonerPermissions) -%}
               {{ prisoner | prisonerProfileUrl }}/case-notes?type=GEN&subType=XRBS&startDate={{ scan.scanDate | formatDisplayShortDate }}&endDate={{ scan.scanDate | formatDisplayShortDate }}
             {%- else -%}
               /prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note

@@ -16,7 +16,13 @@ import { mockPrisonNamesImpl } from '../testutils/mocks/prisonService'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApi'
 
-jest.mock('@ministryofjustice/hmpps-prison-permissions-lib')
+jest.mock('@ministryofjustice/hmpps-prison-permissions-lib', () => {
+  // ensure permissions library is properly installed into nunjucks environment
+  type Module = typeof import('@ministryofjustice/hmpps-prison-permissions-lib')
+  const realModule = jest.requireActual<Module>('@ministryofjustice/hmpps-prison-permissions-lib')
+  const mockedModule = jest.createMockFromModule<Module>('@ministryofjustice/hmpps-prison-permissions-lib')
+  return { ...mockedModule, setupNunjucksPermissions: realModule.setupNunjucksPermissions }
+})
 jest.mock('../data/prisonApi')
 jest.mock('../data/prisonerSearchApiClient')
 jest.mock('../data/xrayBodyScansApiClient')
@@ -81,7 +87,12 @@ describe('scan router', () => {
     )
     xrayBodyScansApiClient.listScans.mockResolvedValueOnce(emptyPageResponse())
 
-    return request(app).get(`/prisoner/${prisonerNumber}/scan-overview`).expect(200)
+    return request(app)
+      .get(`/prisoner/${prisonerNumber}/scan-overview`)
+      .expect(200)
+      .expect(res => {
+        expect(res.text).toContain('X-ray body scans')
+      })
   })
 
   it('should show 404 page when prisoner is not found', () => {
