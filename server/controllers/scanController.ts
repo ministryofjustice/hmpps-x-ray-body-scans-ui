@@ -212,7 +212,6 @@ export default class ScanController {
       prisoner,
       scan,
       internalSecretorAlert,
-      internalSecretorAlertCreated: false,
     })
   }
 }

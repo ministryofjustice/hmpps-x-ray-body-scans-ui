@@ -116,7 +116,6 @@ test.describe('Create scan page', () => {
       { key: 'Result', value: 'Negative' },
       { key: 'Items found', value: 'None' },
     ])
-    await expect(createScanSuccessPage.internalSecretorAlertCreatedNote).not.toBeVisible()
     await expect(createScanSuccessPage.updateInternalSecretorAlertLink).not.toBeVisible()
   })
 
@@ -195,7 +194,6 @@ test.describe('Create scan page', () => {
       { key: 'Result', value: 'Positive' },
       { key: 'Items found', value: 'Inorganic' },
     ])
-    await expect(createScanSuccessPage.internalSecretorAlertCreatedNote).not.toBeVisible()
     await expect(createScanSuccessPage.updateInternalSecretorAlertLink).toHaveAttribute(
       'href',
       `http://localhost:9091/profile/prisoner/${prisonerNumber}/alerts/${mockInternalSecretorAlert.id}/add-more-details`,

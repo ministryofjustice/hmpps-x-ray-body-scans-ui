@@ -473,7 +473,6 @@ describe('postCreateScan', () => {
         prisoner,
         scan,
         internalSecretorAlert: undefined,
-        internalSecretorAlertCreated: false,
       }),
     )
     expect(res.redirect).not.toHaveBeenCalled()
@@ -514,7 +513,6 @@ describe('postCreateScan', () => {
       'pages/createScanSuccess',
       expect.objectContaining({
         internalSecretorAlert: mockInternalSecretorAlert,
-        internalSecretorAlertCreated: false,
       }),
     )
     expect(res.redirect).not.toHaveBeenCalled()
