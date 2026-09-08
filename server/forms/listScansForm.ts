@@ -3,9 +3,12 @@ import * as z from 'zod'
 import type { ListScansRequest } from '../data/interfaces/xrayBodyScansApi'
 
 const historicYearsToShow = 2
-function getHistoricYears(): number[] {
+function getHistoricYears(): { currentYear: number; historicYears: number[] } {
   const currentYear = new Date().getFullYear()
-  return Array.from({ length: historicYearsToShow }).map((_, i) => currentYear - i - 1)
+  return {
+    currentYear,
+    historicYears: Array.from({ length: historicYearsToShow }).map((_, i) => currentYear - i - 1),
+  }
 }
 
 const optionalNumber = z.preprocess(
@@ -58,7 +61,8 @@ export const listScansForm = baseListScansForm
   )
   // transform into ListScansRequest and variables needed by the scansList.njk template
   .transform(({ year, page, sort: sortOrder }) => {
-    const historicYears = getHistoricYears()
+    const { currentYear, historicYears } = getHistoricYears()
+
     if (typeof year === 'number' && !historicYears.includes(year)) {
       year = undefined
     }
@@ -87,6 +91,11 @@ export const listScansForm = baseListScansForm
       const fromScanDate = new Date(year, 0, 1, 12)
       const toScanDate = new Date(year + 1, 0, 1, 12)
       toScanDate.setDate(toScanDate.getDate() - 1)
+      listScansRequest.fromScanDate = fromScanDate
+      listScansRequest.toScanDate = toScanDate
+    } else {
+      const fromScanDate = new Date(currentYear, 0, 1, 12)
+      const toScanDate = new Date()
       listScansRequest.fromScanDate = fromScanDate
       listScansRequest.toScanDate = toScanDate
     }

@@ -1,6 +1,6 @@
 import * as z from 'zod'
 import type { Request } from 'express'
-import { fixedClock } from '../testutils/fixedClock'
+import { fixedClock, now } from '../testutils/fixedClock'
 import { type ListScansForm, listScansForm } from './listScansForm'
 
 type FormInput = z.input<typeof listScansForm>
@@ -9,20 +9,28 @@ beforeAll(() => {
   fixedClock()
 })
 
-describe('createScanForm', () => {
+describe('listScansForm', () => {
   it('should parse an empty form', () => {
     const result = listScansForm.safeParse({} satisfies Request['query'] satisfies FormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
       yearFilter: undefined,
-      listScansRequest: { page: 0 },
+      listScansRequest: { fromScanDate: new Date(2026, 0, 1, 12), toScanDate: now, page: 0 },
     })
   })
 
   it.each([
-    { year: '', expectedYearFilter: undefined, expectedScanDateFilters: {} },
-    { year: undefined, expectedYearFilter: undefined, expectedScanDateFilters: {} },
+    {
+      year: '',
+      expectedYearFilter: undefined,
+      expectedScanDateFilters: { fromScanDate: new Date(2026, 0, 1, 12), toScanDate: now },
+    },
+    {
+      year: undefined,
+      expectedYearFilter: undefined,
+      expectedScanDateFilters: { fromScanDate: new Date(2026, 0, 1, 12), toScanDate: now },
+    },
     {
       year: '2025',
       expectedYearFilter: 2025,
@@ -71,7 +79,7 @@ describe('createScanForm', () => {
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
       yearFilter: undefined,
-      listScansRequest: { page: 0 },
+      listScansRequest: { fromScanDate: new Date(2026, 0, 1, 12), toScanDate: now, page: 0 },
     })
   })
 
@@ -89,7 +97,7 @@ describe('createScanForm', () => {
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
       yearFilter: undefined,
-      listScansRequest: { page: expected },
+      listScansRequest: { fromScanDate: new Date(2026, 0, 1, 12), toScanDate: now, page: expected },
     })
   })
 
@@ -99,12 +107,17 @@ describe('createScanForm', () => {
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
       yearFilter: undefined,
-      listScansRequest: { page: 0 },
+      listScansRequest: { fromScanDate: new Date(2026, 0, 1, 12), toScanDate: now, page: 0 },
     })
   })
 
   it.each([
-    { scenario: 'this year', year: undefined, expectedYearFilter: undefined, expectedScanDateFilters: {} },
+    {
+      scenario: 'this year',
+      year: undefined,
+      expectedYearFilter: undefined,
+      expectedScanDateFilters: { fromScanDate: new Date(2026, 0, 1, 12), toScanDate: now },
+    },
     {
       scenario: 'last year',
       year: '2025',
@@ -149,6 +162,8 @@ describe('createScanForm', () => {
       historicYears: [2025, 2024],
       yearFilter: undefined,
       listScansRequest: {
+        fromScanDate: new Date(2026, 0, 1, 12),
+        toScanDate: now,
         page: 0,
         sort: expected,
       },
@@ -162,6 +177,8 @@ describe('createScanForm', () => {
       historicYears: [2025, 2024],
       yearFilter: undefined,
       listScansRequest: {
+        fromScanDate: new Date(2026, 0, 1, 12),
+        toScanDate: now,
         page: 0,
         sort: undefined,
       },
