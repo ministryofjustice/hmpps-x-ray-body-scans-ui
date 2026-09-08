@@ -670,71 +670,95 @@ test.describe('Scan list page', () => {
       )
     })
 
-    test('Can open case note in a modal window', async ({ page }) => {
-      const scans: ScanResponse[] = [
-        {
-          ...mockScanResponse(prisonerNumber, now),
-          id: '019fc832-0000-7000-0000-000000000001',
-          prisonId: 'MDI',
-          justification: 'REASONABLE_SUSPICION',
-          justificationDescription: 'Reasonable suspicion',
-          outcome: 'POSITIVE',
-          outcomeDescription: 'Item detected',
-          typeOfFind: 'ORGANIC',
-          typeOfFindDescription: 'Organic',
-        },
-        {
-          ...mockScanResponse(prisonerNumber, now),
-          id: '019fc832-0000-7000-0000-000000000002',
-          prisonId: 'MDI',
-          justification: 'REASONABLE_SUSPICION',
-          justificationDescription: 'Reasonable suspicion',
-          outcome: 'POSITIVE',
-          outcomeDescription: 'Item detected',
-          typeOfFind: 'INORGANIC',
-          typeOfFindDescription: 'Inorganic',
-          caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8',
-        },
-      ]
-      const caseNote = mockScanCaseNoteResponse(scans[1])
-      scans[1].caseNoteId = caseNote.id
+    const caseNoteScenarios = [
+      { scenario: 'case note', withAmendments: false },
+      { scenario: 'case note with amendments', withAmendments: true },
+    ]
+    for (const { scenario, withAmendments } of caseNoteScenarios) {
+      test(`Can open ${scenario} in a modal window`, async ({ page }) => {
+        const scans: ScanResponse[] = [
+          {
+            ...mockScanResponse(prisonerNumber, now),
+            id: '019fc832-0000-7000-0000-000000000001',
+            prisonId: 'MDI',
+            justification: 'REASONABLE_SUSPICION',
+            justificationDescription: 'Reasonable suspicion',
+            outcome: 'POSITIVE',
+            outcomeDescription: 'Item detected',
+            typeOfFind: 'ORGANIC',
+            typeOfFindDescription: 'Organic',
+          },
+          {
+            ...mockScanResponse(prisonerNumber, now),
+            id: '019fc832-0000-7000-0000-000000000002',
+            prisonId: 'MDI',
+            justification: 'REASONABLE_SUSPICION',
+            justificationDescription: 'Reasonable suspicion',
+            outcome: 'POSITIVE',
+            outcomeDescription: 'Item detected',
+            typeOfFind: 'INORGANIC',
+            typeOfFindDescription: 'Inorganic',
+            caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8',
+          },
+        ]
+        const caseNote = mockScanCaseNoteResponse(scans[1])
+        if (withAmendments) {
+          caseNote.amendments.push({
+            text: 'Moved to seg',
+            createdBy: scans[1].createdBy,
+            createdAt: scans[1].createdAt,
+          })
+        }
+        scans[1].caseNoteId = caseNote.id
 
-      await Promise.all([
-        xrayBodyScansApi.stubGetScanSummary(
-          prisonerNumber,
-          mockScanSummaryResponse({
+        await Promise.all([
+          xrayBodyScansApi.stubGetScanSummary(
             prisonerNumber,
-            now,
-            relevantAlerts: [],
-          }),
-        ),
-        xrayBodyScansApi.stubListScans(prisonerNumber, pageResponse(scans)),
-        login(page),
-      ])
+            mockScanSummaryResponse({
+              prisonerNumber,
+              now,
+              relevantAlerts: [],
+            }),
+          ),
+          xrayBodyScansApi.stubListScans(prisonerNumber, pageResponse(scans)),
+          login(page),
+        ])
 
-      const scanListPage = await goToScanListPage(page)
-      await expect(scanListPage.modal).not.toBeVisible()
-      await expect(scanListPage.getNthRowActionLink(0)).toContainText('Add case note')
+        const scanListPage = await goToScanListPage(page)
+        await expect(scanListPage.modal).not.toBeVisible()
+        await expect(scanListPage.getNthRowActionLink(0)).toContainText('Add case note')
 
-      await Promise.all([
-        xrayBodyScansApi.stubGetScan(scans[1].id, scans[1]),
-        xrayBodyScansApi.stubGetScanCaseNote(scans[1].id, caseNote),
-      ])
-      await scanListPage.getNthRowActionLink(1).click()
-      await expect(scanListPage.modal).toBeVisible()
-      await expect(scanListPage.modalHeader).toContainText('Case note details')
-      await expect(scanListPage.modal).toContainText(caseNote.text)
-      await scanListPage.modalContent.getByRole('button', { name: 'Close' }).click()
-      await expect(scanListPage.modal).not.toBeVisible()
+        await Promise.all([
+          xrayBodyScansApi.stubGetScan(scans[1].id, scans[1]),
+          xrayBodyScansApi.stubGetScanCaseNote(scans[1].id, caseNote),
+        ])
+        await scanListPage.getNthRowActionLink(1).click()
+        await expect(scanListPage.modal).toBeVisible()
+        await expect(scanListPage.modalHeader).toContainText('Case note details')
+        await expect(scanListPage.modal).toContainText(caseNote.text)
 
-      await xrayBodyScansApi.stubGetScanCaseNote(scans[1].id, internalServerErrorResponse)
-      await scanListPage.getNthRowActionLink(1).click()
-      await expect(scanListPage.modal).toBeVisible()
-      await expect(scanListPage.modalHeader).toContainText('Case note details')
-      await expect(scanListPage.modal).toContainText('The error has been logged. Please try again.')
-      await scanListPage.modalHeader.getByRole('button', { name: 'Close' }).click()
-      await expect(scanListPage.modal).not.toBeVisible()
-    })
+        if (withAmendments) {
+          await expect(scanListPage.modal.getByRole('heading', { name: 'More details added', level: 3 })).toBeVisible()
+          await expect(scanListPage.modal).toContainText('Moved to seg')
+        } else {
+          await expect(
+            scanListPage.modal.getByRole('heading', { name: 'More details added', level: 3 }),
+          ).not.toBeVisible()
+          await expect(scanListPage.modal).not.toContainText('Moved to seg')
+        }
+
+        await scanListPage.modalContent.getByRole('button', { name: 'Close' }).click()
+        await expect(scanListPage.modal).not.toBeVisible()
+
+        await xrayBodyScansApi.stubGetScanCaseNote(scans[1].id, internalServerErrorResponse)
+        await scanListPage.getNthRowActionLink(1).click()
+        await expect(scanListPage.modal).toBeVisible()
+        await expect(scanListPage.modalHeader).toContainText('Case note details')
+        await expect(scanListPage.modal).toContainText('The error has been logged. Please try again.')
+        await scanListPage.modalHeader.getByRole('button', { name: 'Close' }).click()
+        await expect(scanListPage.modal).not.toBeVisible()
+      })
+    }
   })
 
   // TODO: what shows if summary and/or list do not load?

@@ -35,6 +35,11 @@ let res: Response & { render: jest.Mock; redirect: jest.Mock }
 
 beforeAll(() => {
   fixedClock()
+  caseNote.amendments.push({
+    text: 'Moved to seg',
+    createdBy: scan.createdBy,
+    createdAt: new Date(),
+  })
 })
 
 beforeEach(() => {
