@@ -48,14 +48,23 @@
 
       {% if internalSecretorAlert %}
 
-        <p>An internal secretor alert already exists for this person.</p>
-        {# TODO: what are the permissions rules to update an alert? #}
-        <p>
-          Update the alert if this scan changes the level of risk,
-          <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisoner.prisonerNumber }}/alerts/{{ internalSecretorAlert.id }}/add-more-details">
-            Update internal secretor alert
-          </a>.
-        </p>
+        <div data-testid="internal-secretor-alert">
+          <p>An internal secretor alert already exists for this person.</p>
+          {% if isGranted(PrisonerAlertsPermission.edit, prisonerPermissions) %}
+            <p>
+              Update the alert if this scan changes the level of risk,
+              <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisoner.prisonerNumber }}/alerts/{{ internalSecretorAlert.id }}/add-more-details">
+                Update internal secretor alert
+              </a>.
+            </p>
+          {% else %}
+            <p>
+              <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisoner.prisonerNumber }}/alerts/detail?ids={{ internalSecretorAlert.id }}">
+                View the alert details
+              </a>
+            </p>
+          {% endif %}
+        </div>
 
       {% endif %}
 

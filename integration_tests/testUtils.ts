@@ -4,7 +4,7 @@ import tokenVerification from './mockApis/tokenVerification'
 
 export { resetStubs } from './mockApis/wiremock'
 
-const DEFAULT_ROLES = ['ROLE_DPS_APPLICATION_DEVELOPER'] // TODO: replace with ROLE_PRISON
+export const DEFAULT_ROLES = ['ROLE_DPS_APPLICATION_DEVELOPER'] // TODO: replace with ROLE_PRISON
 
 export const attemptHmppsAuthLogin = async (page: Page) => {
   await page.goto('/')
