@@ -154,8 +154,16 @@
       {% set cellClasses = "scan-table__highlighted-cell" if scan.highlightedRow else "" %}
       {% set actionLink %}
         {% if scan.caseNoteId %}
-          {# TODO: is the direct url sensible? permissions? #}
-          <a href="{{ prisonerProfileUrl }}/prisoner/{{ prisonerNumber }}/update-case-note/{{ scan.caseNoteId }}" class="govuk-link govuk-link--no-visited-state hmpps-modal__trigger-show" data-hmpps-modal-id="case-note-modal" data-hmpps-modal-url="/prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note">
+          {% set caseNoteLink %}
+            {%- if isGranted and isGranted(CaseNotesPermission.edit, prisonerPermissions) -%}
+              {{ prisoner | prisonerProfileUrl }}/update-case-note/{{ scan.caseNoteId }}
+            {%- elseif isGranted and isGranted(CaseNotesPermission.read, prisonerPermissions) -%}
+              {{ prisoner | prisonerProfileUrl }}/case-notes?type=GEN&subType=XRBS&startDate={{ scan.scanDate | formatDisplayShortDate }}&endDate={{ scan.scanDate | formatDisplayShortDate }}
+            {%- else -%}
+              /prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note
+            {%- endif -%}
+          {% endset %}
+          <a href="{{ caseNoteLink }}" class="govuk-link govuk-link--no-visited-state hmpps-modal__trigger-show" data-hmpps-modal-id="case-note-modal" data-hmpps-modal-url="/prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note">
             View case note
           </a>
         {% elseif scan.source === "DPS" %}

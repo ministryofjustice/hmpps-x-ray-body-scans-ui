@@ -487,7 +487,6 @@ test.describe('Scan list page', () => {
       ])
       await expect(scanListPage.getScanTableActionUrls()).resolves.toEqual([
         expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000001/add-a-scan-case-note'),
-        // TODO: should direct case note link point to profile?
         expect.stringContaining('/profile/prisoner/A1234BC/update-case-note/341c845e-fadc-4ec8-9330-81c83968c1a8'),
         expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000003/add-a-scan-case-note'),
         expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000004/add-a-scan-case-note'),
