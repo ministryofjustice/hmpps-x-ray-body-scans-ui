@@ -170,6 +170,7 @@ Reason: Reasonable suspicion
 Result: Item detected
 Items found: Inorganic
         `.trim(),
+        prisonId: 'MDI',
       },
       caseNote,
     )
@@ -192,6 +193,7 @@ Items found: Inorganic
 --
 Some extra details
         `.trim(),
+        prisonId: 'MDI',
       },
       caseNote,
     )

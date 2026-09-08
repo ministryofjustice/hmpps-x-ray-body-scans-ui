@@ -208,7 +208,7 @@ Items found: Inorganic`,
 
       expect(xrayBodyScansApiClient.createScanCaseNote).toHaveBeenCalledWith(
         scanId,
-        { text: expectedText.trim() },
+        { text: expectedText.trim(), prisonId: 'MDI' },
         username,
       )
       expect(auditService.logAuditEvent).toHaveBeenCalledWith({
@@ -241,6 +241,7 @@ Items found: Inorganic
 --
 Extra info
         `.trim(),
+        prisonId: 'MDI',
       },
       username,
     )

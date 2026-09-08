@@ -98,6 +98,7 @@ export interface AlertResponse {
 
 export interface CreateScanCaseNoteRequest extends Record<string, unknown> {
   text: string
+  prisonId: string
 }
 
 export interface ScanCaseNoteResponse {

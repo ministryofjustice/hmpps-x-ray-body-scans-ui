@@ -228,6 +228,7 @@ describe('X-ray body scans API client', () => {
     it('should post to create a case note and return nothing', async () => {
       const request: CreateScanCaseNoteRequest = {
         text: 'nothing of interest detected',
+        prisonId: 'MDI',
       }
 
       nock(config.apis.xrayBodyScansApi.url)

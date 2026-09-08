@@ -3,7 +3,7 @@ import { NotFound } from 'http-errors'
 import * as z from 'zod'
 import logger from '../../logger'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
-import type { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
+import type { CreateScanCaseNoteRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import { type AddScanCaseNoteForm, addScanCaseNoteForm } from '../forms/addScanCaseNoteForm'
 import type { ZodErrorTree } from '../forms/formErrors'
 import type AuditService from '../services/auditService'
@@ -62,8 +62,7 @@ export default class CaseNoteController {
   }
 
   async postAddScanCaseNote(req: Request, res: Response): Promise<void> {
-    const { prisoner, scan } = res.locals
-    const { username } = res.locals.user
+    const { prisoner, scan, user } = res.locals
 
     if (!this.scanHasNoCaseNote(scan)) {
       throw new NotFound()
@@ -81,14 +80,15 @@ export default class CaseNoteController {
     const text = this.buildCaseNoteText(scan, result.data.additionalDetails)
 
     try {
-      const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, { text }, username)
+      const request: CreateScanCaseNoteRequest = { text, prisonId: user.activeCaseLoadId! }
+      const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, request, user.username)
       logger.info(`Created case note ${caseNote.id} for scan ${scan.id}`)
 
       // TODO: confirm required audit event info
       this.auditService
         .logAuditEvent({
           what: 'CREATE_XRAY_BODY_SCAN_CASE_NOTE',
-          who: username,
+          who: user.username,
           subjectId: prisoner.prisonerNumber,
           subjectType: 'PRISONER_ID',
           correlationId: req.id,
