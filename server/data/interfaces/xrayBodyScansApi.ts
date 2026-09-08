@@ -108,4 +108,11 @@ export interface ScanCaseNoteResponse {
   createdAt: Date
   occurredAt: Date
   text: string
+  amendments: ScanCaseNoteAmendmentResponse[]
+}
+
+export interface ScanCaseNoteAmendmentResponse {
+  text: string
+  createdBy: string
+  createdAt: Date
 }

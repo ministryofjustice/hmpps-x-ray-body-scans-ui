@@ -146,5 +146,6 @@ ${additionalDetails ? `--\n${additionalDetails}` : ''}
     occurredAt,
     createdBy: scan.createdBy,
     createdAt: new Date(),
+    amendments: [],
   }
 }

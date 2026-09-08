@@ -9,6 +9,7 @@ import type {
   CreateScanRequest,
   LegacyScanResponse,
   ListScansRequest,
+  ScanCaseNoteAmendmentResponse,
   ScanCaseNoteResponse,
   ScanResponse,
   ScanSummaryRequest,
@@ -51,9 +52,14 @@ export function convertRawScanResponse(
   }
 }
 
-interface RawScanCaseNoteResponse extends Omit<ScanCaseNoteResponse, 'createdAt' | 'occurredAt'> {
+interface RawScanCaseNoteResponse extends Omit<ScanCaseNoteResponse, 'createdAt' | 'occurredAt' | 'amendments'> {
   createdAt: string
   occurredAt: string
+  amendments: RawScanCaseNoteAmendmentResponse[]
+}
+
+interface RawScanCaseNoteAmendmentResponse extends Omit<ScanCaseNoteAmendmentResponse, 'createdAt'> {
+  createdAt: string
 }
 
 export function convertRawScanCaseNoteResponse(caseNote: RawScanCaseNoteResponse): ScanCaseNoteResponse {
@@ -61,6 +67,11 @@ export function convertRawScanCaseNoteResponse(caseNote: RawScanCaseNoteResponse
     ...caseNote,
     createdAt: new Date(caseNote.createdAt),
     occurredAt: new Date(caseNote.occurredAt),
+    amendments:
+      caseNote.amendments?.map(amendment => ({
+        ...amendment,
+        createdAt: new Date(amendment.createdAt),
+      })) ?? [],
   }
 }
 
