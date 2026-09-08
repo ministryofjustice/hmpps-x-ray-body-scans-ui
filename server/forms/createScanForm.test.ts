@@ -5,7 +5,7 @@ import { createScanForm, treeifyCreateScanFormErrors } from './createScanForm'
 
 type FormInput = z.input<typeof createScanForm>
 
-beforeAll(() => {
+beforeEach(() => {
   fixedClock()
 })
 
@@ -276,6 +276,26 @@ describe('createScanForm', () => {
       expect(errors).toEqual({
         errors: [],
         properties: { scanDate: { errors: ['The scan date cannot be in the future'] } },
+      })
+      expect(scanDateComponentsWithErrors).toEqual(new Set())
+    })
+
+    it('too old a scan date', () => {
+      const result = createScanForm.safeParse({
+        scanDateOption: 'other',
+        'scanDate-day': '22',
+        'scanDate-month': '6',
+        'scanDate-year': '2026',
+        justification: 'INTELLIGENCE',
+        outcome: 'NEGATIVE',
+      } satisfies FormInput)
+      expect(result.success).toBe(false)
+      expect(result.data).toBeUndefined()
+
+      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
+      expect(errors).toEqual({
+        errors: [],
+        properties: { scanDate: { errors: ['Enter a scan date from the last 31 days'] } },
       })
       expect(scanDateComponentsWithErrors).toEqual(new Set())
     })

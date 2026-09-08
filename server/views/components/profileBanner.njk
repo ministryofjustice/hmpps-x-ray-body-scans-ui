@@ -1,24 +1,64 @@
 {% macro profileBanner(params) %}
+  {% set prisoner = params.prisoner %}
+  {% set prisonerPermissions = params.prisonerPermissions %}
+
   <dl class="hmpps-profile-banner">
     <dt class="govuk-visually-hidden">Photo</dt>
     <dd>
-      {% if isGranted and isGranted(CorePersonRecordPermission.read_photo, params.prisonerPermissions) %}
-        <img src="/prisoner/{{ params.prisoner.prisonerNumber }}/photo" alt="Photo of {{ params.prisoner.displayName }}" width="80" height="100" data-testid="photo"/>
+      {% if isGranted(CorePersonRecordPermission.read_photo, prisonerPermissions) %}
+        <img src="/prisoner/{{ prisoner.prisonerNumber }}/photo" alt="Photo of {{ prisoner.displayName }}" width="80" height="100" data-testid="photo"/>
       {% else %}
-        <svg aria-label="Photo of {{ params.prisoner.displayName }} is not available" role="img" width="80" height="100" viewBox="0 0 80 100" data-testid="photo-unavailable" xmlns="http://www.w3.org/2000/svg">
+        <svg aria-label="Photo of {{ prisoner.displayName }} is not available" role="img" width="80" height="100" viewBox="0 0 80 100" data-testid="photo-unavailable" xmlns="http://www.w3.org/2000/svg">
           <path fill="#fff" stroke="#6f777b" d="M.5.5h79v99H.5z"/>
           <path fill="#6f777b" d="M40.421 82.344c14.969 0 28.632-24.786 28.632-41.394 0-19.44-14.362-30.073-28.632-30.073S11.79 21.511 11.79 40.95c0 16.608 13.664 41.394 28.632 41.394"/>
           <path fill="#6f777b" d="M19.368 80.662h8.382c3.966 3.148 8.27 5.045 12.671 5.045 4.402 0 8.705-1.897 12.67-5.045h7.54C71.33 80.662 80 89.32 80 100H0c0-10.68 8.672-19.338 19.368-19.338"/>
         </svg>
       {% endif %}
     </dd>
+
     <div class="hmpps-profile-banner__properties">
       <div class="hmpps-profile-banner__name">
         <dt>
-          <a href="{{ params.prisoner | prisonerProfileUrl }}">{{ params.prisoner.reversedDisplayName }}</a>
+          <a href="{{ prisoner | prisonerProfileUrl }}">{{ prisoner.reversedDisplayName }}</a>
         </dt>
-        <dd>{{ params.prisoner.prisonerNumber }}</dd>
+        <dd>{{ prisoner.prisonerNumber }}</dd>
       </div>
+
+      {% if isGranted(PrisonerBaseLocationPermission.read_location_details, prisonerPermissions) %}
+        <div>
+          <dt>Location</dt>
+          <dd>
+            {% if prisoner.prisonId == "OUT" %}
+              Released
+            {% elseif prisoner.prisonId == "TRN" %}
+              Transfer
+            {% else %}
+              {{ prisoner.cellLocation }} {% if prisonerData.inOutStatus == "OUT" -%}
+                (Outside)
+              {%- endif %}
+            {% endif %}
+          </dd>
+        </div>
+      {% endif %}
+
+      {% if isGranted(PersonPrisonCategoryPermission.read, prisonerPermissions) %}
+        <div>
+          <dt>Category</dt>
+          <dd>
+            {% if not prisoner.category %}
+              Not entered
+            {% elseif prisoner.category == "H" %}
+              A – high
+            {% elseif prisoner.category == "P" %}
+              A – provisional
+            {% elseif prisoner.category == "U" %}
+              Unsentenced
+            {% else %}
+              {{ prisoner.category }}
+            {% endif %}
+          </dd>
+        </div>
+      {% endif %}
     </div>
   </dl>
 {% endmacro %}

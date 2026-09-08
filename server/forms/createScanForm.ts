@@ -15,7 +15,7 @@ const errorMessages = {
     return `The scan date must include a ${component}`
   },
   futureScanDate: 'The scan date cannot be in the future',
-  // TODO: oldScanDate: 'Enter a scan date within the last week/month',
+  oldScanDate: 'Enter a scan date from the last 31 days',
   invalidJustification: 'Select why the scan was carried out',
   invalidOutcome: 'Select the result of the scan',
   invalidTypeOfFind: 'Select type of item detected',
@@ -116,7 +116,16 @@ export const createScanForm = baseCreateScanForm
         })
       }
 
-      // TODO: forbid old dates
+      const oldScanCutoff = new Date()
+      oldScanCutoff.setDate(oldScanCutoff.getDate() - 31)
+      if (formatIsoDate(date) < formatIsoDate(oldScanCutoff)) {
+        // too old a date
+        ctx.addIssue({
+          code: 'custom',
+          message: errorMessages.oldScanDate,
+          path: ['scanDate'],
+        })
+      }
     },
     {
       when(payload) {

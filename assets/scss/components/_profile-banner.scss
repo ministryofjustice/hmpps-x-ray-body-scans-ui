@@ -1,5 +1,6 @@
 @use "govuk-frontend/dist/govuk/helpers/clearfix";
 @use "govuk-frontend/dist/govuk/helpers/colour";
+@use "govuk-frontend/dist/govuk/helpers/links";
 @use "govuk-frontend/dist/govuk/helpers/media-queries";
 @use "govuk-frontend/dist/govuk/helpers/spacing";
 @use "govuk-frontend/dist/govuk/helpers/typography";
@@ -46,6 +47,11 @@
 
   @media #{media-queries.govuk-from-breakpoint(tablet)} {
     flex-wrap: nowrap;
+  }
+
+  dd a {
+    @include links.govuk-link-common;
+    @include links.govuk-link-style-text;
   }
 }
 

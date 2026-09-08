@@ -108,9 +108,17 @@ describe('X-ray body scans API client', () => {
         ...caseNoteResponse,
         createdAt: '2026-07-24T12:07:41',
         occurredAt: '2026-07-23T00:00:00',
+        amendments: [
+          {
+            text: 'Suggest re-scan tomorrow',
+            createdBy: 'Author Two',
+            createdAt: '2026-07-24T12:07:41',
+          },
+        ],
       })
       expect(response.createdAt).toBeInstanceOf(Date)
       expect(response.occurredAt).toBeInstanceOf(Date)
+      expect(response.amendments[0].createdAt).toBeInstanceOf(Date)
     })
 
     it('should convert scan summaries', () => {
@@ -220,6 +228,7 @@ describe('X-ray body scans API client', () => {
     it('should post to create a case note and return nothing', async () => {
       const request: CreateScanCaseNoteRequest = {
         text: 'nothing of interest detected',
+        prisonId: 'MDI',
       }
 
       nock(config.apis.xrayBodyScansApi.url)
