@@ -45,6 +45,15 @@ export function formatIsoDate(dateTime: Date | null | undefined): string | undef
 }
 
 /**
+ * Formats short dates (ignoring time) in Europe/London for display to users.
+ *
+ * Example: `01/01/2026`
+ */
+export function formatDisplayShortDate(dateTime: Date): string {
+  return shortDateFormatter.format(dateTime)
+}
+
+/**
  * Formats dates (ignoring time) in Europe/London for display to users.
  *
  * Example: `1 January 2026`

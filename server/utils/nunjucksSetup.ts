@@ -6,7 +6,7 @@ import nunjucks from 'nunjucks'
 import { setupNunjucksPermissions } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import config from '../config'
 import logger from '../../logger'
-import { formatDisplayDate, formatDisplayDateTime } from './dates'
+import { formatDisplayDate, formatDisplayDateTime, formatDisplayShortDate } from './dates'
 import { initialiseName } from './utils'
 import type { Prisoner } from '../data/interfaces/prisonerSearchApi'
 import { errorMessageForField, errorSummary } from '../forms/formErrors'
@@ -60,6 +60,7 @@ export default function nunjucksSetup(app: express.Express): nunjucks.Environmen
     'prisonerProfileUrl',
     (prisoner: Prisoner) => `${config.serviceUrls.prisonerProfile}/prisoner/${prisoner.prisonerNumber}`,
   )
+  njkEnv.addFilter('formatDisplayShortDate', formatDisplayShortDate)
   njkEnv.addFilter('formatDisplayDate', formatDisplayDate)
   njkEnv.addFilter('formatDisplayDateTime', formatDisplayDateTime)
 
