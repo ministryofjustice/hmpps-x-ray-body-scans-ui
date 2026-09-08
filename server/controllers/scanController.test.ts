@@ -135,12 +135,21 @@ describe('getScanList', () => {
       returnParameters: '',
       addedCaseNoteToScan: undefined,
     })
-    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, { page: 0 }, username)
+    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(
+      prisonerNumber,
+      { fromScanDate: expect.any(Date), toScanDate: expect.any(Date), page: 0 },
+      username,
+    )
     expect(prisonService.getPrisonNames).not.toHaveBeenCalled()
   })
 
   it.each([
-    { scenario: 'this year', year: undefined, expectedYearFilter: undefined, expectedListScansRequest: { page: 0 } },
+    {
+      scenario: 'this year',
+      year: undefined,
+      expectedYearFilter: undefined,
+      expectedListScansRequest: { page: 0, fromScanDate: expect.any(Date), toScanDate: expect.any(Date) },
+    },
     {
       scenario: 'last year',
       year: '2025',
@@ -269,7 +278,11 @@ describe('getScanList', () => {
         sorter: expect.any(Function),
       }),
     )
-    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(prisonerNumber, { page: 1 }, username)
+    expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(
+      prisonerNumber,
+      { fromScanDate: expect.any(Date), toScanDate: expect.any(Date), page: 1 },
+      username,
+    )
     expect(prisonService.getPrisonNames).not.toHaveBeenCalled()
   })
 
@@ -278,15 +291,13 @@ describe('getScanList', () => {
       scenario: 'this year',
       year: undefined,
       expectedYearFilter: undefined,
-      expectedListScansRequest: { fromScanDate: undefined, toScanDate: undefined },
     },
     {
       scenario: 'last year',
       year: '2025',
       expectedYearFilter: 2025,
-      expectedListScansRequest: { fromScanDate: expect.any(Date), toScanDate: expect.any(Date) },
     },
-  ])('should show all scans for $scenario', async ({ year, expectedYearFilter, expectedListScansRequest }) => {
+  ])('should show all scans for $scenario', async ({ year, expectedYearFilter }) => {
     xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
       mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
     )
@@ -313,7 +324,7 @@ describe('getScanList', () => {
     )
     expect(xrayBodyScansApiClient.listScans).toHaveBeenCalledWith(
       prisonerNumber,
-      { ...expectedListScansRequest, page: 0, size: 5000 },
+      { fromScanDate: expect.any(Date), toScanDate: expect.any(Date), page: 0, size: 5000 },
       username,
     )
     expect(prisonService.getPrisonNames).not.toHaveBeenCalled()

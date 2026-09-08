@@ -340,7 +340,11 @@ test.describe('Scan list page', () => {
               relevantAlerts: [],
             }),
           ),
-          xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), { page: 0 }),
+          xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), {
+            fromScanDate: new Date(now.getFullYear(), 0, 1, 12),
+            toScanDate: now,
+            page: 0,
+          }),
           login(page),
         ])
 
