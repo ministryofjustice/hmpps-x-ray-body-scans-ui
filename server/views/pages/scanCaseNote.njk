@@ -21,15 +21,20 @@
     <strong>Happened:</strong> {{ caseNote.occurredAt | formatDisplayDateTime }}
   </p>
 
-  {% for amendment in caseNote.amendments %}
+  {% if caseNote.amendments.length %}
     <h3 class="govuk-heading-s">More details added:</h3>
-    <p class="white-space-pre-line">
-      {{- amendment.text.trim() -}}
-    </p>
-    <p class="hmpps-secondary-text">
-      <strong>Added:</strong> {{ amendment.createdAt | formatDisplayDateTime }} by {{ amendment.createdBy }}
-    </p>
-  {% endfor %}
+
+    {% for amendment in caseNote.amendments %}
+      <div class="case-note-modal__amendment">
+        <p class="white-space-pre-line">
+          {{- amendment.text.trim() -}}
+        </p>
+        <p class="hmpps-secondary-text">
+          <strong>Added:</strong> {{ amendment.createdAt | formatDisplayDateTime }} by {{ amendment.createdBy }}
+        </p>
+      </div>
+    {% endfor %}
+  {% endif %}
 
   {{ govukButton({
     text: "Close",

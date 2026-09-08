@@ -1,9 +1,23 @@
+@use "govuk-frontend/dist/govuk/helpers/colour";
 @use "govuk-frontend/dist/govuk/helpers/media-queries";
+@use "govuk-frontend/dist/govuk/helpers/spacing";
 
 #case-note-modal {
   .hmpps-modal__dialogue-box {
     @include media-queries.govuk-media-query($from: desktop) {
       min-width: 600px;
     }
+  }
+}
+
+.case-note-modal__content .govuk-heading-s {
+  margin-bottom: 0;
+}
+
+.case-note-modal__amendment {
+  @include spacing.govuk-responsive-margin(2, "top");
+
+  &:not(:last-of-type) {
+    border-bottom: 1px dashed #{colour.govuk-functional-colour(border)};
   }
 }
