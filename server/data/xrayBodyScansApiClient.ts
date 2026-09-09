@@ -75,7 +75,8 @@ export function convertRawScanCaseNoteResponse(caseNote: RawScanCaseNoteResponse
   }
 }
 
-interface RawScanSummaryResponse extends Omit<ScanSummaryResponse, 'fromScanDate' | 'toScanDate'> {
+interface RawScanSummaryResponse extends Omit<ScanSummaryResponse, 'latestScan' | 'fromScanDate' | 'toScanDate'> {
+  latestScan: RawScanResponse | RawLegacyScanResponse | null
   fromScanDate: string
   toScanDate: string
 }
@@ -83,6 +84,7 @@ interface RawScanSummaryResponse extends Omit<ScanSummaryResponse, 'fromScanDate
 export function convertRawScanSummaryResponse(summary: RawScanSummaryResponse): ScanSummaryResponse {
   return {
     ...summary,
+    latestScan: summary.latestScan ? convertRawScanResponse(summary.latestScan) : null,
     // using midday in order to avoid daylight saving switches
     fromScanDate: new Date(`${summary.fromScanDate}T12:00:00`),
     toScanDate: new Date(`${summary.toScanDate}T12:00:00`),

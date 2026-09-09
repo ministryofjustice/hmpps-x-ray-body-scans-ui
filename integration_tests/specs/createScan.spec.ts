@@ -102,6 +102,7 @@ test.describe('Create scan page', () => {
           now,
           relevantAlerts: [],
         }),
+        { includeAlerts: true },
       ),
     ])
 
@@ -180,6 +181,7 @@ test.describe('Create scan page', () => {
           now: new Date(),
           relevantAlerts: [mockDoNotScanAlert],
         }),
+        { includeAlerts: true },
       ),
     ])
 
@@ -257,6 +259,7 @@ test.describe('Create scan page', () => {
             now: new Date(),
             relevantAlerts: [mockInternalSecretorAlert],
           }),
+          { includeAlerts: true },
         ),
       ])
 

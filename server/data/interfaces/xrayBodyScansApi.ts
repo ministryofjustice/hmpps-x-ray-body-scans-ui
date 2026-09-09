@@ -60,6 +60,7 @@ export interface LegacyScanResponse extends UnifiedScanResponse {
 }
 
 export interface ScanSummaryRequest {
+  includeLatestScan?: boolean
   includeAlerts?: boolean
 }
 
@@ -75,6 +76,7 @@ export interface ScanSummaryResponse {
   remainingScans: number
   nearingScanLimit: boolean
   atScanLimit: boolean
+  latestScan: ScanResponse | LegacyScanResponse | null
   relevantAlerts: AlertResponse[] | null
   fromScanDate: Date
   toScanDate: Date
