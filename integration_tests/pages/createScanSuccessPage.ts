@@ -12,11 +12,11 @@ export default class CreateScanSuccessPage extends AbstractPage {
     return this.page.locator('.govuk-panel--confirmation')
   }
 
-  get internalSecretorAlertCreatedNote(): Locator {
-    return this.page.getByText('An internal secretor alert has been added')
+  get internalSecretorAlert(): Locator {
+    return this.page.locator('[data-testid="internal-secretor-alert"]')
   }
 
-  get updateInternalSecretorAlertLink(): Locator {
-    return this.page.getByText('Update internal secretor alert')
+  get internalSecretorAlertLink(): Locator {
+    return this.internalSecretorAlert.getByRole('link')
   }
 }

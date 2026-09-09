@@ -48,10 +48,17 @@ export default class ScanController {
     const yearFilter = result.data?.yearFilter
     const listScansRequest: ListScansRequest = result.data?.listScansRequest ?? {}
 
-    const [scanSummary, scans] = await Promise.all([
+    const [scanSummaryResult, scansResult] = await Promise.allSettled([
       this.xrayBodyScansApiClient.getScanSummary(prisonerNumber, { includeAlerts: true }, username),
       this.xrayBodyScansApiClient.listScans(prisonerNumber, listScansRequest, username),
     ])
+    if (scanSummaryResult.status !== 'fulfilled' || scansResult.status !== 'fulfilled') {
+      res.render('pages/scanListError')
+      return
+    }
+
+    const scanSummary = scanSummaryResult.value
+    const scans = scansResult.value
 
     const sorter = sortable(listScansRequest, req.originalUrl)
     const pagination = paginate(scans, req.originalUrl, yearFilter !== 'all')
@@ -212,7 +219,6 @@ export default class ScanController {
       prisoner,
       scan,
       internalSecretorAlert,
-      internalSecretorAlertCreated: false,
     })
   }
 }

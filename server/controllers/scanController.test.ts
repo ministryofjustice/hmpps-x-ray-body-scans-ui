@@ -330,7 +330,25 @@ describe('getScanList', () => {
     expect(prisonService.getPrisonNames).not.toHaveBeenCalled()
   })
 
-  // TODO: what shows if summary and/or list do not load?
+  it.each([
+    { scenario: 'scan summary did not load', error: 'scanSummary' as const },
+    { scenario: 'scan history did not load', error: 'scans' as const },
+  ])('should show an error when $scenario', async ({ error }) => {
+    if (error === 'scanSummary') {
+      xrayBodyScansApiClient.getScanSummary.mockRejectedValue(mockThrownError(internalServerErrorResponse))
+      xrayBodyScansApiClient.listScans.mockResolvedValueOnce(emptyPageResponse())
+    }
+    if (error === 'scans') {
+      xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
+        mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+      )
+      xrayBodyScansApiClient.listScans.mockRejectedValue(mockThrownError(internalServerErrorResponse))
+    }
+
+    await scanController.getScanList(req, res)
+
+    expect(res.render).toHaveBeenCalledWith('pages/scanListError')
+  })
 })
 
 describe('getCreateScan', () => {
@@ -473,7 +491,6 @@ describe('postCreateScan', () => {
         prisoner,
         scan,
         internalSecretorAlert: undefined,
-        internalSecretorAlertCreated: false,
       }),
     )
     expect(res.redirect).not.toHaveBeenCalled()
@@ -514,7 +531,6 @@ describe('postCreateScan', () => {
       'pages/createScanSuccess',
       expect.objectContaining({
         internalSecretorAlert: mockInternalSecretorAlert,
-        internalSecretorAlertCreated: false,
       }),
     )
     expect(res.redirect).not.toHaveBeenCalled()

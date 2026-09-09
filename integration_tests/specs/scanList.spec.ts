@@ -765,5 +765,18 @@ test.describe('Scan list page', () => {
     }
   })
 
-  // TODO: what shows if summary and/or list do not load?
+  test('Shows an error message when summary or scans didn’t load', async ({ page }) => {
+    await Promise.all([
+      xrayBodyScansApi.stubGetScanSummary(
+        prisonerNumber,
+        mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+      ),
+      xrayBodyScansApi.stubListScans(prisonerNumber, internalServerErrorResponse),
+      login(page),
+    ])
+
+    const scanListPage = await goToScanListPage(page)
+
+    await expect(scanListPage.alert).toContainText('The scan history could not be loaded')
+  })
 })

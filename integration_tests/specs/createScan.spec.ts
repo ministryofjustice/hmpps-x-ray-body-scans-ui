@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { login, resetStubs } from '../testUtils'
+import { DEFAULT_ROLES, login, resetStubs } from '../testUtils'
 import { formatIsoDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { badRequestErrorResponse } from '../../server/testutils/mocks/errorResponse'
@@ -116,8 +116,7 @@ test.describe('Create scan page', () => {
       { key: 'Result', value: 'Negative' },
       { key: 'Items found', value: 'None' },
     ])
-    await expect(createScanSuccessPage.internalSecretorAlertCreatedNote).not.toBeVisible()
-    await expect(createScanSuccessPage.updateInternalSecretorAlertLink).not.toBeVisible()
+    await expect(createScanSuccessPage.internalSecretorAlert).not.toBeVisible()
   })
 
   test('Can record a positive scan on another date', async ({ page }) => {
@@ -179,7 +178,7 @@ test.describe('Create scan page', () => {
         mockScanSummaryResponse({
           prisonerNumber,
           now: new Date(),
-          relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert],
+          relevantAlerts: [mockDoNotScanAlert],
         }),
       ),
     ])
@@ -195,12 +194,91 @@ test.describe('Create scan page', () => {
       { key: 'Result', value: 'Positive' },
       { key: 'Items found', value: 'Inorganic' },
     ])
-    await expect(createScanSuccessPage.internalSecretorAlertCreatedNote).not.toBeVisible()
-    await expect(createScanSuccessPage.updateInternalSecretorAlertLink).toHaveAttribute(
-      'href',
-      `http://localhost:9091/profile/prisoner/${prisonerNumber}/alerts/${mockInternalSecretorAlert.id}/add-more-details`,
-    )
+    await expect(createScanSuccessPage.internalSecretorAlert).not.toBeVisible()
   })
+
+  for (const { scenario, hasUpdateAlertRole } of [
+    { scenario: 'view it', hasUpdateAlertRole: false },
+    { scenario: 'edit it', hasUpdateAlertRole: true },
+  ]) {
+    test(`Can record a scan for someone with the internal secretor alert and ${scenario}`, async ({ page }) => {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      yesterday.setHours(12, 0, 0, 0)
+
+      const roles = [...DEFAULT_ROLES]
+      if (hasUpdateAlertRole) {
+        roles.push('ROLE_UPDATE_ALERT')
+      }
+      await login(page, { roles })
+
+      await page.goto(`/prisoner/${prisonerNumber}/record-scan`)
+      const createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
+
+      await createScanPage.checkRadioButton('Yesterday', { exact: false })
+      await createScanPage.checkRadioButton('Intelligence-led')
+      await createScanPage.checkRadioButton('No item detected')
+
+      // radio buttons selected
+      await expect(createScanPage.getFormValues()).resolves.toEqual(
+        expect.objectContaining({
+          scanDateOption: 'yesterday',
+          justification: 'INTELLIGENCE',
+          outcome: 'NEGATIVE',
+        }),
+      )
+
+      const response: ScanResponse = {
+        ...mockScanResponse(prisonerNumber, yesterday),
+        justification: 'INTELLIGENCE',
+        justificationDescription: 'Intelligence-led',
+        outcome: 'NEGATIVE',
+        outcomeDescription: 'Negative',
+        typeOfFind: null,
+        typeOfFindDescription: null,
+      }
+      await Promise.all([
+        xrayBodyScansApi.stubCreateScan(
+          prisonerNumber,
+          {
+            prisonId: 'MDI',
+            scanDate: formatIsoDate(yesterday),
+            justification: 'INTELLIGENCE',
+            outcome: 'NEGATIVE',
+            typeOfFind: null,
+            createdBy: 'USER1',
+          },
+          response,
+        ),
+        xrayBodyScansApi.stubGetScanSummary(
+          prisonerNumber,
+          mockScanSummaryResponse({
+            prisonerNumber,
+            now: new Date(),
+            relevantAlerts: [mockInternalSecretorAlert],
+          }),
+        ),
+      ])
+
+      await createScanPage.saveButton.click()
+
+      const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
+
+      if (hasUpdateAlertRole) {
+        await expect(createScanSuccessPage.internalSecretorAlertLink).toContainText('Update internal secretor alert')
+        await expect(createScanSuccessPage.internalSecretorAlertLink).toHaveAttribute(
+          'href',
+          `http://localhost:9091/profile/prisoner/${prisonerNumber}/alerts/${mockInternalSecretorAlert.id}/add-more-details`,
+        )
+      } else {
+        await expect(createScanSuccessPage.internalSecretorAlertLink).toContainText('View the alert details')
+        await expect(createScanSuccessPage.internalSecretorAlertLink).toHaveAttribute(
+          'href',
+          `http://localhost:9091/profile/prisoner/${prisonerNumber}/alerts/detail?ids=${mockInternalSecretorAlert.id}`,
+        )
+      }
+    })
+  }
 
   test('Shows an error message when one required field was not selected', async ({ page }) => {
     await login(page)
