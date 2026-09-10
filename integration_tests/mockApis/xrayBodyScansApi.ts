@@ -12,18 +12,31 @@ import type {
   ListScansRequest,
   ScanCaseNoteResponse,
   ScanResponse,
+  ScanSummaryRequest,
   ScanSummaryResponse,
 } from '../../server/data/interfaces/xrayBodyScansApi'
 
 export default {
   stubPing: (httpStatus = 200): SuperAgentRequest => stubPing('/xray-body-scans-api', httpStatus),
 
-  stubGetScanSummary(prisonerNumber: string, response?: ScanSummaryResponse | ErrorResponse): SuperAgentRequest {
+  stubGetScanSummary(
+    prisonerNumber: string,
+    response?: ScanSummaryResponse | ErrorResponse,
+    request?: ScanSummaryRequest,
+  ): SuperAgentRequest {
+    const queryParameters: Record<string, { equalTo: string }> = {}
+    if (request?.includeLatestScan) {
+      queryParameters.includeLatestScan = { equalTo: 'true' }
+    }
+    if (request?.includeAlerts) {
+      queryParameters.includeAlerts = { equalTo: 'true' }
+    }
     const jsonBody = response ?? mockScanSummaryResponse({ prisonerNumber, now: new Date() })
     return stubFor({
       request: {
         method: 'GET',
         urlPath: `/xray-body-scans-api/prisoner/${prisonerNumber}/scan/summary`,
+        queryParameters,
       },
       response: {
         status: response && 'userMessage' in response ? response.status : 200,
@@ -32,6 +45,7 @@ export default {
           'fromScanDate' in jsonBody
             ? {
                 ...jsonBody,
+                latestScan: jsonBody.latestScan ? scanToRawScan(jsonBody.latestScan) : null,
                 fromScanDate: formatIsoDate(jsonBody.fromScanDate),
                 toScanDate: formatIsoDate(jsonBody.toScanDate),
               }

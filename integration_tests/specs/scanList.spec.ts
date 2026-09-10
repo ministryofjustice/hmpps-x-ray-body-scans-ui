@@ -59,6 +59,7 @@ test.describe('Scan list page', () => {
         xrayBodyScansApi.stubGetScanSummary(
           prisonerNumber,
           mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+          { includeAlerts: true },
         ),
         xrayBodyScansApi.stubListScans(prisonerNumber),
         login(page),
@@ -226,7 +227,7 @@ test.describe('Scan list page', () => {
     } of summaryScenarios) {
       test(`Shows summary for a person ${scenario}`, async ({ page }) => {
         await Promise.all([
-          xrayBodyScansApi.stubGetScanSummary(prisonerNumber, scanSummary),
+          xrayBodyScansApi.stubGetScanSummary(prisonerNumber, scanSummary, { includeAlerts: true }),
           xrayBodyScansApi.stubListScans(prisonerNumber),
           login(page),
         ])
@@ -279,7 +280,7 @@ test.describe('Scan list page', () => {
     for (const { scenario, scanSummary, expectedAlertFlags } of alertsScenarios) {
       test(`Shows summary for a person ${scenario}`, async ({ page }) => {
         await Promise.all([
-          xrayBodyScansApi.stubGetScanSummary(prisonerNumber, scanSummary),
+          xrayBodyScansApi.stubGetScanSummary(prisonerNumber, scanSummary, { includeAlerts: true }),
           xrayBodyScansApi.stubListScans(prisonerNumber),
           login(page),
         ])
@@ -339,6 +340,7 @@ test.describe('Scan list page', () => {
               now,
               relevantAlerts: [],
             }),
+            { includeAlerts: true },
           ),
           xrayBodyScansApi.stubListScans(prisonerNumber, emptyPageResponse(), {
             fromScanDate: new Date(now.getFullYear(), 0, 1, 12),
@@ -397,6 +399,7 @@ test.describe('Scan list page', () => {
             now,
             relevantAlerts: [],
           }),
+          { includeAlerts: true },
         ),
         xrayBodyScansApi.stubListScans(
           prisonerNumber,
@@ -540,6 +543,7 @@ test.describe('Scan list page', () => {
               now,
               relevantAlerts: [],
             }),
+            { includeAlerts: true },
           ),
           xrayBodyScansApi.stubListScans(prisonerNumber, response, { page: 0 }),
           login(page),
@@ -600,6 +604,7 @@ test.describe('Scan list page', () => {
             now,
             relevantAlerts: [],
           }),
+          { includeAlerts: true },
         ),
         xrayBodyScansApi.stubListScans(prisonerNumber, response, {
           page: 0,
@@ -723,6 +728,7 @@ test.describe('Scan list page', () => {
               now,
               relevantAlerts: [],
             }),
+            { includeAlerts: true },
           ),
           xrayBodyScansApi.stubListScans(prisonerNumber, pageResponse(scans)),
           login(page),
@@ -770,6 +776,7 @@ test.describe('Scan list page', () => {
       xrayBodyScansApi.stubGetScanSummary(
         prisonerNumber,
         mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+        { includeAlerts: true },
       ),
       xrayBodyScansApi.stubListScans(prisonerNumber, internalServerErrorResponse),
       login(page),

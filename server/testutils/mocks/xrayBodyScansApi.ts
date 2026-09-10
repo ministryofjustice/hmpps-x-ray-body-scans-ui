@@ -62,6 +62,7 @@ interface ScanSummaryMockOptions {
   dpsCount?: number
   positiveCount?: number
   negativeCount?: number
+  latestScan?: ScanResponse | LegacyScanResponse | null
   relevantAlerts?: AlertResponse[] | null
 }
 
@@ -79,6 +80,7 @@ export function mockScanSummaryResponse({
   dpsCount = 0,
   positiveCount = 0,
   negativeCount = 0,
+  latestScan = null,
   relevantAlerts = null,
 }: ScanSummaryMockOptions): ScanSummaryResponse {
   const today = new Date(now)
@@ -104,6 +106,7 @@ export function mockScanSummaryResponse({
     remainingScans,
     nearingScanLimit,
     atScanLimit,
+    latestScan: latestScan ?? null,
     relevantAlerts,
     fromScanDate: startOfYear,
     toScanDate: today,

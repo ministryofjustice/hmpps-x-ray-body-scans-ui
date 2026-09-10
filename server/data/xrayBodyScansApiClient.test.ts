@@ -4,7 +4,12 @@ import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients
 import config from '../config'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../testutils/mocks/errorResponse'
 import { fixedClock, now, yesterday } from '../testutils/fixedClock'
-import { mockScanResponse, mockLegacyScanResponse, mockScanCaseNoteResponse } from '../testutils/mocks/xrayBodyScansApi'
+import {
+  mockScanResponse,
+  mockLegacyScanResponse,
+  mockScanCaseNoteResponse,
+  mockScanSummaryResponse,
+} from '../testutils/mocks/xrayBodyScansApi'
 import {
   convertRawScanCaseNoteResponse,
   convertRawScanResponse,
@@ -44,6 +49,7 @@ describe('X-ray body scans API client', () => {
     ...mockScanCaseNoteResponse(scanResponse, 'nothing of interest detected'),
     createdAt: now,
   }
+  const scanSummary = mockScanSummaryResponse({ prisonerNumber, now })
 
   let xrayBodyScansApiClient: XrayBodyScansApiClient
   let mockAuthenticationClient: jest.Mocked<AuthenticationClient>
@@ -121,23 +127,37 @@ describe('X-ray body scans API client', () => {
       expect(response.amendments[0].createdAt).toBeInstanceOf(Date)
     })
 
-    it('should convert scan summaries', () => {
+    it.each([
+      { scenario: 'no latest scan', latestScan: null },
+      {
+        scenario: 'latest scans from DPS',
+        latestScan: {
+          ...scanResponse,
+          scanDate: '2026-07-23',
+          mergedAt: '2026-07-24T12:07:41+01:00',
+          createdAt: '2026-07-24T12:07:41',
+          lastModifiedAt: '2026-07-24T11:07:41Z',
+        },
+      },
+      {
+        scenario: 'latest scans from NOMIS',
+        latestScan: {
+          ...legacyScanResponse,
+          scanDate: '2026-07-23',
+        },
+      },
+    ])('should convert scan summaries with $scenario', ({ latestScan }) => {
       const response = convertRawScanSummaryResponse({
-        prisonerNumber,
-        nomisCount: 0,
-        dpsCount: 0,
-        totalCount: 0,
-        negativeCount: 0,
-        inconclusiveCount: 0,
-        positiveCount: 0,
-        annualLimit: 116,
-        remainingScans: 116,
-        nearingScanLimit: false,
-        atScanLimit: false,
-        relevantAlerts: null,
+        ...scanSummary,
+        latestScan,
         fromScanDate: '2026-01-01', // UTC+0
         toScanDate: '2026-07-31', // UTC+1
       })
+      if (latestScan) {
+        expect(response.latestScan?.scanDate).toBeInstanceOf(Date)
+      } else {
+        expect(response.latestScan).toBeNull()
+      }
       expect(response.fromScanDate).toBeInstanceOf(Date)
       expect(response.fromScanDate.getMonth()).toEqual(0)
       expect(response.fromScanDate.getDate()).toEqual(1)
@@ -172,6 +192,11 @@ describe('X-ray body scans API client', () => {
 
       const response = await xrayBodyScansApiClient.getScanSummary(prisonerNumber, { includeAlerts }, username)
       expect(response.fromScanDate).toBeInstanceOf(Date)
+      if (includeAlerts) {
+        expect(response.relevantAlerts).toBeInstanceOf(Array)
+      } else {
+        expect(response.relevantAlerts).toBeNull()
+      }
     })
   })
 
