@@ -106,6 +106,8 @@ test.describe('Create scan page', () => {
 
     const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
 
+    await expect(createScanSuccessPage.breadcrumbs).not.toBeVisible()
+
     await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
     await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
       { key: 'Date', value: expect.stringContaining(String(now.getFullYear())) },
@@ -178,6 +180,8 @@ test.describe('Create scan page', () => {
     await createScanPage.saveButton.click()
 
     const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
+
+    await expect(createScanSuccessPage.breadcrumbs).not.toBeVisible()
 
     await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
     await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
@@ -252,6 +256,8 @@ test.describe('Create scan page', () => {
       await createScanPage.saveButton.click()
 
       const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
+
+      await expect(createScanSuccessPage.breadcrumbs).not.toBeVisible()
 
       if (hasUpdateAlertRole) {
         await expect(createScanSuccessPage.internalSecretorAlertLink).toContainText('Update internal secretor alert')

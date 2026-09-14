@@ -33,8 +33,12 @@ export default class AbstractPage {
     return expect(this.page.getByRole('heading', { name: text, level: 1 })).toBeVisible()
   }
 
+  get breadcrumbs(): Locator {
+    return this.page.locator('.govuk-breadcrumbs')
+  }
+
   async getBreadcrumbs(): Promise<Anchor[] | null> {
-    const breadcrumbs = this.page.locator('.govuk-breadcrumbs')
+    const { breadcrumbs } = this
     if ((await breadcrumbs.count()) === 0) {
       return null
     }
