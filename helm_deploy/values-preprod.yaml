@@ -17,6 +17,7 @@ generic-service:
     INGRESS_URL: "https://x-ray-body-scans-preprod.hmpps.service.justice.gov.uk"
     DPS_HOME_PAGE_URL: "https://dps-preprod.prison.service.justice.gov.uk"
     PRISONER_PROFILE_URL: "https://prisoner-preprod.digital.prison.service.justice.gov.uk"
+    WELCOME_PEOPLE_INTO_PRISON_URL: "https://welcome-preprod.prison.service.justice.gov.uk"
 
     # apis
     HMPPS_AUTH_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"

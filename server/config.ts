@@ -123,6 +123,11 @@ export default {
   serviceUrls: {
     digitalPrison: get('DPS_HOME_PAGE_URL', 'http://localhost:3001/dps-home', requiredInProduction),
     prisonerProfile: get('PRISONER_PROFILE_URL', 'http://localhost:3001/profile', requiredInProduction),
+    welcomePeopleIntoPrison: get(
+      'WELCOME_PEOPLE_INTO_PRISON_URL',
+      'http://localhost:3001/welcome',
+      requiredInProduction,
+    ),
   },
   sqs: {
     audit: auditConfig(),
