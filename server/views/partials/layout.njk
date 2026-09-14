@@ -21,11 +21,20 @@
 
 {% block containerStart %}
   {% if breadcrumbs %}
-    {{ govukBreadcrumbs({
-      items: breadcrumbs,
-      collapseOnMobile: true,
-      classes: "govuk-!-display-none-print"
-    }) }}
+    <div class="breadcrumbs govuk-!-display-none-print">
+      {% if wpipReturnPath %}
+        <div class="breadcrumbs__return-to-wpip">
+          <a href="{{ welcomePeopleIntoPrisonUrl }}{{ wpipReturnPath }}">
+            Return to recent arrivals
+          </a>
+        </div>
+      {% endif %}
+
+      {{ govukBreadcrumbs({
+        items: breadcrumbs,
+        collapseOnMobile: true
+      }) }}
+    </div>
   {% endif %}
 {% endblock %}
 

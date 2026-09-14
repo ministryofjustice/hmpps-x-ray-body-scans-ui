@@ -13,7 +13,7 @@ export default class CreateScanPage extends AbstractPage {
   }
 
   get cancelLink(): Locator {
-    return this.page.getByRole('link', { name: 'Cancel' })
+    return this.page.locator('.govuk-button-group').getByRole('link')
   }
 
   checkRadioButton(label: string, { exact = true }: { exact?: boolean } = {}): Promise<void> {

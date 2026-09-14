@@ -238,6 +238,16 @@
 
   </section>
 
-  <p><a href="{{ prisoner | prisonerProfileUrl }}">Return to the prisoner’s profile</a></p>
+  <p>
+    {% if wpipReturnPath %}
+      <a href="{{ welcomePeopleIntoPrisonUrl }}{{ wpipReturnPath }}" data-testid="return-link">
+        Return to recent arrivals
+      </a>
+    {% else %}
+      <a href="{{ prisoner | prisonerProfileUrl }}" data-testid="return-link">
+        Return to the prisoner’s profile
+      </a>
+    {% endif %}
+  </p>
 
 {% endblock %}

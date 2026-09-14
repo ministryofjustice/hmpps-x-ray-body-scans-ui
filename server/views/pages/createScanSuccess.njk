@@ -73,10 +73,18 @@
       }) }}
 
       <div class="govuk-button-group">
-        {{ govukButton({
-          text: "Return to X-ray body scans",
-          href: "/prisoner/" + prisoner.prisonerNumber + "/scan-overview"
-        }) }}
+        {% if wpipReturnPath %}
+          {{ govukButton({
+            text: "Return to recent arrivals",
+            href: welcomePeopleIntoPrisonUrl + wpipReturnPath
+          }) }}
+        {% else %}
+          {{ govukButton({
+            text: "Return to X-ray body scans",
+            href: "/prisoner/" + prisoner.prisonerNumber + "/scan-overview"
+          }) }}
+        {% endif %}
+
         <a class="govuk-link" href="{{ prisoner | prisonerProfileUrl }}">View this person’s profile</a>
       </div>
 

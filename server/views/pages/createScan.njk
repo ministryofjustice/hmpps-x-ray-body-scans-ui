@@ -174,7 +174,15 @@
             preventDoubleClick: true
           }) }}
 
-          <a href="/prisoner/{{ prisoner.prisonerNumber }}/scan-overview" class="govuk-link">Cancel</a>
+          {% if wpipReturnPath %}
+            <a href="{{ welcomePeopleIntoPrisonUrl }}{{ wpipReturnPath }}" class="govuk-link">
+              Return to recent arrivals
+            </a>
+          {% else %}
+            <a href="/prisoner/{{ prisoner.prisonerNumber }}/scan-overview" class="govuk-link">
+              Cancel
+            </a>
+          {% endif %}
         </div>
 
       </form>

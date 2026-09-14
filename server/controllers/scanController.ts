@@ -86,7 +86,7 @@ export default class ScanController {
             ...scan,
             scanDateDescription: formatDisplayDate(scan.scanDate),
             prisonDescription: prisonNames.get(scan.prisonId),
-            highlightedRow: addedCaseNoteToScan === scan.id,
+            highlightedRow: scan.id === addedCaseNoteToScan,
           },
     )
 

@@ -34,11 +34,15 @@ export default class AbstractPage {
   }
 
   get breadcrumbs(): Locator {
-    return this.page.locator('.govuk-breadcrumbs')
+    return this.page.locator('.breadcrumbs')
+  }
+
+  get returnToWpipLink(): Locator {
+    return this.breadcrumbs.locator('.breadcrumbs__return-to-wpip').getByRole('link')
   }
 
   async getBreadcrumbs(): Promise<Anchor[] | null> {
-    const { breadcrumbs } = this
+    const breadcrumbs = this.breadcrumbs.locator('.govuk-breadcrumbs')
     if ((await breadcrumbs.count()) === 0) {
       return null
     }
