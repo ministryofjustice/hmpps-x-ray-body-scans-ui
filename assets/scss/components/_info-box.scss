@@ -9,7 +9,7 @@
   initial-value: #{colour.govuk-colour(blue)};
 }
 
-// NB: this is _nearly_ identical to the MoJ alert 🤷
+// NB: this is not identical to the MoJ alert but really rather similar 🤷
 .info-box {
   --info-box-colour: #{colour.govuk-colour(blue)};
   display: flex;
@@ -19,7 +19,11 @@
   padding: measurements.$govuk-gutter-half;
   border: 2px solid var(--info-box-colour);
 
-  > svg {
+  @media (forced-colors: active) and (prefers-color-scheme: dark) {
+    --info-box-colour: #fff;
+  }
+
+  svg {
     flex: 0 0 auto;
     color: var(--info-box-colour);
   }
