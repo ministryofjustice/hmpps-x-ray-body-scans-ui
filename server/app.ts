@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request } from 'express'
 import { NotFound } from 'http-errors'
 import { telemetryMiddleware } from '@ministryofjustice/hmpps-azure-telemetry'
 import { getFrontendComponents, retrieveCaseLoadData } from '@ministryofjustice/hmpps-connect-dps-components'
@@ -21,7 +21,6 @@ import { setUpSentry, setUpSentryErrorHandler } from './middleware/setUpSentry'
 
 import routes from './routes'
 import type { Services } from './services'
-import addUserMetadataToLogs from './middleware/addUserMetadataToLogs'
 
 export default function createApp(services: Services): express.Application {
   const app = express()
@@ -41,8 +40,6 @@ export default function createApp(services: Services): express.Application {
   app.use(authorisationMiddleware())
   app.use(setUpCsrf())
   app.use(setUpCurrentUser())
-  // For prison users, register the `addUserMetadataToTelemetry` middleware after middleware that retrieves caseload data.
-  app.use(telemetryMiddleware.addUserMetadataToTelemetry())
 
   app.use(
     getFrontendComponents({
@@ -53,9 +50,11 @@ export default function createApp(services: Services): express.Application {
     }),
   )
   app.use(retrieveCaseLoadData({ logger, prisonApiConfig: config.apis.prisonApi }))
-
-  app.use(addUserMetadataToLogs())
-
+  app.use(
+    telemetryMiddleware.addUserMetadataToTelemetry({
+      getAttributes: (req: Request) => ({ username: req.user?.username }),
+    }),
+  )
   app.use(routes(services))
 
   app.use((_req, _res, next) => next(new NotFound()))
