@@ -16,3 +16,4 @@ export const addScanCaseNoteForm = z
   })
 
 export type AddScanCaseNoteForm = z.infer<typeof addScanCaseNoteForm>
+export type AddScanCaseNoteFormInput = z.input<typeof addScanCaseNoteForm>

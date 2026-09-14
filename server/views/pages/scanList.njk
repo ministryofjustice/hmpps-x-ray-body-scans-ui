@@ -179,7 +179,6 @@
         { text: scan.prisonDescription, classes: cellClasses },
         { text: scan.justificationDescription, classes: cellClasses },
         { html: resultTag(scan), classes: cellClasses },
-        { text: scan.typeOfFindDescription | default("None", true) if scan.source === "DPS" else "", classes: cellClasses },
         { html: actionLink, classes: "scan-table__action-td " + cellClasses }
       ]) %}
     {% endfor %}
@@ -212,7 +211,6 @@
             { text: "Establishment" },
             { text: "Reason" },
             { text: "Scan details", classes: "scan-table__details-th" },
-            { text: "Items found" },
             { text: "Action", classes: "scan-table__action-th" }
           ],
           rows: rows,

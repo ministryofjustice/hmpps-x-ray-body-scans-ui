@@ -1,9 +1,6 @@
-import * as z from 'zod'
-import { justifications, outcomes, typesOfFind } from '../data/interfaces/xrayBodyScansApi'
+import { justifications, outcomes } from '../data/interfaces/xrayBodyScansApi'
 import { fixedClock } from '../testutils/fixedClock'
-import { createScanForm, treeifyCreateScanFormErrors } from './createScanForm'
-
-type FormInput = z.input<typeof createScanForm>
+import { type CreateScanFormInput, createScanForm, treeifyCreateScanFormErrors } from './createScanForm'
 
 beforeEach(() => {
   fixedClock()
@@ -19,7 +16,7 @@ describe('createScanForm', () => {
         scanDateOption,
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(true)
       expect(result.data?.scanDate).toEqual(expectedScanDate)
       expect(result.error).toBeUndefined()
@@ -37,7 +34,7 @@ describe('createScanForm', () => {
         'scanDate-year': year,
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(true)
       expect(result.data?.scanDate).toEqual('2026-07-21')
       expect(result.error).toBeUndefined()
@@ -48,35 +45,20 @@ describe('createScanForm', () => {
         scanDateOption: 'today',
         justification,
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(true)
       expect(result.data?.justification).toEqual(justification)
       expect(result.error).toBeUndefined()
     })
 
-    it.each(outcomes.filter(outcome => outcome !== 'POSITIVE'))('outcome: %s (and clear typeOfFind)', outcome => {
+    it.each(outcomes.filter(outcome => outcome !== 'POSITIVE'))('outcome: %s', outcome => {
       const result = createScanForm.safeParse({
         scanDateOption: 'today',
         justification: 'INTELLIGENCE',
         outcome,
-        typeOfFind: 'NOT_KNOWN',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(true)
       expect(result.data?.outcome).toEqual(outcome)
-      expect(result.data?.typeOfFind).toBeNull()
-      expect(result.error).toBeUndefined()
-    })
-
-    it.each(typesOfFind)('type of find: %s', typeOfFind => {
-      const result = createScanForm.safeParse({
-        scanDateOption: 'today',
-        justification: 'INTELLIGENCE',
-        outcome: 'POSITIVE',
-        typeOfFind,
-      } satisfies FormInput)
-      expect(result.success).toBe(true)
-      expect(result.data?.outcome).toEqual('POSITIVE')
-      expect(result.data?.typeOfFind).toEqual(typeOfFind)
       expect(result.error).toBeUndefined()
     })
   })
@@ -96,7 +78,7 @@ describe('createScanForm', () => {
         'scanDate-year': blankComponent === 'year' ? '' : '2026',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -121,7 +103,7 @@ describe('createScanForm', () => {
         'scanDate-year': blankComponents.includes('year') ? '' : '2026',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -141,7 +123,7 @@ describe('createScanForm', () => {
         'scanDate-year': '2026',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -161,7 +143,7 @@ describe('createScanForm', () => {
         'scanDate-year': '2026',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -181,7 +163,7 @@ describe('createScanForm', () => {
         'scanDate-year': year,
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -206,7 +188,7 @@ describe('createScanForm', () => {
         'scanDate-year': invalidComponents.includes('year') ? 'last' : '2026',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -226,7 +208,7 @@ describe('createScanForm', () => {
         'scanDate-year': '',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -248,7 +230,7 @@ describe('createScanForm', () => {
         'scanDate-year': year,
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -268,7 +250,7 @@ describe('createScanForm', () => {
         'scanDate-year': '2026',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -288,7 +270,7 @@ describe('createScanForm', () => {
         'scanDate-year': '2026',
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-      } satisfies FormInput)
+      } satisfies CreateScanFormInput)
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
 
@@ -350,38 +332,11 @@ describe('createScanForm', () => {
       expect(scanDateComponentsWithErrors).toEqual(new Set())
     })
 
-    it.each([
-      { scenario: 'missing', typeOfFind: undefined },
-      { scenario: 'blank', typeOfFind: '' },
-      { scenario: 'invalid', typeOfFind: 'mobile' },
-    ])('$scenario type of find', ({ typeOfFind }) => {
-      const form = {
-        scanDateOption: 'today',
-        justification: 'INTELLIGENCE',
-        outcome: 'POSITIVE',
-        typeOfFind,
-      }
-      if (typeOfFind === undefined) {
-        delete form.typeOfFind
-      }
-      const result = createScanForm.safeParse(form)
-      expect(result.success).toBe(false)
-      expect(result.data).toBeUndefined()
-
-      const { errors, scanDateComponentsWithErrors } = treeifyCreateScanFormErrors(result.error!)
-      expect(errors).toEqual({
-        errors: [],
-        properties: { typeOfFind: { errors: ['Select type of item detected'] } },
-      })
-      expect(scanDateComponentsWithErrors).toEqual(new Set())
-    })
-
     it('form with many errors', () => {
       const result = createScanForm.safeParse({
         scanDateOption: 'tomorrow',
         justification: 'intel',
         outcome: 'item found',
-        typeOfFind: 'unclear',
       })
       expect(result.success).toBe(false)
       expect(result.data).toBeUndefined()
@@ -393,7 +348,6 @@ describe('createScanForm', () => {
           scanDateOption: { errors: ['Select when the scan happened'] },
           justification: { errors: ['Select why the scan was carried out'] },
           outcome: { errors: ['Select the result of the scan'] },
-          typeOfFind: { errors: ['Select type of item detected'] },
         },
       })
       expect(scanDateComponentsWithErrors).toEqual(new Set())

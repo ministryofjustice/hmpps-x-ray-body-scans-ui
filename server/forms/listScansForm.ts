@@ -108,3 +108,4 @@ export const listScansForm = baseListScansForm
   })
 
 export type ListScansForm = z.infer<typeof listScansForm>
+export type ListScansFormInput = z.input<typeof listScansForm>

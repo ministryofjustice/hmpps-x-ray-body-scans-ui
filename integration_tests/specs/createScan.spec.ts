@@ -46,7 +46,6 @@ test.describe('Create scan page', () => {
         scanDateOption: expect.anything(),
         justification: expect.anything(),
         outcome: expect.anything(),
-        typeOfFind: expect.anything(),
       }),
     )
 
@@ -79,8 +78,6 @@ test.describe('Create scan page', () => {
       justificationDescription: 'Intelligence-led',
       outcome: 'NEGATIVE',
       outcomeDescription: 'Negative',
-      typeOfFind: null,
-      typeOfFindDescription: null,
     }
     await Promise.all([
       xrayBodyScansApi.stubCreateScan(
@@ -90,7 +87,6 @@ test.describe('Create scan page', () => {
           scanDate: formatIsoDate(now),
           justification: 'INTELLIGENCE',
           outcome: 'NEGATIVE',
-          typeOfFind: null,
           createdBy: 'USER1',
         },
         response,
@@ -115,7 +111,6 @@ test.describe('Create scan page', () => {
       { key: 'Date', value: expect.stringContaining(String(now.getFullYear())) },
       { key: 'Reason', value: 'Intelligence-led' },
       { key: 'Result', value: 'Negative' },
-      { key: 'Items found', value: 'None' },
     ])
     await expect(createScanSuccessPage.internalSecretorAlert).not.toBeVisible()
   })
@@ -140,7 +135,6 @@ test.describe('Create scan page', () => {
     await createScanPage.typeScanDateComponent('Year', yesterdayYear)
     await createScanPage.checkRadioButton('Reasonable suspicion')
     await createScanPage.checkRadioButton('Item detected')
-    await createScanPage.checkRadioButton('Inorganic')
 
     // radio buttons selected
     await expect(createScanPage.getFormValues()).resolves.toEqual(
@@ -148,7 +142,6 @@ test.describe('Create scan page', () => {
         scanDateOption: 'other',
         justification: 'REASONABLE_SUSPICION',
         outcome: 'POSITIVE',
-        typeOfFind: 'INORGANIC',
       }),
     )
 
@@ -158,8 +151,6 @@ test.describe('Create scan page', () => {
       justificationDescription: 'Reasonable suspicion',
       outcome: 'POSITIVE',
       outcomeDescription: 'Positive',
-      typeOfFind: 'INORGANIC',
-      typeOfFindDescription: 'Inorganic',
     }
     await Promise.all([
       xrayBodyScansApi.stubCreateScan(
@@ -169,7 +160,6 @@ test.describe('Create scan page', () => {
           scanDate: yesterdayString,
           justification: 'REASONABLE_SUSPICION',
           outcome: 'POSITIVE',
-          typeOfFind: 'INORGANIC',
           createdBy: 'USER1',
         },
         response,
@@ -194,7 +184,6 @@ test.describe('Create scan page', () => {
       { key: 'Date', value: expect.stringContaining(String(yesterday.getFullYear())) },
       { key: 'Reason', value: 'Reasonable suspicion' },
       { key: 'Result', value: 'Positive' },
-      { key: 'Items found', value: 'Inorganic' },
     ])
     await expect(createScanSuccessPage.internalSecretorAlert).not.toBeVisible()
   })
@@ -236,8 +225,6 @@ test.describe('Create scan page', () => {
         justificationDescription: 'Intelligence-led',
         outcome: 'NEGATIVE',
         outcomeDescription: 'Negative',
-        typeOfFind: null,
-        typeOfFindDescription: null,
       }
       await Promise.all([
         xrayBodyScansApi.stubCreateScan(
@@ -247,7 +234,6 @@ test.describe('Create scan page', () => {
             scanDate: formatIsoDate(yesterday),
             justification: 'INTELLIGENCE',
             outcome: 'NEGATIVE',
-            typeOfFind: null,
             createdBy: 'USER1',
           },
           response,
@@ -312,7 +298,7 @@ test.describe('Create scan page', () => {
     )
   })
 
-  test('Shows a error messages when there are several errors', async ({ page }) => {
+  test('Shows an error messages when there are several errors', async ({ page }) => {
     await login(page)
 
     await page.goto(`/prisoner/${prisonerNumber}/record-scan`)
@@ -323,8 +309,7 @@ test.describe('Create scan page', () => {
     await createScanPage.typeScanDateComponent('Year', '2026')
     // invalid date
     await createScanPage.checkRadioButton('Reasonable suspicion')
-    await createScanPage.checkRadioButton('Item detected')
-    // type of find not selected
+    // outcome not selected
 
     await createScanPage.saveButton.click()
 
@@ -333,7 +318,7 @@ test.describe('Create scan page', () => {
     // error summary shows
     await expect(createScanPage.getErrorSummary()).resolves.toEqual([
       { text: 'Enter a real date', href: '#scanDate' },
-      { text: 'Select type of item detected', href: '#typeOfFind' },
+      { text: 'Select the result of the scan', href: '#outcome' },
     ])
     await expect(createScanPage.alert).not.toBeVisible()
     // errors messages show
@@ -343,7 +328,8 @@ test.describe('Create scan page', () => {
       month: true,
       year: false,
     })
-    await expect(createScanPage.outcomeConditional).toContainText('Select type of item detected')
+    await expect(createScanPage.justificationFormGroup).not.toContainText('Select why the scan was carried out')
+    await expect(createScanPage.outcomeFormGroup).toContainText('Select the result of the scan')
 
     // user-entered details reappear, even if invalid
     await expect(createScanPage.getFormValues()).resolves.toEqual(
@@ -353,7 +339,6 @@ test.describe('Create scan page', () => {
         'scanDate-month': 'July',
         'scanDate-year': '2026',
         justification: 'REASONABLE_SUSPICION',
-        outcome: 'POSITIVE',
       }),
     )
   })
@@ -376,7 +361,6 @@ test.describe('Create scan page', () => {
         scanDate: formatIsoDate(new Date()),
         justification: 'INTELLIGENCE',
         outcome: 'NEGATIVE',
-        typeOfFind: null,
         createdBy: 'USER1',
       },
       badRequestErrorResponse,

@@ -78,10 +78,8 @@ test.describe('Add scan case note page', () => {
         ...scan,
         outcome: 'NEGATIVE',
         outcomeDescription: 'No item detected',
-        typeOfFind: null,
-        typeOfFindDescription: null,
       },
-      expectedDescription: ['Reason: Reasonable suspicion', 'Result: No item detected', 'Items found: None'],
+      expectedDescription: ['Reason: Reasonable suspicion', 'Result: No item detected'],
     },
     {
       scenario: 'positive scan',
@@ -90,7 +88,7 @@ test.describe('Add scan case note page', () => {
         justification: 'INTELLIGENCE',
         justificationDescription: 'Intelligence-led',
       },
-      expectedDescription: ['Reason: Intelligence-led', 'Result: Item detected', 'Items found: Inorganic'],
+      expectedDescription: ['Reason: Intelligence-led', 'Result: Item detected'],
     },
   ]
   for (const { scenario, stubScan, expectedDescription } of scanScenarios) {
@@ -168,7 +166,6 @@ test.describe('Add scan case note page', () => {
         text: `
 Reason: Reasonable suspicion
 Result: Item detected
-Items found: Inorganic
         `.trim(),
         prisonId: 'MDI',
       },
@@ -189,7 +186,6 @@ Items found: Inorganic
         text: `
 Reason: Reasonable suspicion
 Result: Item detected
-Items found: Inorganic
 --
 Some extra details
         `.trim(),

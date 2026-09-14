@@ -6,9 +6,6 @@ export type Justification = (typeof justifications)[number]
 export const outcomes = ['NEGATIVE', 'INCONCLUSIVE', 'POSITIVE'] as const
 export type Outcome = (typeof outcomes)[number]
 
-export const typesOfFind = ['ORGANIC', 'INORGANIC', 'ORGANIC_AND_INORGANIC', 'NOT_KNOWN'] as const
-export type TypeOfFind = (typeof typesOfFind)[number]
-
 export interface ListScansRequest extends PageRequest<'scanDate'> {
   fromScanDate?: Date | undefined
   toScanDate?: Date | undefined
@@ -19,7 +16,6 @@ export interface CreateScanRequest extends Record<string, unknown> {
   prisonId: string
   justification: Justification
   outcome: Outcome
-  typeOfFind?: TypeOfFind | null
   createdBy: string
 }
 
@@ -40,8 +36,6 @@ export interface ScanResponse extends UnifiedScanResponse {
   justificationDescription: string
   outcome: Outcome
   outcomeDescription: string
-  typeOfFind: TypeOfFind | null
-  typeOfFindDescription: string | null
   caseNoteId: string | null
   mergedFromPrisonerNumber: string | null
   mergedAt: Date | null

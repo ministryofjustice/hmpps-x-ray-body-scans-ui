@@ -1,6 +1,6 @@
 import * as z from 'zod'
 import { formatIsoDate } from '../utils/dates'
-import { justifications, outcomes, typesOfFind } from '../data/interfaces/xrayBodyScansApi'
+import { justifications, outcomes } from '../data/interfaces/xrayBodyScansApi'
 import type { ZodErrorTree } from './formErrors'
 
 const dayMillis = 24 * 60 * 60 * 1000
@@ -18,7 +18,6 @@ const errorMessages = {
   oldScanDate: 'Enter a scan date from the last 31 days',
   invalidJustification: 'Select why the scan was carried out',
   invalidOutcome: 'Select the result of the scan',
-  invalidTypeOfFind: 'Select type of item detected',
 }
 
 const baseCreateScanForm = z.object({
@@ -28,18 +27,9 @@ const baseCreateScanForm = z.object({
   'scanDate-year': z.string().optional(),
   justification: z.enum(justifications, errorMessages.invalidJustification),
   outcome: z.enum(outcomes, errorMessages.invalidOutcome),
-  typeOfFind: z.enum(typesOfFind, errorMessages.invalidTypeOfFind).optional(),
 })
 
 export const createScanForm = baseCreateScanForm
-  // check type of find when required
-  .refine(({ outcome, typeOfFind }) => outcome !== 'POSITIVE' || typeOfFind, {
-    when(payload) {
-      return baseCreateScanForm.pick({ outcome: true, typeOfFind: true }).safeParse(payload.value).success
-    },
-    error: errorMessages.invalidTypeOfFind,
-    path: ['typeOfFind'],
-  })
   // check custom scan date
   .superRefine(
     (form, ctx) => {
@@ -135,7 +125,7 @@ export const createScanForm = baseCreateScanForm
       },
     },
   )
-  // calculate scan date and clear type of find when not needed
+  // calculate scan date
   .transform(form => {
     const {
       scanDateOption,
@@ -144,7 +134,6 @@ export const createScanForm = baseCreateScanForm
       'scanDate-year': year,
       justification,
       outcome,
-      typeOfFind,
     } = form
 
     let scanDate: string
@@ -164,11 +153,11 @@ export const createScanForm = baseCreateScanForm
       scanDate,
       outcome,
       justification,
-      typeOfFind: outcome === 'POSITIVE' ? (typeOfFind ?? null) : null,
     }
   })
 
 export type CreateScanForm = z.infer<typeof createScanForm>
+export type CreateScanFormInput = z.input<typeof createScanForm>
 
 type ScanDateComponents = 'scanDate-year' | 'scanDate-month' | 'scanDate-day'
 export interface CreateScanFormErrors {

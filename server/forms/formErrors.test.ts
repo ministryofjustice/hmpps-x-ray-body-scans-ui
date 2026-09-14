@@ -82,7 +82,6 @@ describe('create scan form errors', () => {
     'scanDate-year': '26',
     justification: 'intel',
     outcome: 'item found',
-    typeOfFind: 'unclear',
   }
   const result = createScanForm.safeParse(badForm)
   const { errors: treeifiedErrors } = treeifyCreateScanFormErrors(result.error!)
@@ -101,10 +100,6 @@ describe('create scan form errors', () => {
       {
         text: 'Select the result of the scan',
         href: '#outcome',
-      },
-      {
-        text: 'Select type of item detected',
-        href: '#typeOfFind',
       },
     ])
   })

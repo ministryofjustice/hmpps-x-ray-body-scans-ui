@@ -44,6 +44,7 @@
         {{ govukRadios({
           idPrefix: "scanDateOption",
           name: "scanDateOption",
+          formGroup: { attributes: { "data-testid": "scanDate-form-group" } },
           fieldset: {
             legend: {
               text: "When did the scan happen?",
@@ -103,6 +104,7 @@
         {{ govukRadios({
           idPrefix: "justification",
           name: "justification",
+          formGroup: { attributes: { "data-testid": "justification-form-group" } },
           fieldset: {
             legend: {
               text: "Why was the scan carried out?",
@@ -136,6 +138,7 @@
         {{ govukRadios({
           idPrefix: "outcome",
           name: "outcome",
+          formGroup: { attributes: { "data-testid": "outcome-form-group" } },
           fieldset: {
             legend: {
               text: "What was the result of the scan?",
@@ -160,48 +163,7 @@
             {
               value: "POSITIVE",
               text: "Item detected",
-              checked: formValues.outcome === "POSITIVE",
-              conditional: {
-                html: govukRadios({
-                  idPrefix: "typeOfFind",
-                  name: "typeOfFind",
-                  fieldset: {
-                    legend: {
-                      text: "What type of item was detected?",
-                      classes: "govuk-fieldset__legend--s"
-                    }
-                  },
-                  hint: {
-                    text: "Select the suspected item shown by the scan."
-                  },
-                  errorMessage: errorMessageForField("typeOfFind", errors),
-                  items: [
-                    {
-                      value: "ORGANIC",
-                      text: "Organic",
-                      checked: formValues.typeOfFind === "ORGANIC",
-                      hint: { text: "For example, drugs." }
-                    },
-                    {
-                      value: "INORGANIC",
-                      text: "Inorganic",
-                      checked: formValues.typeOfFind === "INORGANIC",
-                      hint: { text: "For example, a mobile phone, SIM card or other object." }
-                    },
-                    {
-                      value: "ORGANIC_AND_INORGANIC",
-                      text: "Organic and inorganic",
-                      checked: formValues.typeOfFind === "ORGANIC_AND_INORGANIC"
-                    },
-                    { divider: "or" },
-                    {
-                      value: "NOT_KNOWN",
-                      text: "Not known",
-                      checked: formValues.typeOfFind === "NOT_KNOWN"
-                    }
-                  ]
-                })
-              }
+              checked: formValues.outcome === "POSITIVE"
             }
           ]
         }) }}
