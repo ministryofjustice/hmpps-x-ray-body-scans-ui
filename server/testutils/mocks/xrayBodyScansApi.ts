@@ -25,8 +25,6 @@ export function mockScanResponse(
     justificationDescription: 'Reasonable suspicion',
     outcome: 'POSITIVE',
     outcomeDescription: 'Item detected',
-    typeOfFind: 'INORGANIC',
-    typeOfFindDescription: 'Inorganic',
     caseNoteId: null,
     mergedAt: null,
     mergedFromPrisonerNumber: null,
@@ -143,7 +141,6 @@ export function mockScanCaseNoteResponse(
     text: `
 Reason: ${scan.justificationDescription}
 Result: ${scan.outcomeDescription}
-Items found: ${scan.typeOfFindDescription || 'None'}
 ${additionalDetails ? `--\n${additionalDetails}` : ''}
     `.trim(),
     occurredAt,

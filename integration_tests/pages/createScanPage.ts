@@ -20,29 +20,39 @@ export default class CreateScanPage extends AbstractPage {
     return this.page.getByLabel(label, { exact }).check()
   }
 
+  get scanDateFormGroup(): Locator {
+    return this.page.locator('[data-testid="scanDate-form-group"]')
+  }
+
   typeScanDateComponent(label: string, text: string): Promise<void> {
-    return this.page.getByLabel(label, { exact: true }).fill(text)
+    return this.scanDateFormGroup.getByLabel(label, { exact: true }).fill(text)
   }
 
   get scanDateConditional(): Locator {
-    return this.page.locator('#conditional-scanDateOption-3')
+    return this.scanDateFormGroup.locator('#conditional-scanDateOption-3')
   }
 
   async getScanDateComponentErrors(): Promise<ScanDateComponentErrors> {
     const [day, month, year] = await Promise.all([
-      this.page.getByRole('textbox', { name: 'Day' }).evaluate(input => input.classList.contains('govuk-input--error')),
-      this.page
+      this.scanDateFormGroup
+        .getByRole('textbox', { name: 'Day' })
+        .evaluate(input => input.classList.contains('govuk-input--error')),
+      this.scanDateFormGroup
         .getByRole('textbox', { name: 'Month' })
         .evaluate(input => input.classList.contains('govuk-input--error')),
-      this.page
+      this.scanDateFormGroup
         .getByRole('textbox', { name: 'Year' })
         .evaluate(input => input.classList.contains('govuk-input--error')),
     ])
     return { day, month, year }
   }
 
-  get outcomeConditional(): Locator {
-    return this.page.locator('#conditional-outcome-3')
+  get justificationFormGroup(): Locator {
+    return this.page.locator('[data-testid="justification-form-group"]')
+  }
+
+  get outcomeFormGroup(): Locator {
+    return this.page.locator('[data-testid="outcome-form-group"]')
   }
 }
 

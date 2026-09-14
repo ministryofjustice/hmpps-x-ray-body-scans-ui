@@ -134,11 +134,7 @@ export default class CaseNoteController {
   }
 
   private buildCaseNoteText(scan: ScanResponse, additionalDetails?: string): string {
-    const lines = [
-      `Reason: ${scan.justificationDescription}`,
-      `Result: ${scan.outcomeDescription}`,
-      `Items found: ${scan.typeOfFindDescription ? scan.typeOfFindDescription : 'None'}`,
-    ]
+    const lines = [`Reason: ${scan.justificationDescription}`, `Result: ${scan.outcomeDescription}`]
     if (additionalDetails) {
       lines.push('--', additionalDetails)
     }

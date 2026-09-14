@@ -174,8 +174,6 @@ describe('getScanList', () => {
           justificationDescription: 'Reasonable suspicion',
           outcome: 'POSITIVE',
           outcomeDescription: 'Item detected',
-          typeOfFind: 'ORGANIC',
-          typeOfFindDescription: 'Organic',
         },
         mockLegacyScanResponse(prisonerNumber, now),
         mockLegacyScanResponse(prisonerNumber, null, 'pos'),
@@ -203,7 +201,6 @@ describe('getScanList', () => {
           prisonDescription: 'Leeds (HMP)',
           justificationDescription: 'Reasonable suspicion',
           outcomeDescription: 'Item detected',
-          typeOfFindDescription: 'Organic',
           highlightedRow: false,
         }),
         expect.objectContaining({
@@ -387,42 +384,20 @@ describe('postCreateScan', () => {
 
   it.each([
     {
-      scenario: 'a positive organic intelligence scan for today',
+      scenario: 'a positive intelligence scan for today',
       body: {
         scanDateOption: 'today',
         justification: 'INTELLIGENCE' as const,
         outcome: 'POSITIVE' as const,
-        typeOfFind: 'ORGANIC' as const,
       },
       expectedScanDate: '2026-07-24',
     },
     {
-      scenario: 'a positive inorganic intelligence scan for yesterday',
+      scenario: 'a positive intelligence scan for yesterday',
       body: {
         scanDateOption: 'yesterday',
         justification: 'INTELLIGENCE' as const,
         outcome: 'POSITIVE' as const,
-        typeOfFind: 'INORGANIC' as const,
-      },
-      expectedScanDate: '2026-07-23',
-    },
-    {
-      scenario: 'a positive mixed reasonable suspicion scan for today',
-      body: {
-        scanDateOption: 'today',
-        justification: 'REASONABLE_SUSPICION' as const,
-        outcome: 'POSITIVE' as const,
-        typeOfFind: 'ORGANIC_AND_INORGANIC' as const,
-      },
-      expectedScanDate: '2026-07-24',
-    },
-    {
-      scenario: 'a positive unknown reasonable suspicion scan for yesterday',
-      body: {
-        scanDateOption: 'yesterday',
-        justification: 'REASONABLE_SUSPICION' as const,
-        outcome: 'POSITIVE' as const,
-        typeOfFind: 'NOT_KNOWN' as const,
       },
       expectedScanDate: '2026-07-23',
     },
@@ -457,8 +432,6 @@ describe('postCreateScan', () => {
       justificationDescription: body.justification,
       outcome: body.outcome,
       outcomeDescription: body.outcome,
-      typeOfFind: body.typeOfFind ?? null,
-      typeOfFindDescription: body.typeOfFind ?? null,
     }
     xrayBodyScansApiClient.createScan.mockResolvedValueOnce(scan)
     xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
@@ -476,7 +449,6 @@ describe('postCreateScan', () => {
         scanDate: expectedScanDate,
         justification: body.justification,
         outcome: body.outcome,
-        typeOfFind: body.typeOfFind ?? null,
       }),
       username,
     )
@@ -521,7 +493,6 @@ describe('postCreateScan', () => {
       scanDateOption: 'yesterday',
       justification: 'REASONABLE_SUSPICION' as const,
       outcome: 'POSITIVE' as const,
-      typeOfFind: 'INORGANIC' as const,
     }
     await scanController.postCreateScan(req, res)
 
@@ -551,20 +522,6 @@ describe('postCreateScan', () => {
       expectedScanDateComponentsWithErrors: [],
     },
     {
-      scenario: 'type of find is not selected',
-      body: {
-        scanDateOption: 'today',
-        justification: 'INTELLIGENCE',
-        outcome: 'POSITIVE',
-        typeOfFind: '',
-      },
-      expectedErrors: {
-        errors: [],
-        properties: { typeOfFind: { errors: ['Select type of item detected'] } },
-      },
-      expectedScanDateComponentsWithErrors: [],
-    },
-    {
       scenario: 'scan date is invalid',
       body: {
         scanDateOption: 'other',
@@ -573,7 +530,6 @@ describe('postCreateScan', () => {
         'scanDate-year': '2026',
         justification: 'INTELLIGENCE',
         outcome: 'POSITIVE',
-        typeOfFind: 'NOT_KNOWN',
       },
       expectedErrors: {
         errors: [],
@@ -581,7 +537,7 @@ describe('postCreateScan', () => {
       },
       expectedScanDateComponentsWithErrors: ['scanDate-day'],
     },
-    // NB: other scenarios are covered by createScanForm.test.ts
+    // NB: other scenarios are covered by createScanForm.test.ts and createScan.spec.ts
   ])('shows errors when $scenario', async ({ body, expectedErrors, expectedScanDateComponentsWithErrors }) => {
     req.body = body
 

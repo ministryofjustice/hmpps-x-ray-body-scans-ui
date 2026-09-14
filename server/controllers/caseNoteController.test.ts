@@ -177,13 +177,17 @@ describe('postAddScanCaseNote', () => {
         ...scan,
         outcome: 'NEGATIVE',
         outcomeDescription: 'No item detected',
-        typeOfFind: null,
-        typeOfFindDescription: null,
       },
-      expectedText: `
-Reason: Reasonable suspicion
-Result: No item detected
-Items found: None`,
+      expectedText: 'Reason: Reasonable suspicion\nResult: No item detected',
+    },
+    {
+      scenario: 'inconclusive scan',
+      scanScenario: {
+        ...scan,
+        outcome: 'INCONCLUSIVE',
+        outcomeDescription: 'Inconclusive',
+      },
+      expectedText: 'Reason: Reasonable suspicion\nResult: Inconclusive',
     },
     {
       scenario: 'positive scan',
@@ -192,10 +196,7 @@ Items found: None`,
         justification: 'INTELLIGENCE',
         justificationDescription: 'Intelligence-led',
       },
-      expectedText: `
-Reason: Intelligence-led
-Result: Item detected
-Items found: Inorganic`,
+      expectedText: 'Reason: Intelligence-led\nResult: Item detected',
     },
   ]
   it.each(scanScenarios)(
@@ -208,7 +209,7 @@ Items found: Inorganic`,
 
       expect(xrayBodyScansApiClient.createScanCaseNote).toHaveBeenCalledWith(
         scanId,
-        { text: expectedText.trim(), prisonId: 'MDI' },
+        { text: expectedText, prisonId: 'MDI' },
         username,
       )
       expect(auditService.logAuditEvent).toHaveBeenCalledWith({
@@ -237,7 +238,6 @@ Items found: Inorganic`,
         text: `
 Reason: Reasonable suspicion
 Result: Item detected
-Items found: Inorganic
 --
 Extra info
         `.trim(),

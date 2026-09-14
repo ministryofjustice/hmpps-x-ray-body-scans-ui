@@ -11,6 +11,7 @@ import {
 import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonApi from '../mockApis/prisonApi'
+import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import AddScanCaseNotePage from '../pages/addScanCaseNotePage'
@@ -78,10 +79,8 @@ test.describe('Add scan case note page', () => {
         ...scan,
         outcome: 'NEGATIVE',
         outcomeDescription: 'No item detected',
-        typeOfFind: null,
-        typeOfFindDescription: null,
       },
-      expectedDescription: ['Reason: Reasonable suspicion', 'Result: No item detected', 'Items found: None'],
+      expectedDescription: ['Reason: Reasonable suspicion', 'Result: No item detected'],
     },
     {
       scenario: 'positive scan',
@@ -90,7 +89,7 @@ test.describe('Add scan case note page', () => {
         justification: 'INTELLIGENCE',
         justificationDescription: 'Intelligence-led',
       },
-      expectedDescription: ['Reason: Intelligence-led', 'Result: Item detected', 'Items found: Inorganic'],
+      expectedDescription: ['Reason: Intelligence-led', 'Result: Item detected'],
     },
   ]
   for (const { scenario, stubScan, expectedDescription } of scanScenarios) {
@@ -140,6 +139,7 @@ test.describe('Add scan case note page', () => {
 
   async function stubScanListPage() {
     return Promise.all([
+      prisonRegisterApi.stubAllPrisons(),
       xrayBodyScansApi.stubGetScanSummary(
         prisonerNumber,
         mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
@@ -168,7 +168,6 @@ test.describe('Add scan case note page', () => {
         text: `
 Reason: Reasonable suspicion
 Result: Item detected
-Items found: Inorganic
         `.trim(),
         prisonId: 'MDI',
       },
@@ -189,7 +188,6 @@ Items found: Inorganic
         text: `
 Reason: Reasonable suspicion
 Result: Item detected
-Items found: Inorganic
 --
 Some extra details
         `.trim(),

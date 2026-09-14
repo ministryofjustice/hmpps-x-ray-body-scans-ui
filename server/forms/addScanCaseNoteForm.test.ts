@@ -1,12 +1,12 @@
 import * as z from 'zod'
 import type { Request } from 'express'
-import { type AddScanCaseNoteForm, addScanCaseNoteForm } from './addScanCaseNoteForm'
-
-type FormInput = z.input<typeof addScanCaseNoteForm>
+import { type AddScanCaseNoteForm, type AddScanCaseNoteFormInput, addScanCaseNoteForm } from './addScanCaseNoteForm'
 
 describe('addScanCaseNoteForm', () => {
   it.each([undefined, '', '   '])('should parse an empty form with additional details %j', additionalDetails => {
-    const result = addScanCaseNoteForm.safeParse({ additionalDetails } satisfies Request['query'] satisfies FormInput)
+    const result = addScanCaseNoteForm.safeParse({
+      additionalDetails,
+    } satisfies Request['query'] satisfies AddScanCaseNoteFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<AddScanCaseNoteForm>({ additionalDetails: '' })
   })
@@ -17,7 +17,7 @@ describe('addScanCaseNoteForm', () => {
 Mr. Smith struggles to stand unaided
 for long
     `,
-    } satisfies Request['query'] satisfies FormInput)
+    } satisfies Request['query'] satisfies AddScanCaseNoteFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<AddScanCaseNoteForm>({
       additionalDetails: 'Mr. Smith struggles to stand unaided\nfor long',
@@ -27,7 +27,7 @@ for long
   it('should not parse a form with additional details exceeding 3500 characters', () => {
     const result = addScanCaseNoteForm.safeParse({
       additionalDetails: `nothing found${'.'.repeat(3488)}`,
-    } satisfies Request['query'] satisfies FormInput)
+    } satisfies Request['query'] satisfies AddScanCaseNoteFormInput)
     expect(result.success).toBe(false)
     expect(result.data).toBeUndefined()
     const errors = z.treeifyError(result.error!)

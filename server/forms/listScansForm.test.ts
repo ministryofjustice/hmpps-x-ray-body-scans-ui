@@ -1,9 +1,6 @@
-import * as z from 'zod'
 import type { Request } from 'express'
 import { fixedClock, now } from '../testutils/fixedClock'
-import { type ListScansForm, listScansForm } from './listScansForm'
-
-type FormInput = z.input<typeof listScansForm>
+import { type ListScansForm, type ListScansFormInput, listScansForm } from './listScansForm'
 
 beforeAll(() => {
   fixedClock()
@@ -11,7 +8,7 @@ beforeAll(() => {
 
 describe('listScansForm', () => {
   it('should parse an empty form', () => {
-    const result = listScansForm.safeParse({} satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({} satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
@@ -57,7 +54,7 @@ describe('listScansForm', () => {
       expectedScanDateFilters: { fromScanDate: new Date(2000, 0, 1, 12) },
     },
   ])('should parse a form with year $year', ({ year, expectedYearFilter, expectedScanDateFilters }) => {
-    const result = listScansForm.safeParse({ year } satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({ year } satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
@@ -74,7 +71,7 @@ describe('listScansForm', () => {
     { year: 'current' },
     { year: 'last' },
   ])('should ignore year $year when parsing a form', ({ year }) => {
-    const result = listScansForm.safeParse({ year } satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({ year } satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
@@ -92,7 +89,7 @@ describe('listScansForm', () => {
     { page: ' 20 ', expected: 20 },
     { page: ['all', '5'], expected: 5 },
   ])('should parse a form with page $page', ({ page, expected }) => {
-    const result = listScansForm.safeParse({ page } satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({ page } satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
@@ -102,7 +99,7 @@ describe('listScansForm', () => {
   })
 
   it.each(['one', '-1', '1.4'])('should ignore page %s when parsing a form', page => {
-    const result = listScansForm.safeParse({ page } satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({ page } satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
@@ -125,7 +122,10 @@ describe('listScansForm', () => {
       expectedScanDateFilters: { fromScanDate: new Date(2025, 0, 1, 12), toScanDate: new Date(2025, 11, 31, 12) },
     },
   ])('should parse a form with all pages for $scenario', ({ year, expectedYearFilter, expectedScanDateFilters }) => {
-    const result = listScansForm.safeParse({ page: 'all', year } satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({
+      page: 'all',
+      year,
+    } satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
@@ -139,7 +139,10 @@ describe('listScansForm', () => {
   })
 
   it('should only get first page for a form with all pages for all year', () => {
-    const result = listScansForm.safeParse({ page: 'all', year: 'all' } satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({
+      page: 'all',
+      year: 'all',
+    } satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
@@ -156,7 +159,7 @@ describe('listScansForm', () => {
     { sort: ' scanDate ', expected: 'scanDate,ASC' },
     { sort: '-scanDate', expected: 'scanDate,DESC' },
   ] as const)('should parse a form with sort $sort', ({ sort, expected }) => {
-    const result = listScansForm.safeParse({ sort } satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({ sort } satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
@@ -171,7 +174,7 @@ describe('listScansForm', () => {
   })
 
   it.each([undefined, '', 'prisonerNumber'])('should ignore sort %s when parsing a form', sort => {
-    const result = listScansForm.safeParse({ sort } satisfies Request['query'] satisfies FormInput)
+    const result = listScansForm.safeParse({ sort } satisfies Request['query'] satisfies ListScansFormInput)
     expect(result.success).toBe(true)
     expect(result.data).toEqual<ListScansForm>({
       historicYears: [2025, 2024],
