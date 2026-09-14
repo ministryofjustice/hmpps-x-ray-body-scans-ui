@@ -1,5 +1,6 @@
 import express from 'express'
 import { NotFound } from 'http-errors'
+import { telemetryMiddleware } from '@ministryofjustice/hmpps-azure-telemetry'
 import { getFrontendComponents, retrieveCaseLoadData } from '@ministryofjustice/hmpps-connect-dps-components'
 
 import logger from '../logger'
@@ -40,6 +41,8 @@ export default function createApp(services: Services): express.Application {
   app.use(authorisationMiddleware())
   app.use(setUpCsrf())
   app.use(setUpCurrentUser())
+  // For prison users, register the `addUserMetadataToTelemetry` middleware after middleware that retrieves caseload data.
+  app.use(telemetryMiddleware.addUserMetadataToTelemetry())
 
   app.use(
     getFrontendComponents({
