@@ -17,6 +17,22 @@
     margin-top: -#{spacing.govuk-spacing(7)};
   }
 
+  svg {
+    color: #6f777b;
+
+    rect {
+      fill: colour.govuk-colour(white);
+    }
+
+    @media (forced-colors: active) and (prefers-color-scheme: dark) {
+      color: #ddd;
+
+      rect {
+        fill: #000;
+      }
+    }
+  }
+
   dt, dd {
     margin: 0;
   }
