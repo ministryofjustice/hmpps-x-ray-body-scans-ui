@@ -24,7 +24,7 @@
     <div class="breadcrumbs govuk-!-display-none-print">
       {% if wpipReturnPath %}
         <div class="breadcrumbs__return-to-wpip">
-          <a href="{{ welcomePeopleIntoPrisonUrl }}{{ wpipReturnPath }}">
+          <a href="{{ welcomePeopleIntoPrisonUrl }}{{ wpipReturnPath }}" data-signal-end-journey="wpip">
             Return to recent arrivals
           </a>
         </div>

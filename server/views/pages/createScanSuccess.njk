@@ -76,7 +76,8 @@
         {% if wpipReturnPath %}
           {{ govukButton({
             text: "Return to recent arrivals",
-            href: welcomePeopleIntoPrisonUrl + wpipReturnPath
+            href: welcomePeopleIntoPrisonUrl + wpipReturnPath,
+            attributes: { "data-signal-end-journey": "wpip" }
           }) }}
         {% else %}
           {{ govukButton({

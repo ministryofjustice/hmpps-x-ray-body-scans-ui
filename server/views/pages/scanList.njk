@@ -240,7 +240,7 @@
 
   <p>
     {% if wpipReturnPath %}
-      <a href="{{ welcomePeopleIntoPrisonUrl }}{{ wpipReturnPath }}" data-testid="return-link">
+      <a href="{{ welcomePeopleIntoPrisonUrl }}{{ wpipReturnPath }}" data-testid="return-link" data-signal-end-journey="wpip">
         Return to recent arrivals
       </a>
     {% else %}

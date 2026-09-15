@@ -13,6 +13,7 @@ import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonApi from '../mockApis/prisonApi'
 import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
+import wpipUI from '../mockApis/wpipUI'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import AddScanCaseNotePage from '../pages/addScanCaseNotePage'
 import ScanListPage from '../pages/scanListPage'
@@ -162,6 +163,12 @@ test.describe('Add scan case note page', () => {
       'href',
       `http://localhost:9091/welcome/recent-arrivals?search=John`,
     )
+
+    // end WPIP journey
+    await wpipUI.stubWpipRecentArrivals()
+    await addScanCaseNotePage.cancelLink.click()
+    await goToAddScanCaseNotePage(page)
+    await expect(addScanCaseNotePage.returnToWpipLink).not.toBeVisible()
   })
 
   // TODO: add test for "recently in caseloads but not now"

@@ -11,6 +11,7 @@ import {
 } from '../../server/testutils/mocks/xrayBodyScansApi'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
+import wpipUI from '../mockApis/wpipUI'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import CreateScanPage from '../pages/createScanPage'
 import CreateScanSuccessPage from '../pages/createScanSuccessPage'
@@ -77,6 +78,12 @@ test.describe('Create scan page', () => {
       'href',
       `http://localhost:9091/welcome/recent-arrivals?search=John`,
     )
+
+    // end WPIP journey
+    await wpipUI.stubWpipRecentArrivals()
+    await createScanPage.cancelLink.click()
+    await goToCreateScanPage(page)
+    await expect(createScanPage.returnToWpipLink).not.toBeVisible()
   })
 
   test.describe('Recording a scan successfully', () => {
@@ -326,7 +333,7 @@ test.describe('Create scan page', () => {
       const now = new Date()
       await login(page)
 
-      const createScanPage = await goToCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
+      let createScanPage = await goToCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
       await createScanPage.checkRadioButton('Today', { exact: false })
       await createScanPage.checkRadioButton('Intelligence-led')
@@ -364,7 +371,13 @@ test.describe('Create scan page', () => {
 
       await createScanPage.saveButton.click()
 
-      await expectSuccessPage(page, true)
+      const createScanSuccessPage = await expectSuccessPage(page, true)
+
+      // end WPIP journey
+      await wpipUI.stubWpipRecentArrivals()
+      await createScanSuccessPage.returnButton.click()
+      createScanPage = await goToCreateScanPage(page)
+      await expect(createScanPage.returnToWpipLink).not.toBeVisible()
     })
   })
 
