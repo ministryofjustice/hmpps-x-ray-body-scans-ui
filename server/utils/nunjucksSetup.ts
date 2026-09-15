@@ -48,6 +48,7 @@ export default function nunjucksSetup(app: express.Express): nunjucks.Environmen
 
   njkEnv.addGlobal('dpsHomeUrl', config.serviceUrls.digitalPrison)
   njkEnv.addGlobal('prisonerProfileUrl', config.serviceUrls.prisonerProfile)
+  njkEnv.addGlobal('welcomePeopleIntoPrisonUrl', config.serviceUrls.welcomePeopleIntoPrison)
 
   njkEnv.addGlobal('now', () => new Date())
 

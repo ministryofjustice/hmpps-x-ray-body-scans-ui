@@ -6,6 +6,7 @@
 {% from "components/resultTag.njk" import resultTag %}
 
 {% set pageTitle = applicationName + " – Scan recorded" %}
+{% set breadcrumbs = null %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -72,10 +73,19 @@
       }) }}
 
       <div class="govuk-button-group">
-        {{ govukButton({
-          text: "Return to X-ray body scans",
-          href: "/prisoner/" + prisoner.prisonerNumber + "/scan-overview"
-        }) }}
+        {% if wpipReturnPath %}
+          {{ govukButton({
+            text: "Return to recent arrivals",
+            href: welcomePeopleIntoPrisonUrl + wpipReturnPath,
+            attributes: { "data-signal-end-journey": "wpip" }
+          }) }}
+        {% else %}
+          {{ govukButton({
+            text: "Return to X-ray body scans",
+            href: "/prisoner/" + prisoner.prisonerNumber + "/scan-overview"
+          }) }}
+        {% endif %}
+
         <a class="govuk-link" href="{{ prisoner | prisonerProfileUrl }}">View this person’s profile</a>
       </div>
 

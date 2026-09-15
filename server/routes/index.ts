@@ -5,9 +5,11 @@ import type { Services } from '../services'
 import { Page } from '../services/auditService'
 import authorisationMiddleware from '../middleware/authorisationMiddleware'
 import { getPrisonerMiddleware } from '../middleware/getPrisonerMiddleware'
+import { registerWpipReturnPathMiddleware } from '../middleware/registerWpipReturnPathMiddleware'
 import { requireActiveCaseload } from '../middleware/requireActiveCaseload'
 import { photoRouter } from './photoRouter'
 import scanRouter from './scanRouter'
+import { signalEndJourneyRoute } from './signalEndJourneyRoute'
 
 export default function routes(services: Services): Router {
   const router = Router()
@@ -30,11 +32,14 @@ export default function routes(services: Services): Router {
     return res.render('pages/index')
   })
 
+  router.get('/api/signal-end-journey', signalEndJourneyRoute)
+
   router.use(
     '/prisoner/:prisonerNumber',
     requireActiveCaseload(),
     getPrisonerMiddleware(prisonerSearchApiClient),
     prisonerPermissionsGuard(prisonPermissionsService, { requestDependentOn: [PrisonerBasePermission.read] }),
+    registerWpipReturnPathMiddleware,
     scanRouter(auditService, prisonService, xrayBodyScansApiClient),
     photoRouter(auditService, prisonApiClient),
   )

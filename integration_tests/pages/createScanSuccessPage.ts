@@ -19,4 +19,12 @@ export default class CreateScanSuccessPage extends AbstractPage {
   get internalSecretorAlertLink(): Locator {
     return this.internalSecretorAlert.getByRole('link')
   }
+
+  get returnButton(): Locator {
+    return this.page.locator('.govuk-button-group a.govuk-button')
+  }
+
+  get viewProfileLink(): Locator {
+    return this.page.locator('.govuk-button-group').getByRole('link', { name: 'View this person’s profile' })
+  }
 }
