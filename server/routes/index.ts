@@ -9,6 +9,7 @@ import { registerWpipReturnPathMiddleware } from '../middleware/registerWpipRetu
 import { requireActiveCaseload } from '../middleware/requireActiveCaseload'
 import { photoRouter } from './photoRouter'
 import scanRouter from './scanRouter'
+import { signalEndJourneyRoute } from './signalEndJourneyRoute'
 
 export default function routes(services: Services): Router {
   const router = Router()
@@ -30,6 +31,8 @@ export default function routes(services: Services): Router {
 
     return res.render('pages/index')
   })
+
+  router.get('/api/signal-end-journey', signalEndJourneyRoute)
 
   router.use(
     '/prisoner/:prisonerNumber',
