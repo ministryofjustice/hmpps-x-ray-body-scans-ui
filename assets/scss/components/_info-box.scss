@@ -9,7 +9,7 @@
   initial-value: #{colour.govuk-colour(blue)};
 }
 
-// NB: this is not identical to the MoJ alert but really rather similar 🤷
+// NB: this is a slight variant of MoJ alert which appears less dramatic
 .info-box {
   --info-box-colour: #{colour.govuk-colour(blue)};
   display: flex;
@@ -34,6 +34,5 @@
 
   p {
     margin-bottom: 0;
-    color: colour.govuk-functional-colour(secondary-text);
   }
 }

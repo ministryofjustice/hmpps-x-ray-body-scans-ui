@@ -17,6 +17,7 @@ import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonApi from '../mockApis/prisonApi'
 import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
+import wpipUI from '../mockApis/wpipUI'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import ScanListPage from '../pages/scanListPage'
 
@@ -38,8 +39,8 @@ test.describe('Scan list page', () => {
     await resetStubs()
   })
 
-  async function goToScanListPage(page: Page): Promise<ScanListPage> {
-    const response = await page.goto(`/prisoner/${prisonerNumber}/scan-overview`)
+  async function goToScanListPage(page: Page, querystring = ''): Promise<ScanListPage> {
+    const response = await page.goto(`/prisoner/${prisonerNumber}/scan-overview${querystring}`)
     expect(response?.status()).toBe(200)
     return ScanListPage.verifyOnPage(page)
   }
@@ -68,6 +69,7 @@ test.describe('Scan list page', () => {
       const scanListPage = await goToScanListPage(page)
 
       // breadcrumbs
+      await expect(scanListPage.returnToWpipLink).not.toBeVisible()
       await expect(scanListPage.getBreadcrumbs()).resolves.toEqual([
         { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
         { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
@@ -121,10 +123,45 @@ test.describe('Scan list page', () => {
       await expect(scanListPage.flashMessage).not.toBeVisible()
 
       // return link
+      await expect(scanListPage.returnLink).toContainText('Return to the prisoner’s profile')
       await expect(scanListPage.returnLink).toHaveAttribute(
         'href',
         `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
       )
+    })
+
+    test('Links back to WPIP for users who came from there', async ({ page }) => {
+      await Promise.all([
+        xrayBodyScansApi.stubGetScanSummary(
+          prisonerNumber,
+          mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+          { includeAlerts: true },
+        ),
+        xrayBodyScansApi.stubListScans(prisonerNumber),
+        login(page),
+      ])
+
+      const scanListPage = await goToScanListPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
+
+      // breadcrumbs
+      await expect(scanListPage.returnToWpipLink).toContainText('Return to recent arrivals')
+      await expect(scanListPage.returnToWpipLink).toHaveAttribute(
+        'href',
+        `http://localhost:9091/welcome/recent-arrivals?search=John`,
+      )
+
+      // return link
+      await expect(scanListPage.returnLink).toContainText('Return to recent arrivals')
+      await expect(scanListPage.returnLink).toHaveAttribute(
+        'href',
+        `http://localhost:9091/welcome/recent-arrivals?search=John`,
+      )
+
+      // end WPIP journey
+      await wpipUI.stubWpipRecentArrivals()
+      await scanListPage.returnToWpipLink.click()
+      await goToScanListPage(page)
+      await expect(scanListPage.returnToWpipLink).not.toBeVisible()
     })
 
     // TODO: add test for "recently in caseloads but not now"
@@ -265,7 +302,7 @@ test.describe('Scan list page', () => {
           now,
           relevantAlerts: [mockInternalSecretorAlert],
         }),
-        expectedAlertFlags: ['Internal Secretor'],
+        expectedAlertFlags: ['Internal secretor'],
       },
       {
         scenario: 'with both relevant alerts',
@@ -274,7 +311,7 @@ test.describe('Scan list page', () => {
           now,
           relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert],
         }),
-        expectedAlertFlags: ['Internal Secretor', 'Do Not X-Ray Body Scan'],
+        expectedAlertFlags: ['Internal secretor', 'Do not X-Ray body scan'],
       },
     ]
     for (const { scenario, scanSummary, expectedAlertFlags } of alertsScenarios) {

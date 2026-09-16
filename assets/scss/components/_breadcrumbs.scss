@@ -1,0 +1,20 @@
+@use "govuk-frontend/dist/govuk/helpers/colour";
+@use "govuk-frontend/dist/govuk/helpers/links";
+@use "govuk-frontend/dist/govuk/helpers/typography";
+@use "govuk-frontend/dist/govuk/settings/measurements";
+
+.breadcrumbs {
+  display: flex;
+  flex-direction: row;
+}
+
+.breadcrumbs__return-to-wpip {
+  @extend .govuk-breadcrumbs;
+  margin-right: measurements.$govuk-gutter-half;
+  padding-right: measurements.$govuk-gutter-half;
+  border-right: 1px solid #{colour.govuk-functional-colour(border)};
+
+  a {
+    @include links.govuk-link-style-no-visited-state;
+  }
+}

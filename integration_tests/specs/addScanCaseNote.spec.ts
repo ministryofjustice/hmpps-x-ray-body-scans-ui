@@ -13,6 +13,7 @@ import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonApi from '../mockApis/prisonApi'
 import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
+import wpipUI from '../mockApis/wpipUI'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
 import AddScanCaseNotePage from '../pages/addScanCaseNotePage'
 import ScanListPage from '../pages/scanListPage'
@@ -65,9 +66,15 @@ test.describe('Add scan case note page', () => {
     expect(response?.status()).toBe(404)
   })
 
-  async function goToAddScanCaseNotePage(page: Page, stubScan: ScanResponse = scan): Promise<AddScanCaseNotePage> {
+  async function goToAddScanCaseNotePage(
+    page: Page,
+    stubScan: ScanResponse = scan,
+    querystring = '',
+  ): Promise<AddScanCaseNotePage> {
     await Promise.all([login(page), xrayBodyScansApi.stubGetScan(stubScan.id, stubScan)])
-    const response = await page.goto(`/prisoner/${prisonerNumber}/scan/${stubScan.id}/add-a-scan-case-note`)
+    const response = await page.goto(
+      `/prisoner/${prisonerNumber}/scan/${stubScan.id}/add-a-scan-case-note${querystring}`,
+    )
     expect(response?.status()).toBe(200)
     return AddScanCaseNotePage.verifyOnPage(page)
   }
@@ -97,6 +104,7 @@ test.describe('Add scan case note page', () => {
       const addScanCaseNotePage = await goToAddScanCaseNotePage(page, stubScan)
 
       // breadcrumbs
+      await expect(addScanCaseNotePage.returnToWpipLink).not.toBeVisible()
       await expect(addScanCaseNotePage.getBreadcrumbs()).resolves.toEqual([
         { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
         { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
@@ -130,9 +138,38 @@ test.describe('Add scan case note page', () => {
       ])
 
       // cancel link
+      await expect(addScanCaseNotePage.cancelLink).toContainText('Cancel')
       await expect(addScanCaseNotePage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
     })
   }
+
+  test('Links back to WPIP for users who came from there', async ({ page }) => {
+    const addScanCaseNotePage = await goToAddScanCaseNotePage(
+      page,
+      scan,
+      '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn',
+    )
+
+    // breadcrumbs
+    await expect(addScanCaseNotePage.returnToWpipLink).toContainText('Return to recent arrivals')
+    await expect(addScanCaseNotePage.returnToWpipLink).toHaveAttribute(
+      'href',
+      `http://localhost:9091/welcome/recent-arrivals?search=John`,
+    )
+
+    // cancel link
+    await expect(addScanCaseNotePage.cancelLink).toContainText('Return to recent arrivals')
+    await expect(addScanCaseNotePage.cancelLink).toHaveAttribute(
+      'href',
+      `http://localhost:9091/welcome/recent-arrivals?search=John`,
+    )
+
+    // end WPIP journey
+    await wpipUI.stubWpipRecentArrivals()
+    await addScanCaseNotePage.cancelLink.click()
+    await goToAddScanCaseNotePage(page)
+    await expect(addScanCaseNotePage.returnToWpipLink).not.toBeVisible()
+  })
 
   // TODO: add test for "recently in caseloads but not now"
   // TODO: add test for "fails base check"

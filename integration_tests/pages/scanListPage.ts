@@ -127,7 +127,7 @@ export default class ScanListPage extends AbstractPage {
   }
 
   get returnLink(): Locator {
-    return this.page.getByRole('link', { name: 'Return to the prisoner’s profile' })
+    return this.page.locator('[data-testid="return-link"]')
   }
 }
 

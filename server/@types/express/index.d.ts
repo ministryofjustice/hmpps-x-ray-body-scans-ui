@@ -7,8 +7,12 @@ import type { ScanResponse } from '../../data/interfaces/xrayBodyScansApi'
 export declare module 'express-session' {
   // Declare that the session will potentially contain these additional fields
   interface SessionData {
+    /** Scan ID for which a case note was just added */
     addedCaseNoteToScan?: string
+    /** Path within service to return to after signing in */
     returnTo?: string
+    /** Path within Welcome People Into Prison (set via middleware) to return user to instead of prisoner’s profile */
+    wpipReturnPath?: string
   }
 }
 
@@ -44,6 +48,7 @@ export declare global {
         jsIncludes: string[]
         sharedData: SharedData
       }
+      wpipReturnPath?: string
       asset_path: string
       applicationName: string
       environmentName: string

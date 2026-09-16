@@ -33,8 +33,8 @@
 
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
 
-  <div class="govuk-grid-row">
-    <section class="govuk-grid-column-three-quarters" data-testid="scan-summary">
+  <div class="scan-summary-and-alerts govuk-grid-row">
+    <section class="scan-summary govuk-grid-column-three-quarters" data-testid="scan-summary">
       <h2 class="govuk-heading-m">
         X-ray body scans recorded in {{ scanSummary.fromScanDate.getFullYear() }}
       </h2>
@@ -54,7 +54,7 @@
         }) }}
       {% endif %}
 
-      <div class="scan-summary">
+      <div class="scan-summary__container">
         <section class="scan-count__container" data-testid="scan-count">
           <h3 class="govuk-heading-s govuk-!-margin-bottom-2">
             Scans in {{ scanSummary.fromScanDate.getFullYear() }}
@@ -86,30 +86,28 @@
 
     </section>
 
-    <div class="govuk-grid-column-one-quarter">
-      <section class="scan-alerts">
-        <h2 class="govuk-heading-m">
-          Scan alerts
-        </h2>
+    <section class="scan-alerts govuk-grid-column-one-quarter">
+      <h2 class="govuk-heading-m">
+        Scan alerts
+      </h2>
 
-        <ul class="govuk-list" data-testid="scan-alerts">
-          {% for alert in alertFlags %}
-            <li>
-              {# href, if needed, could be:
-              {% set alertDetailsUrl -%}
-                {{ prisonerProfileUrl }}/prisoner/{{ prisoner.prisonerNumber }}/alerts//detail?ids={{ alert.id }}
-              {%- endset %}
-              #}
-              {{ alertFlag({
-                alert: alert
-              }) }}
-            </li>
-          {% else %}
-            <li data-testid="no-scan-alerts">No scan alerts</li>
-          {% endfor %}
-        </ul>
-      </section>
-    </div>
+      <ul class="govuk-list" data-testid="scan-alerts">
+        {% for alert in alertFlags %}
+          <li>
+            {# href, if needed, could be:
+            {% set alertDetailsUrl -%}
+              {{ prisonerProfileUrl }}/prisoner/{{ prisoner.prisonerNumber }}/alerts//detail?ids={{ alert.id }}
+            {%- endset %}
+            #}
+            {{ alertFlag({
+              alert: alert
+            }) }}
+          </li>
+        {% else %}
+          <li data-testid="no-scan-alerts">No scan alerts</li>
+        {% endfor %}
+      </ul>
+    </section>
   </div>
 
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
@@ -227,17 +225,31 @@
         title: "Case note details"
       }) }}
     {% else %}
-      {% if not yearFilter %}
-        <p>No X-ray body scans have been recorded for this person in {{ now().getFullYear() }}.</p>
-      {% elseif yearFilter === "all" %}
-        <p>No X-ray body scans have been recorded for this person.</p>
-      {% else %}
-        <p>No X-ray body scans have been recorded for this person in {{ yearFilter }}.</p>
-      {% endif %}
+
+      <p class="govuk-!-margin-bottom-6">
+        {% if not yearFilter %}
+          No X-ray body scans have been recorded for this person in {{ now().getFullYear() }}.
+        {% elseif yearFilter === "all" %}
+          No X-ray body scans have been recorded for this person.
+        {% else %}
+          No X-ray body scans have been recorded for this person in {{ yearFilter }}.
+        {% endif %}
+      </p>
+
     {% endif %}
 
   </section>
 
-  <p><a href="{{ prisoner | prisonerProfileUrl }}">Return to the prisoner’s profile</a></p>
+  <p>
+    {% if wpipReturnPath %}
+      <a href="{{ welcomePeopleIntoPrisonUrl }}{{ wpipReturnPath }}" data-testid="return-link" data-signal-end-journey="wpip">
+        Return to recent arrivals
+      </a>
+    {% else %}
+      <a href="{{ prisoner | prisonerProfileUrl }}" data-testid="return-link">
+        Return to the prisoner’s profile
+      </a>
+    {% endif %}
+  </p>
 
 {% endblock %}

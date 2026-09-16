@@ -106,12 +106,12 @@ describe('getScanList', () => {
       }),
       expectedAlertFlags: [
         {
-          label: mockInternalSecretorAlert.codeDescription,
+          label: 'Internal secretor',
           alertCodes: [mockInternalSecretorAlert.code],
           classes: expect.stringContaining('dps-alert-status--security'),
         },
         {
-          label: mockDoNotScanAlert.codeDescription,
+          label: 'Do not X-Ray body scan',
           alertCodes: [mockDoNotScanAlert.code],
           classes: expect.stringContaining('dps-alert-status--security'),
         },

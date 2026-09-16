@@ -1,8 +1,35 @@
+@use "govuk-frontend/dist/govuk/helpers/colour";
+@use "govuk-frontend/dist/govuk/helpers/media-queries";
+@use "govuk-frontend/dist/govuk/helpers/spacing";
+
 @use "./count";
 @use "./outcome";
 
+.scan-summary-and-alerts {
+  @include media-queries.govuk-media-query($until: tablet) {
+    @include spacing.govuk-responsive-margin(6, "bottom");
+  }
+}
+
+.scan-summary {
+  @include media-queries.govuk-media-query($until: tablet) {
+    @include spacing.govuk-responsive-margin(4, "bottom");
+  }
+
+  @include media-queries.govuk-media-query($from: tablet) {
+    border-right: 2px solid #{colour.govuk-functional-colour(border)};
+    @include spacing.govuk-responsive-padding(6, "right");
+  }
+}
+
+@media (max-width: 55rem) {
+  .scan-count__container {
+    @include spacing.govuk-responsive-margin(4, "bottom");
+  }
+}
+
 @media (min-width: 55rem) {
-  .scan-summary {
+  .scan-summary__container {
     display: flex;
     flex-direction: row;
   }

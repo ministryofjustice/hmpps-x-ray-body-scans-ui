@@ -86,14 +86,18 @@ export default class ScanController {
             ...scan,
             scanDateDescription: formatDisplayDate(scan.scanDate),
             prisonDescription: prisonNames.get(scan.prisonId),
-            highlightedRow: addedCaseNoteToScan === scan.id,
+            highlightedRow: scan.id === addedCaseNoteToScan,
           },
     )
 
     const alertFlags: AlertFlagLabel[] = scanSummary.relevantAlerts.map(alert => ({
       alertCodes: [alert.code],
       classes: getAlertFlagCssClasses(getAlertTypeForCode(alert.type) ?? AlertType.Security),
-      label: alert.codeDescription,
+      label:
+        {
+          XIS: 'Internal secretor',
+          XXRAY: 'Do not X-Ray body scan',
+        }[alert.code] ?? alert.codeDescription,
     }))
 
     res.render('pages/scanList', {
