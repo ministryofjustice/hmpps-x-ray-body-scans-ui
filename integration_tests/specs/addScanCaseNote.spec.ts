@@ -23,6 +23,8 @@ const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '100897124
 const scanId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
 const now = new Date()
 
+const startAtPath = `/prisoner/${prisonerNumber}/scan/${scanId}/add-a-scan-case-note`
+
 const scan = mockScanResponse(prisonerNumber, now)
 const caseNote = mockScanCaseNoteResponse(scan)
 
@@ -40,39 +42,37 @@ test.describe('Add scan case note page', () => {
   })
 
   test('404 page when prisoner not found', async ({ page }) => {
-    await Promise.all([prisonerSearchApi.stubGetPrisoner('B2222BB', notFoundErrorResponse), login(page)])
+    await Promise.all([prisonerSearchApi.stubGetPrisoner('B2222BB', notFoundErrorResponse)])
 
-    const response = await page.goto(`/prisoner/B2222BB/scan/${scanId}/add-a-scan-case-note`)
+    const response = await login(page, `/prisoner/B2222BB/scan/${scanId}/add-a-scan-case-note`)
 
     expect(response?.status()).toBe(404)
   })
 
   test('404 page when scan not found', async ({ page }) => {
-    await Promise.all([xrayBodyScansApi.stubGetScan(scanId, { ...scan, prisonerNumber: 'B2222BB' }), login(page)])
+    await xrayBodyScansApi.stubGetScan(scanId, { ...scan, prisonerNumber: 'B2222BB' })
 
-    const response = await page.goto(`/prisoner/${prisonerNumber}/scan/${scanId}/add-a-scan-case-note`)
+    const response = await login(page, startAtPath)
 
     expect(response?.status()).toBe(404)
   })
 
   test('404 page when scan already has a case note', async ({ page }) => {
-    await Promise.all([
-      xrayBodyScansApi.stubGetScan(scanId, { ...scan, caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8' }),
-      login(page),
-    ])
+    await xrayBodyScansApi.stubGetScan(scanId, { ...scan, caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8' })
 
-    const response = await page.goto(`/prisoner/${prisonerNumber}/scan/${scanId}/add-a-scan-case-note`)
+    const response = await login(page, startAtPath)
 
     expect(response?.status()).toBe(404)
   })
 
-  async function goToAddScanCaseNotePage(
+  async function startOnAddScanCaseNotePage(
     page: Page,
     stubScan: ScanResponse = scan,
     querystring = '',
   ): Promise<AddScanCaseNotePage> {
-    await Promise.all([login(page), xrayBodyScansApi.stubGetScan(stubScan.id, stubScan)])
-    const response = await page.goto(
+    await xrayBodyScansApi.stubGetScan(stubScan.id, stubScan)
+    const response = await login(
+      page,
       `/prisoner/${prisonerNumber}/scan/${stubScan.id}/add-a-scan-case-note${querystring}`,
     )
     expect(response?.status()).toBe(200)
@@ -101,7 +101,7 @@ test.describe('Add scan case note page', () => {
   ]
   for (const { scenario, stubScan, expectedDescription } of scanScenarios) {
     test(`Page shows for a ${scenario} with expected content`, async ({ page }) => {
-      const addScanCaseNotePage = await goToAddScanCaseNotePage(page, stubScan)
+      const addScanCaseNotePage = await startOnAddScanCaseNotePage(page, stubScan)
 
       // breadcrumbs
       await expect(addScanCaseNotePage.returnToWpipLink).not.toBeVisible()
@@ -144,7 +144,7 @@ test.describe('Add scan case note page', () => {
   }
 
   test('Links back to WPIP for users who came from there', async ({ page }) => {
-    const addScanCaseNotePage = await goToAddScanCaseNotePage(
+    const addScanCaseNotePage = await startOnAddScanCaseNotePage(
       page,
       scan,
       '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn',
@@ -167,7 +167,7 @@ test.describe('Add scan case note page', () => {
     // end WPIP journey
     await wpipUI.stubWpipRecentArrivals()
     await addScanCaseNotePage.cancelLink.click()
-    await goToAddScanCaseNotePage(page)
+    await page.goto(startAtPath)
     await expect(addScanCaseNotePage.returnToWpipLink).not.toBeVisible()
   })
 
@@ -197,7 +197,7 @@ test.describe('Add scan case note page', () => {
   }
 
   test('Saves case note and redirects to scan overview', async ({ page }) => {
-    const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
+    const addScanCaseNotePage = await startOnAddScanCaseNotePage(page)
 
     await xrayBodyScansApi.stubCreateScanCaseNote(
       scanId,
@@ -217,7 +217,7 @@ Result: Item detected
   })
 
   test('Saves case note with additional details', async ({ page }) => {
-    const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
+    const addScanCaseNotePage = await startOnAddScanCaseNotePage(page)
 
     await xrayBodyScansApi.stubCreateScanCaseNote(
       scanId,
@@ -240,8 +240,7 @@ Some extra details
   })
 
   test('Returns the user to the list page preserving filters', async ({ page }) => {
-    const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
-    await page.goto(`/prisoner/${prisonerNumber}/scan/${scan.id}/add-a-scan-case-note?year=all&sort=scanDate`)
+    const addScanCaseNotePage = await startOnAddScanCaseNotePage(page, scan, '?year=all&sort=scanDate')
 
     await xrayBodyScansApi.stubCreateScanCaseNote(scanId, undefined, caseNote)
 
@@ -255,7 +254,7 @@ Some extra details
   })
 
   test('Shows validation error when additional details exceeds 3500 characters', async ({ page }) => {
-    const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
+    const addScanCaseNotePage = await startOnAddScanCaseNotePage(page)
 
     await addScanCaseNotePage.additionalDetailsInput.fill('a'.repeat(3501))
     await addScanCaseNotePage.saveButton.click()
@@ -269,7 +268,7 @@ Some extra details
   })
 
   test('Shows error alert when case note save fails', async ({ page }) => {
-    const addScanCaseNotePage = await goToAddScanCaseNotePage(page)
+    const addScanCaseNotePage = await startOnAddScanCaseNotePage(page)
 
     await xrayBodyScansApi.stubCreateScanCaseNote(scanId, undefined, internalServerErrorResponse)
     await addScanCaseNotePage.saveButton.click()

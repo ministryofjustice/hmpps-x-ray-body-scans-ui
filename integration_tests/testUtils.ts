@@ -6,8 +6,8 @@ export { resetStubs } from './mockApis/wiremock'
 
 export const DEFAULT_ROLES = ['ROLE_DPS_APPLICATION_DEVELOPER'] // TODO: replace with ROLE_PRISON
 
-export const attemptHmppsAuthLogin = async (page: Page) => {
-  await page.goto('/')
+const attemptHmppsAuthLogin = async (page: Page, startAtPath: string) => {
+  await page.goto(startAtPath)
   page.locator('h1', { hasText: 'Sign in' })
   const url = await hmppsAuth.getSignInUrl()
   return page.goto(url)
@@ -15,6 +15,7 @@ export const attemptHmppsAuthLogin = async (page: Page) => {
 
 export const login = async (
   page: Page,
+  startAtPath: string,
   { name, roles = DEFAULT_ROLES, active = true, authSource = 'nomis' }: UserToken & { active?: boolean } = {},
 ) => {
   await Promise.all([
@@ -24,5 +25,5 @@ export const login = async (
     hmppsAuth.token({ name, roles, authSource }),
     tokenVerification.stubVerifyToken(active),
   ])
-  return attemptHmppsAuthLogin(page)
+  return attemptHmppsAuthLogin(page, startAtPath)
 }

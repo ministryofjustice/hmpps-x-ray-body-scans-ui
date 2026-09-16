@@ -25,6 +25,8 @@ const now = new Date() // cannot fix clock since backend runs in separate proces
 const prisonerNumber = 'A1234BC'
 const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
 
+const startAtPath = `/prisoner/${prisonerNumber}/scan-overview`
+
 test.describe('Scan list page', () => {
   test.beforeEach(async () => {
     await Promise.all([
@@ -39,8 +41,8 @@ test.describe('Scan list page', () => {
     await resetStubs()
   })
 
-  async function goToScanListPage(page: Page, querystring = ''): Promise<ScanListPage> {
-    const response = await page.goto(`/prisoner/${prisonerNumber}/scan-overview${querystring}`)
+  async function startOnScanListPage(page: Page, querystring = ''): Promise<ScanListPage> {
+    const response = await login(page, `${startAtPath}${querystring}`)
     expect(response?.status()).toBe(200)
     return ScanListPage.verifyOnPage(page)
   }
@@ -48,9 +50,8 @@ test.describe('Scan list page', () => {
   test.describe('Page display', () => {
     test('404 page when prisoner not found', async ({ page }) => {
       await prisonerSearchApi.stubGetPrisoner('B2222BB', notFoundErrorResponse)
-      await login(page)
 
-      const response = await page.goto('/prisoner/B2222BB/scan-overview')
+      const response = await login(page, '/prisoner/B2222BB/scan-overview')
 
       expect(response?.status()).toBe(404)
     })
@@ -63,10 +64,9 @@ test.describe('Scan list page', () => {
           { includeAlerts: true },
         ),
         xrayBodyScansApi.stubListScans(prisonerNumber),
-        login(page),
       ])
 
-      const scanListPage = await goToScanListPage(page)
+      const scanListPage = await startOnScanListPage(page)
 
       // breadcrumbs
       await expect(scanListPage.returnToWpipLink).not.toBeVisible()
@@ -138,10 +138,9 @@ test.describe('Scan list page', () => {
           { includeAlerts: true },
         ),
         xrayBodyScansApi.stubListScans(prisonerNumber),
-        login(page),
       ])
 
-      const scanListPage = await goToScanListPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
+      const scanListPage = await startOnScanListPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
       // breadcrumbs
       await expect(scanListPage.returnToWpipLink).toContainText('Return to recent arrivals')
@@ -160,7 +159,7 @@ test.describe('Scan list page', () => {
       // end WPIP journey
       await wpipUI.stubWpipRecentArrivals()
       await scanListPage.returnToWpipLink.click()
-      await goToScanListPage(page)
+      await page.goto(startAtPath)
       await expect(scanListPage.returnToWpipLink).not.toBeVisible()
     })
 
@@ -266,10 +265,9 @@ test.describe('Scan list page', () => {
         await Promise.all([
           xrayBodyScansApi.stubGetScanSummary(prisonerNumber, scanSummary, { includeAlerts: true }),
           xrayBodyScansApi.stubListScans(prisonerNumber),
-          login(page),
         ])
 
-        const scanListPage = await goToScanListPage(page)
+        const scanListPage = await startOnScanListPage(page)
 
         if (expectedInfoBoxText) {
           await expect(scanListPage.infoBox).toContainText(expectedInfoBoxText)
@@ -319,10 +317,9 @@ test.describe('Scan list page', () => {
         await Promise.all([
           xrayBodyScansApi.stubGetScanSummary(prisonerNumber, scanSummary, { includeAlerts: true }),
           xrayBodyScansApi.stubListScans(prisonerNumber),
-          login(page),
         ])
 
-        const scanListPage = await goToScanListPage(page)
+        const scanListPage = await startOnScanListPage(page)
 
         await expect(scanListPage.alertsList).toContainText(expectedAlertFlags)
       })
@@ -384,10 +381,9 @@ test.describe('Scan list page', () => {
             toScanDate: now,
             page: 0,
           }),
-          login(page),
         ])
 
-        const scanListPage = await goToScanListPage(page)
+        const scanListPage = await startOnScanListPage(page)
 
         await expect(
           scanListPage.historySection.getByRole('heading', { name: 'Scans recorded this year', level: 3 }),
@@ -484,10 +480,9 @@ test.describe('Scan list page', () => {
             mockLegacyScanResponse(prisonerNumber, null, 'positive'),
           ]),
         ),
-        login(page),
       ])
 
-      const scanListPage = await goToScanListPage(page)
+      const scanListPage = await startOnScanListPage(page)
       const dateStr = formatDisplayDate(now)
       await expect(scanListPage.getScanTableContents()).resolves.toEqual([
         [dateStr, 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Add case note'],
@@ -549,10 +544,9 @@ test.describe('Scan list page', () => {
             { includeAlerts: true },
           ),
           xrayBodyScansApi.stubListScans(prisonerNumber, response, { page: 0 }),
-          login(page),
         ])
 
-        const scanListPage = await goToScanListPage(page)
+        const scanListPage = await startOnScanListPage(page)
         await expect(scanListPage.getPaginationShowingDescription()).resolves.toContain(
           'Showing 1 to 20 of 200 results',
         )
@@ -612,10 +606,9 @@ test.describe('Scan list page', () => {
         xrayBodyScansApi.stubListScans(prisonerNumber, response, {
           page: 0,
         }),
-        login(page),
       ])
 
-      const scanListPage = await goToScanListPage(page)
+      const scanListPage = await startOnScanListPage(page)
       await expect(scanListPage.getScanTableHeaders()).resolves.toEqual([
         {
           text: expect.stringMatching(/Date\s+\(sorted descending\)/),
@@ -729,10 +722,9 @@ test.describe('Scan list page', () => {
             { includeAlerts: true },
           ),
           xrayBodyScansApi.stubListScans(prisonerNumber, pageResponse(scans)),
-          login(page),
         ])
 
-        const scanListPage = await goToScanListPage(page)
+        const scanListPage = await startOnScanListPage(page)
         await expect(scanListPage.modal).not.toBeVisible()
         await expect(scanListPage.getNthRowActionLink(0)).toContainText('Add case note')
 
@@ -777,10 +769,9 @@ test.describe('Scan list page', () => {
         { includeAlerts: true },
       ),
       xrayBodyScansApi.stubListScans(prisonerNumber, internalServerErrorResponse),
-      login(page),
     ])
 
-    const scanListPage = await goToScanListPage(page)
+    const scanListPage = await startOnScanListPage(page)
 
     await expect(scanListPage.alert).toContainText('The scan history could not be loaded')
   })
