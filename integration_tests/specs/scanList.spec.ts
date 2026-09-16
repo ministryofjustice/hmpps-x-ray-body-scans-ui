@@ -302,7 +302,7 @@ test.describe('Scan list page', () => {
           now,
           relevantAlerts: [mockInternalSecretorAlert],
         }),
-        expectedAlertFlags: ['Internal Secretor'],
+        expectedAlertFlags: ['Internal secretor'],
       },
       {
         scenario: 'with both relevant alerts',
@@ -311,7 +311,7 @@ test.describe('Scan list page', () => {
           now,
           relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert],
         }),
-        expectedAlertFlags: ['Internal Secretor', 'Do Not X-Ray Body Scan'],
+        expectedAlertFlags: ['Internal secretor', 'Do not X-Ray body scan'],
       },
     ]
     for (const { scenario, scanSummary, expectedAlertFlags } of alertsScenarios) {

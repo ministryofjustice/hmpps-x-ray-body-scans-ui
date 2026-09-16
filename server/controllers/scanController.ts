@@ -93,7 +93,11 @@ export default class ScanController {
     const alertFlags: AlertFlagLabel[] = scanSummary.relevantAlerts.map(alert => ({
       alertCodes: [alert.code],
       classes: getAlertFlagCssClasses(getAlertTypeForCode(alert.type) ?? AlertType.Security),
-      label: alert.codeDescription,
+      label:
+        {
+          XIS: 'Internal secretor',
+          XXRAY: 'Do not X-Ray body scan',
+        }[alert.code] ?? alert.codeDescription,
     }))
 
     res.render('pages/scanList', {
