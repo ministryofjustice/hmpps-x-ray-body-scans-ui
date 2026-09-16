@@ -1,5 +1,4 @@
 @use "govuk-frontend/dist/govuk/helpers/colour";
-@use "govuk-frontend/dist/govuk/helpers/spacing";
 @use "govuk-frontend/dist/govuk/helpers/typography";
 @use "govuk-frontend/dist/govuk/settings/measurements";
 
@@ -14,7 +13,6 @@
 
   border-left: measurements.$govuk-border-width solid var(--scan-count-accent-colour);
   padding-left: measurements.$govuk-border-width-wide;
-  @include spacing.govuk-responsive-margin(4, "bottom");
 
   .scan-count__number, .scan-count__limit-warning {
     display: block;
