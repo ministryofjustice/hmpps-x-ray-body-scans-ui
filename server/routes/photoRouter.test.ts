@@ -17,6 +17,7 @@ jest.mock('../data/prisonerSearchApiClient')
 jest.mock('../data/xrayBodyScansApiClient')
 jest.mock('../services/auditService')
 jest.mock('../services/prisonService')
+jest.mock('../services/telemetryService')
 
 const { auditService, prisonApiClient, prisonerSearchApiClient } = mockServices
 

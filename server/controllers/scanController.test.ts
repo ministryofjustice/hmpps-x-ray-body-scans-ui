@@ -17,15 +17,18 @@ import {
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import AuditService, { Page } from '../services/auditService'
 import { PrisonService } from '../services/prisonService'
+import { TelemetryService } from '../services/telemetryService'
 import ScanController from './scanController'
 
 jest.mock('../../logger')
 jest.mock('../services/auditService')
+jest.mock('../services/telemetryService')
 jest.mock('../services/prisonService')
 jest.mock('../data/xrayBodyScansApiClient')
 
 const auditService = jest.mocked(new AuditService({} as never))
 const prisonService = jest.mocked(new PrisonService({} as never, {} as never))
+const telemetryService = jest.mocked(new TelemetryService())
 const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as never))
 
 const prisonerNumber = 'A1234BC'
@@ -43,7 +46,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   mockAuditService(auditService)
-  scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
+  scanController = new ScanController(auditService, prisonService, telemetryService, xrayBodyScansApiClient)
   prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
 
   req = {
@@ -475,6 +478,7 @@ describe('postCreateScan', () => {
       correlationId: req.id,
       details: { scanId: scan.id },
     })
+    expect(telemetryService.scanCreated).toHaveBeenCalledWith(scan)
     expect(auditService.logPageView).toHaveBeenCalledWith(Page.CREATE_SCAN_SUCCESS, {
       who: username,
       subjectId: prisonerNumber,
@@ -558,6 +562,7 @@ describe('postCreateScan', () => {
     expect(res.redirect).not.toHaveBeenCalled()
     expect(xrayBodyScansApiClient.createScan).not.toHaveBeenCalled()
     expect(auditService.logAuditEvent).not.toHaveBeenCalled()
+    expect(telemetryService.scanCreated).not.toHaveBeenCalled()
   })
 
   it('shows an error when api throws one', async () => {
@@ -582,5 +587,6 @@ describe('postCreateScan', () => {
     expect(res.redirect).not.toHaveBeenCalled()
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ responseStatus: 500 }))
     expect(auditService.logAuditEvent).not.toHaveBeenCalled()
+    expect(telemetryService.scanCreated).not.toHaveBeenCalled()
   })
 })

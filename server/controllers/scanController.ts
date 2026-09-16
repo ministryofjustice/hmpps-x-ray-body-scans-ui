@@ -16,7 +16,8 @@ import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest, ListScansRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
-import { PrisonService } from '../services/prisonService'
+import type { PrisonService } from '../services/prisonService'
+import type { TelemetryService } from '../services/telemetryService'
 
 const dayMillis = 24 * 60 * 60 * 1000
 
@@ -24,6 +25,7 @@ export default class ScanController {
   constructor(
     private readonly auditService: AuditService,
     private readonly prisonService: PrisonService,
+    private readonly telemetryService: TelemetryService,
     private readonly xrayBodyScansApiClient: XrayBodyScansApiClient,
   ) {}
 
@@ -168,6 +170,7 @@ export default class ScanController {
         username,
       )
       logger.info(`Scan ${createScanResponse.id} recorded`)
+      this.telemetryService.scanCreated(createScanResponse)
 
       // TODO: confirm required audit event info
       this.auditService

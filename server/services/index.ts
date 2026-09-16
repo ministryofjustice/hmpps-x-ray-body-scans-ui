@@ -7,6 +7,7 @@ import { dataAccess } from '../data'
 import { createRedisClient } from '../data/redisClient'
 import AuditService from './auditService'
 import { PrisonService } from './prisonService'
+import { TelemetryService } from './telemetryService'
 
 export const services = () => {
   const {
@@ -23,6 +24,7 @@ export const services = () => {
   redisClient.connect().catch(error => logger.error(error, 'Error connecting to Redis'))
 
   const auditService = new AuditService(hmppsAuditClient)
+  const telemetryService = new TelemetryService()
 
   const prisonPermissionsService = PermissionsService.create({
     prisonerSearchConfig: config.apis.prisonerSearchApi,
@@ -40,6 +42,7 @@ export const services = () => {
     prisonPermissionsService,
     prisonService,
     prisonerSearchApiClient,
+    telemetryService,
     xrayBodyScansApiClient,
   }
 }

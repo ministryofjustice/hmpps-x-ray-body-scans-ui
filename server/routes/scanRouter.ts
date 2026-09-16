@@ -11,6 +11,7 @@ import { getScanMiddleware } from '../middleware/getScanMiddleware'
 import type AuditService from '../services/auditService'
 import type { PrisonService } from '../services/prisonService'
 import { canAddCaseNotToScan } from '../utils/scanPermissions'
+import type { TelemetryService } from '../services/telemetryService'
 import ScanController from '../controllers/scanController'
 import CaseNoteController from '../controllers/caseNoteController'
 
@@ -18,9 +19,10 @@ export default function scanRouter(
   auditService: AuditService,
   prisonPermissionsService: PermissionsService,
   prisonService: PrisonService,
+  telemetryService: TelemetryService,
   xrayBodyScansApiClient: XrayBodyScansApiClient,
 ): Router {
-  const scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
+  const scanController = new ScanController(auditService, prisonService, telemetryService, xrayBodyScansApiClient)
   const router = Router({ mergeParams: true })
 
   router.get('/', (_req, res) => {
@@ -48,7 +50,7 @@ export default function scanRouter(
   router.use(
     '/scan/:scanId',
     getScanMiddleware(xrayBodyScansApiClient),
-    caseNoteRouter(auditService, prisonPermissionsService, xrayBodyScansApiClient),
+    caseNoteRouter(auditService, prisonPermissionsService, telemetryService, xrayBodyScansApiClient),
   )
 
   return router
@@ -57,9 +59,10 @@ export default function scanRouter(
 function caseNoteRouter(
   auditService: AuditService,
   prisonPermissionsService: PermissionsService,
+  telemetryService: TelemetryService,
   xrayBodyScansApiClient: XrayBodyScansApiClient,
 ): Router {
-  const caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
+  const caseNoteController = new CaseNoteController(auditService, telemetryService, xrayBodyScansApiClient)
 
   const router = Router({ mergeParams: true })
 

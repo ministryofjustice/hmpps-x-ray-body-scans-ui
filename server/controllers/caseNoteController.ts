@@ -8,10 +8,12 @@ import { type AddScanCaseNoteForm, addScanCaseNoteForm } from '../forms/addScanC
 import type { ZodErrorTree } from '../forms/formErrors'
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
+import type { TelemetryService } from '../services/telemetryService'
 
 export default class CaseNoteController {
   constructor(
     private readonly auditService: AuditService,
+    private readonly telemetryService: TelemetryService,
     private readonly xrayBodyScansApiClient: XrayBodyScansApiClient,
   ) {}
 
@@ -79,6 +81,7 @@ export default class CaseNoteController {
       const request: CreateScanCaseNoteRequest = { text, prisonId: user.activeCaseLoadId! }
       const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, request, user.username)
       logger.info(`Created case note ${caseNote.id} for scan ${scan.id}`)
+      this.telemetryService.caseNoteAdded(caseNote)
 
       // TODO: confirm required audit event info
       this.auditService
