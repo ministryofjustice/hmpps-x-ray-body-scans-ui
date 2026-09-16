@@ -18,6 +18,7 @@ export default function routes(services: Services): Router {
     prisonPermissionsService,
     prisonService,
     prisonerSearchApiClient,
+    telemetryService,
     xrayBodyScansApiClient,
   } = services
 
@@ -35,7 +36,7 @@ export default function routes(services: Services): Router {
     getPrisonerMiddleware(prisonerSearchApiClient),
     prisonerPermissionsGuard(prisonPermissionsService, { requestDependentOn: [PrisonerBasePermission.read] }),
     registerWpipReturnPathMiddleware,
-    scanRouter(auditService, prisonService, xrayBodyScansApiClient),
+    scanRouter(auditService, prisonService, telemetryService, xrayBodyScansApiClient),
     photoRouter(auditService, prisonApiClient),
   )
 

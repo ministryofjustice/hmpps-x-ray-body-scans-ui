@@ -10,13 +10,16 @@ import { mockLegacyScanResponse, mockScanResponse, mockScanCaseNoteResponse } fr
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { ScanResponse } from '../data/interfaces/xrayBodyScansApi'
 import AuditService, { Page } from '../services/auditService'
+import { TelemetryService } from '../services/telemetryService'
 import CaseNoteController from './caseNoteController'
 
 jest.mock('../../logger')
 jest.mock('../services/auditService')
+jest.mock('../services/telemetryService')
 jest.mock('../data/xrayBodyScansApiClient')
 
 const auditService = jest.mocked(new AuditService({} as never))
+const telemetryService = jest.mocked(new TelemetryService())
 const xrayBodyScansApiClient = jest.mocked(new XrayBodyScansApiClient({} as never))
 
 const prisonerNumber = 'A1234BC'
@@ -44,7 +47,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   mockAuditService(auditService)
-  caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
+  caseNoteController = new CaseNoteController(auditService, telemetryService, xrayBodyScansApiClient)
 
   req = {
     params: { prisonerNumber, scanId },
@@ -220,6 +223,7 @@ describe('postAddScanCaseNote', () => {
         correlationId,
         details: { scanId },
       })
+      expect(telemetryService.caseNoteAdded).toHaveBeenCalledWith(caseNote)
       expect(res.redirect).toHaveBeenCalledWith(`/prisoner/${prisonerNumber}/scan-overview#scan-history`)
       expect(req.session.addedCaseNoteToScan).toEqual(scan.id)
       expect(logger.info).toHaveBeenCalledWith(`Created case note ${caseNote.id} for scan ${scan.id}`)
@@ -278,6 +282,8 @@ Extra info
       }),
     )
     expect(xrayBodyScansApiClient.createScanCaseNote).not.toHaveBeenCalled()
+    expect(auditService.logAuditEvent).not.toHaveBeenCalled()
+    expect(telemetryService.caseNoteAdded).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
     expect(req.session.addedCaseNoteToScan).toBeUndefined()
   })
@@ -291,6 +297,8 @@ Extra info
       'pages/addScanCaseNote',
       expect.objectContaining({ createCallFailed: true }),
     )
+    expect(auditService.logAuditEvent).not.toHaveBeenCalled()
+    expect(telemetryService.caseNoteAdded).not.toHaveBeenCalled()
     expect(res.redirect).not.toHaveBeenCalled()
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ responseStatus: 500 }))
     expect(req.session.addedCaseNoteToScan).toBeUndefined()
