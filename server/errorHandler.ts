@@ -1,24 +1,30 @@
 import type { Request, Response, NextFunction } from 'express'
-import type { HTTPError } from 'superagent'
+import type { HttpError } from 'http-errors'
+import type { HTTPError as SuperagentHttpError } from 'superagent'
+import type { SanitisedError } from '@ministryofjustice/hmpps-rest-client'
 import logger from '../logger'
 
 export default function createErrorHandler(production: boolean) {
-  return (error: HTTPError, req: Request, res: Response, _next: NextFunction): void => {
+  return (
+    error: HttpError | SuperagentHttpError | SanitisedError,
+    req: Request,
+    res: Response,
+    _next: NextFunction,
+  ): void => {
     logger.error(`Error handling request for '${req.originalUrl}', user '${res.locals.user?.username}'`, error)
 
-    if (error.status === 401 || error.status === 403) {
-      logger.info('Logging user out')
-      return res.redirect('/sign-out')
+    const status = ('status' in error && error.status) || ('responseStatus' in error && error.responseStatus) || 500
+
+    if (status === 401 || status === 403) {
+      res.redirect('/authError')
+      return
     }
 
-    res.locals.message = production
-      ? 'Something went wrong. The error has been logged. Please try again'
-      : error.message
-    res.locals.status = error.status
-    res.locals.stack = production ? null : error.stack
-
-    res.status(error.status || 500)
-
-    return res.render('pages/error')
+    res.status(status)
+    if (status === 404) {
+      res.render('pages/notFound')
+    } else {
+      res.render('pages/error', { status, error, production })
+    }
   }
 }
