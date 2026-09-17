@@ -10,8 +10,9 @@ import { PrisonService } from '../../services/prisonService'
 import type { PrisonUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
 import createUserToken from '../../testutils/createUserToken'
-import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApi'
+import { mockComponentsResponse, mockXrayBodyScansService } from '../../testutils/mocks/componentsApi'
 import { caseloadMDI } from '../../testutils/mocks/prisonApi'
+import { mockPrisoner } from '../../testutils/mocks/prisonerSearchApi'
 
 jest.mock('../../services/auditService')
 
@@ -53,19 +54,7 @@ function appSetup(services: Services, production: boolean, userSupplier: () => P
       prisonerPermissions: {} as never,
       cspNonce: '',
       csrfToken: '',
-      feComponents: {
-        header: 'DPS header',
-        footer: 'DPS footer',
-        cssIncludes: [],
-        jsIncludes: [],
-        sharedData: {
-          caseLoads: [],
-          activeCaseLoad: null,
-          services: [],
-          allocationJobResponsibilities: [],
-          cspDirectives: {},
-        },
-      },
+      feComponents: mockComponentsResponse(generatedUser.activeCaseLoad, [mockXrayBodyScansService]),
       asset_path: '',
       applicationName: '',
       environmentName: '',
