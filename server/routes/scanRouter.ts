@@ -1,5 +1,9 @@
 import { Router } from 'express'
-
+import {
+  type PermissionsService,
+  XRayBodyScansPermission,
+  prisonerPermissionsGuard,
+} from '@ministryofjustice/hmpps-prison-permissions-lib'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import { getScanMiddleware } from '../middleware/getScanMiddleware'
 import type AuditService from '../services/auditService'
@@ -9,11 +13,18 @@ import CaseNoteController from '../controllers/caseNoteController'
 
 export default function scanRouter(
   auditService: AuditService,
+  prisonPermissionsService: PermissionsService,
   prisonService: PrisonService,
   xrayBodyScansApiClient: XrayBodyScansApiClient,
 ): Router {
-  const router = Router({ mergeParams: true })
   const scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
+
+  const router = Router({ mergeParams: true })
+  router.use(
+    prisonerPermissionsGuard(prisonPermissionsService, {
+      requestDependentOn: [XRayBodyScansPermission.read_scans],
+    }),
+  )
 
   router.get('/', (_req, res) => {
     const { prisonerNumber } = res.locals.prisoner

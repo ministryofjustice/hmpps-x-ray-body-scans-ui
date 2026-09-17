@@ -33,8 +33,11 @@ export default function routes(services: Services): Router {
   }
 
   router.use(
-    authorisationMiddleware(['DPS_APPLICATION_DEVELOPER']), // TODO: will either require no roles or PRISON
+    // require no particular role since permission library handles this
+    authorisationMiddleware(),
+    // require an active case load
     requireActiveCaseload(),
+    // require active case load to be enabled in the service according to MFE
     requireActiveAgency(),
   )
 
@@ -45,8 +48,8 @@ export default function routes(services: Services): Router {
     getPrisonerMiddleware(prisonerSearchApiClient),
     prisonerPermissionsGuard(prisonPermissionsService, { requestDependentOn: [PrisonerBasePermission.read] }),
     registerWpipReturnPathMiddleware,
-    scanRouter(auditService, prisonService, xrayBodyScansApiClient),
     photoRouter(auditService, prisonApiClient),
+    scanRouter(auditService, prisonPermissionsService, prisonService, xrayBodyScansApiClient),
   )
 
   return router

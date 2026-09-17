@@ -1,6 +1,10 @@
 import type { Express } from 'express'
 import request from 'supertest'
-import { PermissionsService } from '@ministryofjustice/hmpps-prison-permissions-lib'
+import {
+  PermissionsService,
+  PrisonerBasePermission,
+  XRayBodyScansPermission,
+} from '@ministryofjustice/hmpps-prison-permissions-lib'
 import { appWithAllRoutes, user } from './testutils/appSetup'
 import createUserToken from '../testutils/createUserToken'
 import { emptyPageResponse } from '../testutils/pagination'
@@ -11,7 +15,10 @@ import { PrisonApiClient } from '../data/prisonApi'
 import { PrisonerSearchApiClient } from '../data/prisonerSearchApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import { mockAuditService } from '../testutils/mocks/auditService'
-import { mockGrantMinimalPrisonerPermissions } from '../testutils/mocks/prisonPermissionsService'
+import {
+  mockGrantNoPrisonerPermissions,
+  mockGrantPrisonerPermissions,
+} from '../testutils/mocks/prisonPermissionsService'
 import { mockPrisonNamesImpl } from '../testutils/mocks/prisonService'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApi'
@@ -53,7 +60,7 @@ const unauthorisedUser = { ...user, token: createUserToken([]) }
 
 beforeEach(() => {
   mockAuditService(auditService)
-  mockGrantMinimalPrisonerPermissions()
+  mockGrantPrisonerPermissions(PrisonerBasePermission.read, XRayBodyScansPermission.read_scans)
   prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
   prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce(mockPrisoner(prisonerNumber))
 })
@@ -63,7 +70,8 @@ afterEach(() => {
 })
 
 describe('scan router', () => {
-  it('should redirect to authError when the user does not have the DPS_APPLICATION_DEVELOPER role', () => {
+  it('should redirect to auth error page when unauthorised', () => {
+    mockGrantNoPrisonerPermissions()
     app = appWithAllRoutes({
       services,
       userSupplier: () => unauthorisedUser,
@@ -74,13 +82,13 @@ describe('scan router', () => {
       .expect(302)
       .expect('Location', '/authError')
       .expect(() => {
-        expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
+        expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
         expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
         expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
       })
   })
 
-  it('should allow access when the user has the DPS_APPLICATION_DEVELOPER role', () => {
+  it('should allow access when permission is granted', () => {
     app = appWithAllRoutes({ services })
     xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
       mockScanSummaryResponse({ prisonerNumber, now: new Date(), relevantAlerts: [] }),
