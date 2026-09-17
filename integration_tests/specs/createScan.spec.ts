@@ -18,6 +18,8 @@ import CreateScanSuccessPage from '../pages/createScanSuccessPage'
 
 const prisonerNumber = 'A1234BC'
 
+const startAtPath = `/prisoner/${prisonerNumber}/record-scan`
+
 test.describe('Create scan page', () => {
   test.beforeEach(async () => {
     await Promise.all([microFrontendComponents.stubComponents(), prisonerSearchApi.stubGetPrisoner(prisonerNumber)])
@@ -27,16 +29,14 @@ test.describe('Create scan page', () => {
     await resetStubs()
   })
 
-  async function goToCreateScanPage(page: Page, querystring = ''): Promise<CreateScanPage> {
-    const response = await page.goto(`/prisoner/${prisonerNumber}/record-scan${querystring}`)
+  async function startOnCreateScanPage(page: Page, querystring = '', roles = DEFAULT_ROLES): Promise<CreateScanPage> {
+    const response = await login(page, `${startAtPath}${querystring}`, { roles })
     expect(response?.status()).toBe(200)
     return CreateScanPage.verifyOnPage(page, 'John Smith')
   }
 
   test('Page shows', async ({ page }) => {
-    await login(page)
-
-    const createScanPage = await goToCreateScanPage(page)
+    const createScanPage = await startOnCreateScanPage(page)
 
     // breadcrumbs
     await expect(createScanPage.returnToWpipLink).not.toBeVisible()
@@ -61,9 +61,7 @@ test.describe('Create scan page', () => {
   })
 
   test('Links back to WPIP for users who came from there', async ({ page }) => {
-    await login(page)
-
-    const createScanPage = await goToCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
+    const createScanPage = await startOnCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
     // breadcrumbs
     await expect(createScanPage.returnToWpipLink).toContainText('Return to recent arrivals')
@@ -82,7 +80,7 @@ test.describe('Create scan page', () => {
     // end WPIP journey
     await wpipUI.stubWpipRecentArrivals()
     await createScanPage.cancelLink.click()
-    await goToCreateScanPage(page)
+    await page.goto(startAtPath)
     await expect(createScanPage.returnToWpipLink).not.toBeVisible()
   })
 
@@ -117,9 +115,8 @@ test.describe('Create scan page', () => {
 
     test('Can record a negative scan for today', async ({ page }) => {
       const now = new Date()
-      await login(page)
 
-      const createScanPage = await goToCreateScanPage(page)
+      const createScanPage = await startOnCreateScanPage(page)
 
       await createScanPage.checkRadioButton('Today', { exact: false })
       await createScanPage.checkRadioButton('Intelligence-led')
@@ -186,9 +183,7 @@ test.describe('Create scan page', () => {
         .split('-')
         .map(component => component.replace(/^0+/, ''))
 
-      await login(page)
-
-      const createScanPage = await goToCreateScanPage(page)
+      const createScanPage = await startOnCreateScanPage(page)
 
       await createScanPage.checkRadioButton('Another date')
       await createScanPage.typeScanDateComponent('Day', yesterdayDay)
@@ -262,9 +257,7 @@ test.describe('Create scan page', () => {
         if (hasUpdateAlertRole) {
           roles.push('ROLE_UPDATE_ALERT')
         }
-        await login(page, { roles })
-
-        const createScanPage = await goToCreateScanPage(page)
+        const createScanPage = await startOnCreateScanPage(page, '', roles)
 
         await createScanPage.checkRadioButton('Yesterday', { exact: false })
         await createScanPage.checkRadioButton('Intelligence-led')
@@ -331,9 +324,8 @@ test.describe('Create scan page', () => {
 
     test('Can record a scan and link back to WPIP for users who came from there', async ({ page }) => {
       const now = new Date()
-      await login(page)
 
-      let createScanPage = await goToCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
+      let createScanPage = await startOnCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
       await createScanPage.checkRadioButton('Today', { exact: false })
       await createScanPage.checkRadioButton('Intelligence-led')
@@ -376,16 +368,15 @@ test.describe('Create scan page', () => {
       // end WPIP journey
       await wpipUI.stubWpipRecentArrivals()
       await createScanSuccessPage.returnButton.click()
-      createScanPage = await goToCreateScanPage(page)
+      await page.goto(startAtPath)
+      createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
       await expect(createScanPage.returnToWpipLink).not.toBeVisible()
     })
   })
 
   test.describe('Errors when recording a scan', () => {
     test('Shows an error message when one required field was not selected', async ({ page }) => {
-      await login(page)
-
-      let createScanPage = await goToCreateScanPage(page)
+      let createScanPage = await startOnCreateScanPage(page)
 
       await createScanPage.checkRadioButton('Today', { exact: false })
       await createScanPage.checkRadioButton('Intelligence-led')
@@ -411,9 +402,7 @@ test.describe('Create scan page', () => {
     })
 
     test('Shows an error messages when there are several errors', async ({ page }) => {
-      await login(page)
-
-      let createScanPage = await goToCreateScanPage(page)
+      let createScanPage = await startOnCreateScanPage(page)
 
       await createScanPage.checkRadioButton('Another date')
       await createScanPage.typeScanDateComponent('Month', 'July')
@@ -455,9 +444,7 @@ test.describe('Create scan page', () => {
     })
 
     test('Shows an error message when api call fails', async ({ page }) => {
-      await login(page)
-
-      let createScanPage = await goToCreateScanPage(page)
+      let createScanPage = await startOnCreateScanPage(page)
 
       await createScanPage.checkRadioButton('Today', { exact: false })
       await createScanPage.checkRadioButton('Intelligence-led')

@@ -1,7 +1,6 @@
 import HmppsAuditClient, { type AuditEvent } from '../data/hmppsAuditClient'
 
 export enum Page {
-  HOME = 'HOME',
   SCAN_LIST = 'SCAN_LIST',
   CREATE_SCAN = 'CREATE_SCAN',
   CREATE_SCAN_SUCCESS = 'CREATE_SCAN_SUCCESS',
