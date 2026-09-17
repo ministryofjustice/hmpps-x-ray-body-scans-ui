@@ -60,7 +60,7 @@ function appSetup(services: Services, production: boolean, userSupplier: () => P
         jsIncludes: [],
         sharedData: {
           caseLoads: [],
-          activeCaseLoad: {},
+          activeCaseLoad: null,
           services: [],
           allocationJobResponsibilities: [],
           cspDirectives: {},
