@@ -1,6 +1,6 @@
-import { jwtDecode } from 'jwt-decode'
+import type { UUID } from 'node:crypto'
 import express from 'express'
-import { UUID } from 'crypto'
+import { jwtDecode } from 'jwt-decode'
 import { convertToTitleCase } from '../utils/utils'
 import logger from '../../logger'
 
