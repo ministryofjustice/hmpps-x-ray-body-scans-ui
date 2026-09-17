@@ -1,21 +1,11 @@
 import type { Express } from 'express'
 import request from 'supertest'
-import { appWithAllRoutes, user } from './testutils/appSetup'
-import AuditService, { Page } from '../services/auditService'
-
-jest.mock('../services/auditService')
-
-const auditService = jest.mocked(new AuditService({} as never))
+import { appWithAllRoutes } from './testutils/appSetup'
 
 let app: Express
 
 beforeEach(() => {
-  app = appWithAllRoutes({
-    services: {
-      auditService,
-    },
-    userSupplier: () => user,
-  })
+  app = appWithAllRoutes({})
 })
 
 afterEach(() => {
@@ -23,19 +13,7 @@ afterEach(() => {
 })
 
 describe('GET /', () => {
-  it('should render index page', () => {
-    auditService.logPageView.mockResolvedValue(undefined)
-
-    return request(app)
-      .get('/')
-      .expect('Content-Type', /html/)
-      .expect(200)
-      .expect(res => {
-        expect(res.text).toContain('This site is under construction…')
-        expect(auditService.logPageView).toHaveBeenCalledWith(Page.HOME, {
-          who: user.username,
-          correlationId: expect.any(String),
-        })
-      })
+  it('should redirect to DPS home page', () => {
+    return request(app).get('/').expect(302).expect('Location', 'http://localhost:3001/dps-home')
   })
 })
