@@ -1,5 +1,6 @@
 import express from 'express'
 import { NotFound } from 'http-errors'
+import { telemetryMiddleware } from '@ministryofjustice/hmpps-azure-telemetry'
 import { getFrontendComponents, retrieveCaseLoadData } from '@ministryofjustice/hmpps-connect-dps-components'
 
 import logger from '../logger'
@@ -20,7 +21,6 @@ import { setUpSentry, setUpSentryErrorHandler } from './middleware/setUpSentry'
 
 import routes from './routes'
 import type { Services } from './services'
-import addUserMetadataToLogs from './middleware/addUserMetadataToLogs'
 
 export default function createApp(services: Services): express.Application {
   const app = express()
@@ -29,6 +29,7 @@ export default function createApp(services: Services): express.Application {
   app.set('trust proxy', true)
   app.set('port', process.env.PORT || 3000)
 
+  // middleware
   setUpSentry()
   app.use(setUpHealthChecks(services.applicationInfo))
   app.use(setUpWebSecurity())
@@ -41,6 +42,7 @@ export default function createApp(services: Services): express.Application {
   app.use(setUpCsrf())
   app.use(setUpCurrentUser())
 
+  // load DPS components and user case loads and services
   app.use(
     getFrontendComponents({
       logger,
@@ -50,11 +52,16 @@ export default function createApp(services: Services): express.Application {
     }),
   )
   app.use(retrieveCaseLoadData({ logger, prisonApiConfig: config.apis.prisonApi }))
+  app.use(
+    telemetryMiddleware.addUserMetadataToTelemetry({
+      getAttributes: req => ({ username: req.user?.username }),
+    }),
+  )
 
-  app.use(addUserMetadataToLogs())
-
+  // all application routes
   app.use(routes(services))
 
+  // error handling
   app.use((_req, _res, next) => next(new NotFound()))
   setUpSentryErrorHandler(app)
   app.use(errorHandler(process.env.NODE_ENV === 'production'))
