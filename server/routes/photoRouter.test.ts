@@ -6,7 +6,6 @@ import {
   CorePersonRecordPermission,
 } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import { appWithAllRoutes, user } from './testutils/appSetup'
-import createUserToken from '../testutils/createUserToken'
 import type { Services } from '../services'
 import AuditService from '../services/auditService'
 import { PrisonService } from '../services/prisonService'
@@ -15,8 +14,8 @@ import { PrisonerSearchApiClient } from '../data/prisonerSearchApiClient'
 import { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import { internalServerErrorResponse, mockThrownError } from '../testutils/mocks/errorResponse'
 import {
+  mockGrantNoPrisonerPermissions,
   mockGrantPrisonerPermissions,
-  mockGrantMinimalPrisonerPermissions,
 } from '../testutils/mocks/prisonPermissionsService'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockPhotoReadable } from '../testutils/mocks/prisonApi'
@@ -53,11 +52,9 @@ const pngPlaceholderSize = 2084
 
 let app: Express
 
-const unauthorisedUser = { ...user, token: createUserToken([]) }
-
 beforeEach(() => {
   auditService.logAuditEvent.mockResolvedValue(undefined)
-  mockGrantMinimalPrisonerPermissions()
+  mockGrantPrisonerPermissions(PrisonerBasePermission.read, CorePersonRecordPermission.read_photo)
   prisonerSearchApiClient.getPrisoner.mockResolvedValue(prisoner)
 })
 
@@ -67,10 +64,8 @@ afterEach(() => {
 
 describe('photo router', () => {
   it('should redirect to auth error page when unauthorised', () => {
-    app = appWithAllRoutes({
-      services,
-      userSupplier: () => unauthorisedUser,
-    })
+    mockGrantNoPrisonerPermissions()
+    app = appWithAllRoutes({ services })
 
     return request(app)
       .get(photoUrl)
@@ -97,7 +92,6 @@ describe('photo router', () => {
 
   it('should pipe photo from prison-api when permission is granted', () => {
     app = appWithAllRoutes({ services })
-    mockGrantPrisonerPermissions(PrisonerBasePermission.read, CorePersonRecordPermission.read_photo)
     prisonApiClient.getPhoto.mockResolvedValueOnce(mockPhotoReadable())
 
     return request(app)
@@ -122,7 +116,6 @@ describe('photo router', () => {
 
   it('should send placeholder image when prison-api returns an error', () => {
     app = appWithAllRoutes({ services })
-    mockGrantPrisonerPermissions(PrisonerBasePermission.read, CorePersonRecordPermission.read_photo)
     prisonApiClient.getPhoto.mockRejectedValueOnce(mockThrownError(internalServerErrorResponse))
 
     return request(app)
@@ -146,6 +139,7 @@ describe('photo router', () => {
   })
 
   it('should send placeholder image when permission is not granted', () => {
+    mockGrantPrisonerPermissions(PrisonerBasePermission.read)
     app = appWithAllRoutes({ services })
 
     return request(app)
@@ -163,7 +157,6 @@ describe('photo router', () => {
 
   it('should send placeholder image when prisoner does not have a current facial image', () => {
     app = appWithAllRoutes({ services })
-    mockGrantPrisonerPermissions(PrisonerBasePermission.read, CorePersonRecordPermission.read_photo)
     prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce({
       ...prisoner,
       currentFacialImageId: undefined,

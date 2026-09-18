@@ -2,6 +2,7 @@ import type { SuperAgentRequest } from 'superagent'
 import type CaseLoad from '@ministryofjustice/hmpps-connect-dps-components/dist/types/CaseLoad'
 import type Service from '@ministryofjustice/hmpps-connect-dps-components/dist/types/Service'
 import { stubFor, stubPing } from './wiremock'
+import { mockService, mockXrayBodyScansService } from '../../server/testutils/mocks/componentsApi'
 import { caseloadMDI } from '../../server/testutils/mocks/prisonApi'
 
 export default {
@@ -41,22 +42,7 @@ export default {
           meta: {
             caseLoads,
             activeCaseLoad: caseLoads.find(caseLoad => caseLoad.currentlyActive),
-            services: options.services || [
-              {
-                id: 'check-my-diary',
-                heading: 'Check my diary',
-                description: 'View your prison staff detail (staff rota) from home.',
-                href: 'http://localhost:3001',
-                navEnabled: true,
-              },
-              {
-                id: 'key-worker-allocations',
-                heading: 'My key worker allocation',
-                description: 'View your key worker cases.',
-                href: 'http://localhost:3001/key-worker/111111',
-                navEnabled: true,
-              },
-            ],
+            services: options.services || [mockService, mockXrayBodyScansService],
             cspDirectives: Object.fromEntries(
               ['font-src', 'form-action', 'img-src', 'script-src', 'style-src'].map(directive => [
                 directive,

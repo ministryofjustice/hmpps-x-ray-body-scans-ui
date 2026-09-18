@@ -3,7 +3,6 @@ import {
   type PrisonerPermission,
   isGranted,
   prisonerPermissionsGuard,
-  PrisonerBasePermission,
 } from '@ministryofjustice/hmpps-prison-permissions-lib'
 
 // NB: required in test module:
@@ -42,10 +41,6 @@ export function mockGrantPrisonerPermissions(...grantedPermissions: PrisonerPerm
       }
     }
   })
-}
-
-export function mockGrantMinimalPrisonerPermissions(): void {
-  return mockGrantPrisonerPermissions(PrisonerBasePermission.read)
 }
 
 // mimics unexported class used internally by permissions lib

@@ -1,0 +1,28 @@
+{% extends "partials/layout.njk" %}
+
+{% set pageTitle = applicationName + " – Page not found" %}
+{% set breadcrumbs = [
+  { text: 'Digital Prison Services', href: dpsHomeUrl }
+] %}
+{% if prisoner %}
+  {% set _ = breadcrumbs.push(
+    { text: prisoner.reversedDisplayName, href: prisoner | prisonerProfileUrl }
+  ) %}
+{% endif %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Page not found</h1>
+      <p>
+        If you typed or pasted the web address, check it is correct.
+      </p>
+      <p>
+        If you have clicked to go back, the details you entered have been saved to the service and you cannot return to the last page.
+      </p>
+      <p>
+        You might also be trying to view a page that you do not have access to.
+      </p>
+    </div>
+  </div>
+{% endblock %}
