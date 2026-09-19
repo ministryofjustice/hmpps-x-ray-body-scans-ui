@@ -70,3 +70,10 @@ export function formatDisplayDate(dateTime: Date): string {
 export function formatDisplayDateTime(dateTime: Date): string {
   return longDateTimeFormatter.format(dateTime)
 }
+
+/** Whether date is within last 31 days in Europe/London, ignoring time of day */
+export function withinLast31Days(date: Date): boolean {
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - 31)
+  return formatIsoDate(date) >= formatIsoDate(cutoffDate)
+}
