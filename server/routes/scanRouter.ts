@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   type PermissionsService,
+  CaseNotesPermission,
   XRayBodyScansPermission,
   prisonerPermissionsGuard,
 } from '@ministryofjustice/hmpps-prison-permissions-lib'
@@ -33,24 +34,45 @@ export default function scanRouter(
   })
 
   router.get('/scan-overview', (req, res, next) => scanController.getScanList(req, res).catch(next))
+
+  // TODO: record perms
+  // router.use(
+  //   '/record-scan',
+  //   prisonerPermissionsGuard(prisonPermissionsService, {
+  //     requestDependentOn: [],
+  //   }),
+  // )
   router.get('/record-scan', (req, res, next) => scanController.getCreateScan(req, res).catch(next))
   router.post('/record-scan', (req, res, next) => scanController.postCreateScan(req, res).catch(next))
 
   router.use(
     '/scan/:scanId',
     getScanMiddleware(xrayBodyScansApiClient),
-    caseNoteRouter(auditService, xrayBodyScansApiClient),
+    caseNoteRouter(auditService, prisonPermissionsService, xrayBodyScansApiClient),
   )
 
   return router
 }
 
-function caseNoteRouter(auditService: AuditService, xrayBodyScansApiClient: XrayBodyScansApiClient): Router {
+function caseNoteRouter(
+  auditService: AuditService,
+  prisonPermissionsService: PermissionsService,
+  xrayBodyScansApiClient: XrayBodyScansApiClient,
+): Router {
   const caseNoteController = new CaseNoteController(auditService, xrayBodyScansApiClient)
 
   const router = Router({ mergeParams: true })
+
   router.get('/case-note', (req, res, next) => caseNoteController.getScanCaseNote(req, res).catch(next))
+
+  router.use(
+    '/add-a-scan-case-note',
+    prisonerPermissionsGuard(prisonPermissionsService, {
+      requestDependentOn: [CaseNotesPermission.read],
+    }),
+  )
   router.get('/add-a-scan-case-note', (req, res, next) => caseNoteController.getAddScanCaseNote(req, res).catch(next))
   router.post('/add-a-scan-case-note', (req, res, next) => caseNoteController.postAddScanCaseNote(req, res).catch(next))
+
   return router
 }
