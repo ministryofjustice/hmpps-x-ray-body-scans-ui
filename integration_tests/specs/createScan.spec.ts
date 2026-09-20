@@ -1,6 +1,6 @@
 import { type Page, expect, test } from '@playwright/test'
 import { DEFAULT_ROLES, login, resetStubs } from '../testUtils'
-import { formatIsoDate } from '../../server/utils/dates'
+import { daysAgo, formatIsoDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { badRequestErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import {
@@ -67,14 +67,14 @@ test.describe('Create scan page', () => {
     await expect(createScanPage.returnToWpipLink).toContainText('Return to recent arrivals')
     await expect(createScanPage.returnToWpipLink).toHaveAttribute(
       'href',
-      `http://localhost:9091/welcome/recent-arrivals?search=John`,
+      'http://localhost:9091/welcome/recent-arrivals?search=John',
     )
 
     // cancel link
     await expect(createScanPage.cancelLink).toContainText('Return to recent arrivals')
     await expect(createScanPage.cancelLink).toHaveAttribute(
       'href',
-      `http://localhost:9091/welcome/recent-arrivals?search=John`,
+      'http://localhost:9091/welcome/recent-arrivals?search=John',
     )
 
     // end WPIP journey
@@ -84,19 +84,29 @@ test.describe('Create scan page', () => {
     await expect(createScanPage.returnToWpipLink).not.toBeVisible()
   })
 
+  // TODO: add test for "fails permissions"
+
   test.describe('Recording a scan successfully', () => {
-    async function expectSuccessPage(page: Page, linksBackToWpip = false): Promise<CreateScanSuccessPage> {
+    async function expectSuccessPage(
+      page: Page,
+      scan: ScanResponse,
+      linksBackToWpip = false,
+    ): Promise<CreateScanSuccessPage> {
       const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
 
       // no breadcrumbs
       await expect(createScanSuccessPage.breadcrumbs).not.toBeVisible()
 
       // links
+      await expect(createScanSuccessPage.addCaseNoteLink).toHaveAttribute(
+        'href',
+        `/prisoner/${prisonerNumber}/scan/${scan.id}/add-a-scan-case-note`,
+      )
       if (linksBackToWpip) {
         await expect(createScanSuccessPage.returnButton).toContainText('Return to recent arrivals')
         await expect(createScanSuccessPage.returnButton).toHaveAttribute(
           'href',
-          `http://localhost:9091/welcome/recent-arrivals?search=John`,
+          'http://localhost:9091/welcome/recent-arrivals?search=John',
         )
       } else {
         await expect(createScanSuccessPage.returnButton).toContainText('Return to X-ray body scans')
@@ -163,7 +173,7 @@ test.describe('Create scan page', () => {
 
       await createScanPage.saveButton.click()
 
-      const createScanSuccessPage = await expectSuccessPage(page)
+      const createScanSuccessPage = await expectSuccessPage(page, response)
 
       await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
       await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
@@ -175,9 +185,7 @@ test.describe('Create scan page', () => {
     })
 
     test('Can record a positive scan on another date', async ({ page }) => {
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      yesterday.setHours(12, 0, 0, 0)
+      const yesterday = daysAgo(1)
       const yesterdayString = formatIsoDate(yesterday)
       const [yesterdayYear, yesterdayMonth, yesterdayDay] = yesterdayString
         .split('-')
@@ -233,7 +241,7 @@ test.describe('Create scan page', () => {
 
       await createScanPage.saveButton.click()
 
-      const createScanSuccessPage = await expectSuccessPage(page)
+      const createScanSuccessPage = await expectSuccessPage(page, response)
 
       await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
       await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
@@ -249,9 +257,7 @@ test.describe('Create scan page', () => {
       { scenario: 'edit it', hasUpdateAlertRole: true },
     ]) {
       test(`Can record a scan for someone with the internal secretor alert and ${scenario}`, async ({ page }) => {
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        yesterday.setHours(12, 0, 0, 0)
+        const yesterday = daysAgo(1)
 
         const roles = [...DEFAULT_ROLES]
         if (hasUpdateAlertRole) {
@@ -304,7 +310,7 @@ test.describe('Create scan page', () => {
 
         await createScanPage.saveButton.click()
 
-        const createScanSuccessPage = await expectSuccessPage(page)
+        const createScanSuccessPage = await expectSuccessPage(page, response)
 
         if (hasUpdateAlertRole) {
           await expect(createScanSuccessPage.internalSecretorAlertLink).toContainText('Update internal secretor alert')
@@ -363,7 +369,7 @@ test.describe('Create scan page', () => {
 
       await createScanPage.saveButton.click()
 
-      const createScanSuccessPage = await expectSuccessPage(page, true)
+      const createScanSuccessPage = await expectSuccessPage(page, response, true)
 
       // end WPIP journey
       await wpipUI.stubWpipRecentArrivals()

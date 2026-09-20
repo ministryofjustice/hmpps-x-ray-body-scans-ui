@@ -172,7 +172,7 @@ test.describe('Add scan case note page', () => {
   })
 
   // TODO: add test for "recently in caseloads but not now"
-  // TODO: add test for "fails base check"
+  // TODO: add test for "fails permissions"
 
   async function stubScanListPage() {
     return Promise.all([

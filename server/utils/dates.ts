@@ -71,9 +71,13 @@ export function formatDisplayDateTime(dateTime: Date): string {
   return longDateTimeFormatter.format(dateTime)
 }
 
+export function daysAgo(days: number): Date {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  return date
+}
+
 /** Whether date is within last 31 days in Europe/London, ignoring time of day */
 export function withinLast31Days(date: Date): boolean {
-  const cutoffDate = new Date()
-  cutoffDate.setDate(cutoffDate.getDate() - 31)
-  return formatIsoDate(date) >= formatIsoDate(cutoffDate)
+  return formatIsoDate(date) >= formatIsoDate(daysAgo(31))
 }

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { Forbidden } from 'http-errors'
 import {
   type PermissionsService,
   CaseNotesPermission,
@@ -9,6 +10,7 @@ import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import { getScanMiddleware } from '../middleware/getScanMiddleware'
 import type AuditService from '../services/auditService'
 import type { PrisonService } from '../services/prisonService'
+import { canAddCaseNotToScan } from '../utils/scanPermissions'
 import ScanController from '../controllers/scanController'
 import CaseNoteController from '../controllers/caseNoteController'
 
@@ -70,6 +72,14 @@ function caseNoteRouter(
     prisonerPermissionsGuard(prisonPermissionsService, {
       requestDependentOn: [CaseNotesPermission.read],
     }),
+    (_req, res, next) => {
+      const { user, scan } = res.locals
+      if (canAddCaseNotToScan(user, scan!)) {
+        next()
+      } else {
+        next(new Forbidden())
+      }
+    },
   )
   router.get('/add-a-scan-case-note', (req, res, next) => caseNoteController.getAddScanCaseNote(req, res).catch(next))
   router.post('/add-a-scan-case-note', (req, res, next) => caseNoteController.postAddScanCaseNote(req, res).catch(next))

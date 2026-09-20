@@ -14,6 +14,7 @@ import {
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockServices } from '../testutils/mocks/services'
 import { mockScanResponse, mockScanCaseNoteResponse } from '../testutils/mocks/xrayBodyScansApi'
+import { canAddCaseNotToScan } from '../utils/scanPermissions'
 
 jest.mock('@ministryofjustice/hmpps-prison-permissions-lib', () => {
   // ensure permissions library is properly installed into nunjucks environment
@@ -27,8 +28,10 @@ jest.mock('../data/prisonerSearchApiClient')
 jest.mock('../data/xrayBodyScansApiClient')
 jest.mock('../services/auditService')
 jest.mock('../services/prisonService')
+jest.mock('../utils/scanPermissions')
 
 const { auditService, prisonerSearchApiClient, xrayBodyScansApiClient } = mockServices
+const mockedCanAddCaseNotToScan = jest.mocked(canAddCaseNotToScan)
 
 const prisonerNumber = 'A1234BC'
 
@@ -37,6 +40,9 @@ let app: Express
 beforeEach(() => {
   mockAuditService(auditService)
   prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce(mockPrisoner(prisonerNumber))
+  mockedCanAddCaseNotToScan.mockImplementation(() => {
+    throw Error('should not be called')
+  })
 })
 
 afterEach(() => {
@@ -132,6 +138,7 @@ describe('case note router', () => {
         XRayBodyScansPermission.read_scans,
         CaseNotesPermission.read,
       )
+      mockedCanAddCaseNotToScan.mockReturnValue(true)
       xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
     })
 
@@ -168,6 +175,20 @@ describe('case note router', () => {
           })
       },
     )
+
+    it('should redirect to auth error page when it is unauthorised to add a case note to this scan', () => {
+      app = appWithAllRoutes({ services: mockServices })
+      mockedCanAddCaseNotToScan.mockReturnValue(false)
+
+      return request(app)
+        .get(url)
+        .expect(302)
+        .expect('Location', '/authError')
+        .expect(() => {
+          expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+          expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
+        })
+    })
 
     it('should allow access when permission is granted', () => {
       app = appWithAllRoutes({ services: mockServices })
