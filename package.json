@@ -30,7 +30,7 @@
     "npm": "^11"
   },
   "dependencies": {
-    "@aws-sdk/client-sqs": "3.1130.0",
+    "@aws-sdk/client-sqs": "3.1131.0",
     "@ministryofjustice/frontend": "11.0.1",
     "@ministryofjustice/hmpps-auth-clients": "3.0.0",
     "@ministryofjustice/hmpps-azure-telemetry": "1.1.0",
@@ -42,13 +42,13 @@
     "@sentry/node": "10.74.0",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1",
-    "compression": "^1.8.1",
+    "compression": "^1.8.2",
     "connect-flash": "^0.1.1",
     "connect-redis": "^10.0.0",
     "csrf-sync": "^4.2.1",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
-    "govuk-frontend": "6.5.0",
+    "govuk-frontend": "6.5.1",
     "helmet": "8.3.0",
     "http-errors": "^2.0.1",
     "jwt-decode": "^4.0.0",
@@ -58,7 +58,7 @@
     "passport-oauth2": "^1.8.0",
     "redis": "6.2.1",
     "superagent": "^10.3.0",
-    "zod": "4.6.2"
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@jgoz/esbuild-plugin-typecheck": "^5.0.0",
