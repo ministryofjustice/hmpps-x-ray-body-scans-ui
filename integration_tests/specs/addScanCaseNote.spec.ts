@@ -188,6 +188,49 @@ test.describe('Add scan case note page', () => {
       await AuthErrorPage.verifyOnPage(page)
     })
 
+    function stubRecentlyLeftPrisoner(): Promise<unknown> {
+      return Promise.all([
+        microFrontendComponents.stubComponents({ caseLoads: [caseloadLEI] }),
+        prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
+          ...prisoner,
+          previousPrisonId: 'LEI',
+          previousPrisonLeavingDate: daysAgo(5).toISOString(),
+        }),
+      ])
+    }
+
+    test('Page shows for a recent scan in user’s prison of a prisoner who has recently left user’s case loads who has global search and POM roles', async ({
+      page,
+    }) => {
+      await Promise.all([
+        stubRecentlyLeftPrisoner(),
+        xrayBodyScansApi.stubGetScan(scan.id, {
+          ...scan,
+          prisonId: 'LEI',
+        }),
+      ])
+      await login(page, startAtPath, { roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH', 'ROLE_POM'] })
+
+      const addScanCaseNotePage = await AddScanCaseNotePage.verifyOnPage(page)
+
+      // profile banner
+      await expect(addScanCaseNotePage.profileBannerLink).toContainText('Smith, John')
+      await expect(addScanCaseNotePage.profileBannerLink).toHaveAttribute(
+        'href',
+        `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
+      )
+      await expect(addScanCaseNotePage.profileBannerPhoto).toHaveAttribute(
+        'aria-label',
+        'Photo of John Smith is not available',
+      )
+      await expect(addScanCaseNotePage.getProfileBannerProperties()).resolves.toEqual([
+        {
+          title: 'Category',
+          description: 'C',
+        },
+      ])
+    })
+
     for (const { scenario, roles } of [
       { scenario: 'recently left user’s case loads', roles: DEFAULT_ROLES },
       {
@@ -195,16 +238,10 @@ test.describe('Add scan case note page', () => {
         roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH', 'ROLE_POM'],
       },
     ]) {
-      test(`Page inaccessible for a prisoner who has ${scenario}`, async ({ page }) => {
-        await Promise.all([
-          microFrontendComponents.stubComponents({ caseLoads: [caseloadLEI] }),
-          prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
-            ...prisoner,
-            previousPrisonId: 'LEI',
-            previousPrisonLeavingDate: daysAgo(5).toISOString(),
-          }),
-          xrayBodyScansApi.stubGetScan(scan.id, scan),
-        ])
+      test(`Page for a scan in another case load is inaccessible for a prisoner who has ${scenario}`, async ({
+        page,
+      }) => {
+        await Promise.all([stubRecentlyLeftPrisoner(), xrayBodyScansApi.stubGetScan(scan.id, scan)])
         await login(page, startAtPath, { roles })
         await AuthErrorPage.verifyOnPage(page)
       })

@@ -49,6 +49,17 @@ test.describe('Scan list page', () => {
     return ScanListPage.verifyOnPage(page)
   }
 
+  function stubRecentlyLeftPrisoner(): Promise<unknown> {
+    return Promise.all([
+      microFrontendComponents.stubComponents({ caseLoads: [caseloadLEI] }),
+      prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
+        ...prisoner,
+        previousPrisonId: 'LEI',
+        previousPrisonLeavingDate: daysAgo(5).toISOString(),
+      }),
+    ])
+  }
+
   function stubNoScans(): Promise<unknown> {
     return Promise.all([
       xrayBodyScansApi.stubGetScanSummary(
@@ -160,17 +171,6 @@ test.describe('Scan list page', () => {
       await page.goto(startAtPath)
       await expect(scanListPage.returnToWpipLink).not.toBeVisible()
     })
-
-    function stubRecentlyLeftPrisoner(): Promise<unknown> {
-      return Promise.all([
-        microFrontendComponents.stubComponents({ caseLoads: [caseloadLEI] }),
-        prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
-          ...prisoner,
-          previousPrisonId: 'LEI',
-          previousPrisonLeavingDate: daysAgo(5).toISOString(),
-        }),
-      ])
-    }
 
     test('Page shows for a prisoner who has recently left user’s case loads', async ({ page }) => {
       await Promise.all([stubRecentlyLeftPrisoner(), stubNoScans()])
@@ -557,6 +557,72 @@ test.describe('Scan list page', () => {
       await expect(scanListPage.pagination).toBeVisible()
       await expect(scanListPage.getPaginationShowingDescription()).resolves.toEqual('Showing 1 to 7 of 7 results')
     })
+
+    for (const { scenario, roles, canAddCaseNoteToRecentLocalScan } of [
+      {
+        scenario: 'and they have no POM role',
+        roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH'],
+        canAddCaseNoteToRecentLocalScan: false,
+      },
+      {
+        scenario: 'but they have global search and POM roles',
+        roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH', 'ROLE_POM'],
+        canAddCaseNoteToRecentLocalScan: true,
+      },
+    ]) {
+      test(`Shows table of scans for a prisoner who has recently left user’s case loads ${scenario}`, async ({
+        page,
+      }) => {
+        await Promise.all([
+          stubRecentlyLeftPrisoner(),
+          xrayBodyScansApi.stubGetScanSummary(
+            prisonerNumber,
+            mockScanSummaryResponse({
+              prisonerNumber,
+              now,
+              relevantAlerts: [],
+            }),
+            { includeAlerts: true },
+          ),
+          xrayBodyScansApi.stubListScans(
+            prisonerNumber,
+            pageResponse([
+              // recorded in new prison which is not in my case loads
+              {
+                ...mockScanResponse(prisonerNumber, daysAgo(1)),
+                id: '019fc832-0000-7000-0000-000000000001',
+                prisonId: 'MDI',
+              },
+              // recorded in my prison recently
+              {
+                ...mockScanResponse(prisonerNumber, daysAgo(6)),
+                id: '019fc832-0000-7000-0000-000000000002',
+                prisonId: 'LEI',
+              },
+              // recorded in my prison a while ago
+              {
+                ...mockScanResponse(prisonerNumber, daysAgo(36)),
+                id: '019fc832-0000-7000-0000-000000000003',
+                prisonId: 'LEI',
+              },
+            ]),
+          ),
+        ])
+
+        await login(page, startAtPath, { roles })
+        const scanListPage = await ScanListPage.verifyOnPage(page)
+
+        if (canAddCaseNoteToRecentLocalScan) {
+          await expect(scanListPage.getScanTableActionUrls()).resolves.toEqual([
+            undefined,
+            expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000002/add-a-scan-case-note'),
+            undefined,
+          ])
+        } else {
+          await expect(scanListPage.getScanTableActionUrls()).resolves.toEqual([undefined, undefined, undefined])
+        }
+      })
+    }
 
     const pageScenarios = [
       {
