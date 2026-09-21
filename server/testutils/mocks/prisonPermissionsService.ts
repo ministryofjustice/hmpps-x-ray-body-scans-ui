@@ -33,7 +33,6 @@ export function mockGrantPrisonerPermissions(...grantedPermissions: PrisonerPerm
   jest.mocked(prisonerPermissionsGuard).mockImplementation((_service, { requestDependentOn: requiredPermissions }) => {
     return async (_req, _res, next) => {
       const deniedPermissionChecks = requiredPermissions.filter(permission => !grantedPermissions.includes(permission))
-      // TODO: res.locals.prisonerPermissions = { ...grantedPermissions }??
       if (deniedPermissionChecks.length) {
         next(new PrisonerPermissionError(deniedPermissionChecks))
       } else {

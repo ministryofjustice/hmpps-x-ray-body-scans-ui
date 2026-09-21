@@ -27,8 +27,6 @@ export default class CaseNoteController {
       throw new NotFound()
     }
 
-    // TODO: determine if user can view case note
-
     this.auditService
       .logPageView(Page.VIEW_SCAN_CASE_NOTE, {
         who: username,
@@ -67,8 +65,6 @@ export default class CaseNoteController {
     if (!this.scanHasNoCaseNote(scan)) {
       throw new NotFound()
     }
-
-    // TODO: determine if user allowed to create case note
 
     const result = addScanCaseNoteForm.safeParse(req.body)
     if (!result.success) {
