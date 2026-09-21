@@ -21,13 +21,7 @@ export default function scanRouter(
   xrayBodyScansApiClient: XrayBodyScansApiClient,
 ): Router {
   const scanController = new ScanController(auditService, prisonService, xrayBodyScansApiClient)
-
   const router = Router({ mergeParams: true })
-  router.use(
-    prisonerPermissionsGuard(prisonPermissionsService, {
-      requestDependentOn: [XRayBodyScansPermission.read_scans],
-    }),
-  )
 
   router.get('/', (_req, res) => {
     const { prisonerNumber } = res.locals.prisoner
@@ -35,15 +29,19 @@ export default function scanRouter(
     res.redirect(`/prisoner/${prisonerNumber}/scan-overview`)
   })
 
+  router.use(
+    prisonerPermissionsGuard(prisonPermissionsService, {
+      requestDependentOn: [XRayBodyScansPermission.read_scans],
+    }),
+  )
   router.get('/scan-overview', (req, res, next) => scanController.getScanList(req, res).catch(next))
 
-  // TODO: record perms
-  // router.use(
-  //   '/record-scan',
-  //   prisonerPermissionsGuard(prisonPermissionsService, {
-  //     requestDependentOn: [],
-  //   }),
-  // )
+  router.use(
+    '/record-scan',
+    prisonerPermissionsGuard(prisonPermissionsService, {
+      requestDependentOn: [XRayBodyScansPermission.edit_scans],
+    }),
+  )
   router.get('/record-scan', (req, res, next) => scanController.getCreateScan(req, res).catch(next))
   router.post('/record-scan', (req, res, next) => scanController.postCreateScan(req, res).catch(next))
 

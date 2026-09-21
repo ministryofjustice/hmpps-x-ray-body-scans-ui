@@ -26,10 +26,13 @@
 
   <h1 class="govuk-heading-l">X-ray body scans</h1>
 
-  {{ govukButton({
-    text: "Record a new scan",
-    href: "/prisoner/" + prisonerNumber + "/record-scan"
-  }) }}
+  {% if isGranted(XRayBodyScansPermission.edit_scans, prisonerPermissions) %}
+    {# at present, edit check matches read check so if page is accessible, button is always visible #}
+    {{ govukButton({
+      text: "Record a new scan",
+      href: "/prisoner/" + prisonerNumber + "/record-scan"
+    }) }}
+  {% endif %}
 
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
 

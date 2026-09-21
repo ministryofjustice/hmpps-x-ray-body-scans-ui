@@ -34,8 +34,6 @@ let app: Express
 
 beforeEach(() => {
   mockAuditService(auditService)
-  mockGrantPrisonerPermissions(PrisonerBasePermission.read, XRayBodyScansPermission.read_scans)
-  prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
   prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce(mockPrisoner(prisonerNumber))
 })
 
@@ -46,6 +44,11 @@ afterEach(() => {
 describe('scan router', () => {
   describe('overview page', () => {
     const url = `/prisoner/${prisonerNumber}/scan-overview`
+
+    beforeEach(() => {
+      mockGrantPrisonerPermissions(PrisonerBasePermission.read, XRayBodyScansPermission.read_scans)
+      prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
+    })
 
     it.each([
       { scenario: 'fails base check', grantPermissions: mockGrantNoPrisonerPermissions },
@@ -120,10 +123,83 @@ describe('scan router', () => {
   })
 
   describe('recording page', () => {
-    // TODO: record perms
+    const url = `/prisoner/${prisonerNumber}/record-scan`
+
+    beforeEach(() => {
+      mockGrantPrisonerPermissions(
+        PrisonerBasePermission.read,
+        XRayBodyScansPermission.read_scans,
+        XRayBodyScansPermission.edit_scans,
+      )
+    })
+
+    it.each([
+      { scenario: 'fails base check', grantPermissions: mockGrantNoPrisonerPermissions },
+      {
+        scenario: 'fails x-ray body scans default check',
+        grantPermissions: () => mockGrantPrisonerPermissions(PrisonerBasePermission.read),
+      },
+      {
+        scenario: 'fails x-ray body scans edit check (currently matches default check)',
+        grantPermissions: () =>
+          mockGrantPrisonerPermissions(PrisonerBasePermission.read, XRayBodyScansPermission.read_scans),
+      },
+    ])('should redirect to auth error page when unauthorised: $scenario', ({ grantPermissions }) => {
+      grantPermissions()
+      app = appWithAllRoutes({ services: mockServices })
+
+      return request(app)
+        .get(url)
+        .expect(302)
+        .expect('Location', '/authError')
+        .expect(() => {
+          expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+        })
+    })
+
+    it('should allow access when permission is granted', () => {
+      app = appWithAllRoutes({ services: mockServices })
+
+      return request(app)
+        .get(url)
+        .expect(200)
+        .expect(res => {
+          expect(res.text).toContain('Record an X-ray body scan')
+          expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+        })
+    })
+
+    it('should show 404 page when prisoner is not found', () => {
+      app = appWithAllRoutes({ services: mockServices })
+      prisonerSearchApiClient.getPrisoner.mockReset()
+      prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce(null)
+
+      return request(app)
+        .get(url)
+        .expect(404)
+        .expect(() => {
+          expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+        })
+    })
+
+    it('should redirect to DPS home page when user has no active caseload', () => {
+      app = appWithAllRoutes({
+        services: mockServices,
+        userSupplier: () => ({ ...user, activeCaseLoadId: undefined }),
+      })
+
+      return request(app)
+        .get(url)
+        .expect(302)
+        .expect('Location', 'http://localhost:3001/dps-home')
+        .expect(() => {
+          expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
+        })
+    })
   })
 
-  it('should redirect to scans list when trying to go to person’s link', () => {
+  it('should redirect to scans list when trying to go to person’s link if they pass the base check', () => {
+    mockGrantPrisonerPermissions(PrisonerBasePermission.read)
     app = appWithAllRoutes({ services: mockServices })
 
     return request(app)

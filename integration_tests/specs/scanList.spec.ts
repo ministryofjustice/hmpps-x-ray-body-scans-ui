@@ -93,12 +93,11 @@ test.describe('Scan list page', () => {
         },
       ])
 
-      // record button
+      // record button is always visible if user can access this page
       await expect(page.getByRole('button', { name: 'Record a new scan' })).toHaveAttribute(
         'href',
         `/prisoner/${prisonerNumber}/record-scan`,
       )
-      // TODO: record button hidden sometimes?
 
       // summary headings
       const currentYear = now.getFullYear()
