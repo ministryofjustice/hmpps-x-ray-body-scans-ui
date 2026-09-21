@@ -1,8 +1,10 @@
 import { type Page, expect, test } from '@playwright/test'
+import { DEFAULT_ROLES, login, resetStubs } from '../testUtils'
 import { daysAgo, formatDisplayDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { emptyPageResponse, pageResponse } from '../../server/testutils/pagination'
+import { caseloadLEI } from '../../server/testutils/mocks/prisonApi'
 import { mockPrisoner } from '../../server/testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
@@ -12,13 +14,13 @@ import {
   mockScanResponse,
   mockScanSummaryResponse,
 } from '../../server/testutils/mocks/xrayBodyScansApi'
-import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonApi from '../mockApis/prisonApi'
 import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import wpipUI from '../mockApis/wpipUI'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
+import AuthErrorPage from '../pages/authErrorPage'
 import ScanListPage from '../pages/scanListPage'
 
 const now = new Date() // cannot fix clock since backend runs in separate process with no mocking
@@ -47,6 +49,17 @@ test.describe('Scan list page', () => {
     return ScanListPage.verifyOnPage(page)
   }
 
+  function stubNoScans(): Promise<unknown> {
+    return Promise.all([
+      xrayBodyScansApi.stubGetScanSummary(
+        prisonerNumber,
+        mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+        { includeAlerts: true },
+      ),
+      xrayBodyScansApi.stubListScans(prisonerNumber),
+    ])
+  }
+
   test.describe('Page display', () => {
     test('404 page when prisoner not found', async ({ page }) => {
       await prisonerSearchApi.stubGetPrisoner('B2222BB', notFoundErrorResponse)
@@ -57,14 +70,7 @@ test.describe('Scan list page', () => {
     })
 
     test('Page shows', async ({ page }) => {
-      await Promise.all([
-        xrayBodyScansApi.stubGetScanSummary(
-          prisonerNumber,
-          mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
-          { includeAlerts: true },
-        ),
-        xrayBodyScansApi.stubListScans(prisonerNumber),
-      ])
+      await stubNoScans()
 
       const scanListPage = await startOnScanListPage(page)
 
@@ -130,14 +136,7 @@ test.describe('Scan list page', () => {
     })
 
     test('Links back to WPIP for users who came from there', async ({ page }) => {
-      await Promise.all([
-        xrayBodyScansApi.stubGetScanSummary(
-          prisonerNumber,
-          mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
-          { includeAlerts: true },
-        ),
-        xrayBodyScansApi.stubListScans(prisonerNumber),
-      ])
+      await stubNoScans()
 
       const scanListPage = await startOnScanListPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
@@ -162,8 +161,48 @@ test.describe('Scan list page', () => {
       await expect(scanListPage.returnToWpipLink).not.toBeVisible()
     })
 
-    // TODO: add test for "recently in caseloads but not now"
-    // TODO: add test for "fails permissions"
+    function stubRecentlyLeftPrisoner(): Promise<unknown> {
+      return Promise.all([
+        microFrontendComponents.stubComponents({ caseLoads: [caseloadLEI] }),
+        prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
+          ...prisoner,
+          previousPrisonId: 'LEI',
+          previousPrisonLeavingDate: daysAgo(5).toISOString(),
+        }),
+      ])
+    }
+
+    test('Page shows for a prisoner who has recently left user’s case loads', async ({ page }) => {
+      await Promise.all([stubRecentlyLeftPrisoner(), stubNoScans()])
+      await login(page, startAtPath, { roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH'] })
+
+      const scanListPage = await ScanListPage.verifyOnPage(page)
+
+      // profile banner
+      await expect(scanListPage.profileBannerLink).toContainText('Smith, John')
+      await expect(scanListPage.profileBannerLink).toHaveAttribute(
+        'href',
+        `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
+      )
+      await expect(scanListPage.profileBannerPhoto).toHaveAttribute(
+        'aria-label',
+        'Photo of John Smith is not available',
+      )
+      await expect(scanListPage.getProfileBannerProperties()).resolves.toEqual([
+        {
+          title: 'Category',
+          description: 'C',
+        },
+      ])
+    })
+
+    test('Page inaccessible for a prisoner who has recently left user’s case loads without global search role', async ({
+      page,
+    }) => {
+      await stubRecentlyLeftPrisoner()
+      await login(page, startAtPath)
+      await AuthErrorPage.verifyOnPage(page)
+    })
   })
 
   test.describe('Scan summary', () => {

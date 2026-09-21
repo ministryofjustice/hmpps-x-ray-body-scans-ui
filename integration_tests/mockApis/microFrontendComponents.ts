@@ -25,6 +25,7 @@ export default {
     } = {},
   ): SuperAgentRequest {
     const caseLoads = options.caseLoads ?? [caseloadMDI]
+    const services = options.services ?? [mockService, mockXrayBodyScansService]
 
     return stubFor({
       request: {
@@ -42,7 +43,7 @@ export default {
           meta: {
             caseLoads,
             activeCaseLoad: caseLoads.find(caseLoad => caseLoad.currentlyActive),
-            services: options.services || [mockService, mockXrayBodyScansService],
+            services,
             cspDirectives: Object.fromEntries(
               ['font-src', 'form-action', 'img-src', 'script-src', 'style-src'].map(directive => [
                 directive,
