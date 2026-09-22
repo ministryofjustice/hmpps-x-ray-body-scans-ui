@@ -347,7 +347,7 @@ test.describe('Scan list page', () => {
           now,
           relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert],
         }),
-        expectedAlertFlags: ['Internal secretor', 'Do not X-Ray body scan'],
+        expectedAlertFlags: ['Internal secretor', 'Do not X-ray body scan'],
       },
     ]
     for (const { scenario, scanSummary, expectedAlertFlags } of alertsScenarios) {

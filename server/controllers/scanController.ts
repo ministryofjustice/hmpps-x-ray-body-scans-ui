@@ -93,7 +93,7 @@ export default class ScanController {
       label:
         {
           XIS: 'Internal secretor',
-          XXRAY: 'Do not X-Ray body scan',
+          XXRAY: 'Do not X-ray body scan',
         }[alert.code] ?? alert.codeDescription,
     }))
 
