@@ -152,14 +152,14 @@ test.describe('Scan list page', () => {
       const scanListPage = await startOnScanListPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
       // breadcrumbs
-      await expect(scanListPage.returnToWpipLink).toContainText('Return to recent arrivals')
+      await expect(scanListPage.returnToWpipLink).toContainText('John Smith arrival summary')
       await expect(scanListPage.returnToWpipLink).toHaveAttribute(
         'href',
         `http://localhost:9091/welcome/recent-arrivals?search=John`,
       )
 
       // return link
-      await expect(scanListPage.returnLink).toContainText('Return to recent arrivals')
+      await expect(scanListPage.returnLink).toContainText('Return to prisoner’s arrival summary')
       await expect(scanListPage.returnLink).toHaveAttribute(
         'href',
         `http://localhost:9091/welcome/recent-arrivals?search=John`,

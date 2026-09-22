@@ -143,7 +143,6 @@ test.describe('Add scan case note page', () => {
         ])
 
         // cancel link
-        await expect(addScanCaseNotePage.cancelLink).toContainText('Cancel')
         await expect(addScanCaseNotePage.cancelLink).toHaveAttribute(
           'href',
           `/prisoner/${prisonerNumber}/scan-overview`,
@@ -159,14 +158,13 @@ test.describe('Add scan case note page', () => {
       )
 
       // breadcrumbs
-      await expect(addScanCaseNotePage.returnToWpipLink).toContainText('Return to recent arrivals')
+      await expect(addScanCaseNotePage.returnToWpipLink).toContainText('John Smith arrival summary')
       await expect(addScanCaseNotePage.returnToWpipLink).toHaveAttribute(
         'href',
         `http://localhost:9091/welcome/recent-arrivals?search=John`,
       )
 
       // cancel link
-      await expect(addScanCaseNotePage.cancelLink).toContainText('Return to recent arrivals')
       await expect(addScanCaseNotePage.cancelLink).toHaveAttribute(
         'href',
         `http://localhost:9091/welcome/recent-arrivals?search=John`,

@@ -72,7 +72,6 @@ test.describe('Create scan page', () => {
       )
 
       // cancel link
-      await expect(createScanPage.cancelLink).toContainText('Cancel')
       await expect(createScanPage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
     })
 
@@ -80,14 +79,13 @@ test.describe('Create scan page', () => {
       const createScanPage = await startOnCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
       // breadcrumbs
-      await expect(createScanPage.returnToWpipLink).toContainText('Return to recent arrivals')
+      await expect(createScanPage.returnToWpipLink).toContainText('John Smith arrival summary')
       await expect(createScanPage.returnToWpipLink).toHaveAttribute(
         'href',
         'http://localhost:9091/welcome/recent-arrivals?search=John',
       )
 
       // cancel link
-      await expect(createScanPage.cancelLink).toContainText('Return to recent arrivals')
       await expect(createScanPage.cancelLink).toHaveAttribute(
         'href',
         'http://localhost:9091/welcome/recent-arrivals?search=John',
@@ -143,7 +141,7 @@ test.describe('Create scan page', () => {
         `/prisoner/${prisonerNumber}/scan/${scan.id}/add-a-scan-case-note`,
       )
       if (linksBackToWpip) {
-        await expect(createScanSuccessPage.returnButton).toContainText('Return to recent arrivals')
+        await expect(createScanSuccessPage.returnButton).toContainText('Return to prisoner’s arrival summary')
         await expect(createScanSuccessPage.returnButton).toHaveAttribute(
           'href',
           'http://localhost:9091/welcome/recent-arrivals?search=John',
