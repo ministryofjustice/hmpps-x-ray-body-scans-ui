@@ -10,7 +10,7 @@ export default class AbstractPage {
 
   /** user name that appear in header (requires micro frontend components to use fallback) */
   get usersName(): Locator {
-    return this.page.getByTestId('header-user-name')
+    return this.page.locator('[data-qa="header-user-name"]')
   }
 
   /** link to sign out */
