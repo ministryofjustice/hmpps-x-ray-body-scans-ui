@@ -44,7 +44,6 @@
       }) }}
 
       {% if internalSecretorAlert %}
-
         <div data-testid="internal-secretor-alert">
           <p>An internal secretor alert already exists for this person.</p>
           {% if isGranted(PrisonerAlertsPermission.edit, prisonerPermissions) %}
@@ -62,15 +61,18 @@
             </p>
           {% endif %}
         </div>
-
       {% endif %}
 
-      <p>You can create a case note if you need to record additional information about this scan.</p>
-      {{ govukButton({
-        text: "Add a case note",
-        classes: "govuk-button--secondary",
-        href: "/prisoner/" + prisoner.prisonerNumber + "/scan/" + scan.id + "/add-a-scan-case-note"
-      }) }}
+      {% if isGranted(CaseNotesPermission.read, prisonerPermissions) and canAddCaseNotToScan(user, scan) %}
+        <div data-testid="add-case-note">
+          <p>You can create a case note if you need to record additional information about this scan.</p>
+          {{ govukButton({
+            text: "Add a case note",
+            classes: "govuk-button--secondary",
+            href: "/prisoner/" + prisoner.prisonerNumber + "/scan/" + scan.id + "/add-a-scan-case-note"
+          }) }}
+        </div>
+      {% endif %}
 
       <div class="govuk-button-group">
         {% if wpipReturnPath %}

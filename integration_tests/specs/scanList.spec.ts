@@ -1,8 +1,10 @@
 import { type Page, expect, test } from '@playwright/test'
-import { formatDisplayDate } from '../../server/utils/dates'
+import { DEFAULT_ROLES, login, resetStubs } from '../testUtils'
+import { daysAgo, formatDisplayDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
 import { emptyPageResponse, pageResponse } from '../../server/testutils/pagination'
+import { caseloadLEI } from '../../server/testutils/mocks/prisonApi'
 import { mockPrisoner } from '../../server/testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
@@ -12,13 +14,13 @@ import {
   mockScanResponse,
   mockScanSummaryResponse,
 } from '../../server/testutils/mocks/xrayBodyScansApi'
-import { login, resetStubs } from '../testUtils'
 import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonApi from '../mockApis/prisonApi'
 import prisonRegisterApi from '../mockApis/prisonRegisterApi'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import wpipUI from '../mockApis/wpipUI'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
+import AuthErrorPage from '../pages/authErrorPage'
 import ScanListPage from '../pages/scanListPage'
 
 const now = new Date() // cannot fix clock since backend runs in separate process with no mocking
@@ -47,6 +49,28 @@ test.describe('Scan list page', () => {
     return ScanListPage.verifyOnPage(page)
   }
 
+  function stubRecentlyLeftPrisoner(): Promise<unknown> {
+    return Promise.all([
+      microFrontendComponents.stubComponents({ caseLoads: [caseloadLEI] }),
+      prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
+        ...prisoner,
+        previousPrisonId: 'LEI',
+        previousPrisonLeavingDate: daysAgo(5).toISOString(),
+      }),
+    ])
+  }
+
+  function stubNoScans(): Promise<unknown> {
+    return Promise.all([
+      xrayBodyScansApi.stubGetScanSummary(
+        prisonerNumber,
+        mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
+        { includeAlerts: true },
+      ),
+      xrayBodyScansApi.stubListScans(prisonerNumber),
+    ])
+  }
+
   test.describe('Page display', () => {
     test('404 page when prisoner not found', async ({ page }) => {
       await prisonerSearchApi.stubGetPrisoner('B2222BB', notFoundErrorResponse)
@@ -57,14 +81,7 @@ test.describe('Scan list page', () => {
     })
 
     test('Page shows', async ({ page }) => {
-      await Promise.all([
-        xrayBodyScansApi.stubGetScanSummary(
-          prisonerNumber,
-          mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
-          { includeAlerts: true },
-        ),
-        xrayBodyScansApi.stubListScans(prisonerNumber),
-      ])
+      await stubNoScans()
 
       const scanListPage = await startOnScanListPage(page)
 
@@ -93,12 +110,11 @@ test.describe('Scan list page', () => {
         },
       ])
 
-      // record button
+      // record button is always visible if user can access this page
       await expect(page.getByRole('button', { name: 'Record a new scan' })).toHaveAttribute(
         'href',
         `/prisoner/${prisonerNumber}/record-scan`,
       )
-      // TODO: record button hidden sometimes?
 
       // summary headings
       const currentYear = now.getFullYear()
@@ -131,14 +147,7 @@ test.describe('Scan list page', () => {
     })
 
     test('Links back to WPIP for users who came from there', async ({ page }) => {
-      await Promise.all([
-        xrayBodyScansApi.stubGetScanSummary(
-          prisonerNumber,
-          mockScanSummaryResponse({ prisonerNumber, now, relevantAlerts: [] }),
-          { includeAlerts: true },
-        ),
-        xrayBodyScansApi.stubListScans(prisonerNumber),
-      ])
+      await stubNoScans()
 
       const scanListPage = await startOnScanListPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
@@ -163,8 +172,37 @@ test.describe('Scan list page', () => {
       await expect(scanListPage.returnToWpipLink).not.toBeVisible()
     })
 
-    // TODO: add test for "recently in caseloads but not now"
-    // TODO: add test for "fails base check"
+    test('Page shows for a prisoner who has recently left user’s case loads', async ({ page }) => {
+      await Promise.all([stubRecentlyLeftPrisoner(), stubNoScans()])
+      await login(page, startAtPath, { roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH'] })
+
+      const scanListPage = await ScanListPage.verifyOnPage(page)
+
+      // profile banner
+      await expect(scanListPage.profileBannerLink).toContainText('Smith, John')
+      await expect(scanListPage.profileBannerLink).toHaveAttribute(
+        'href',
+        `http://localhost:9091/profile/prisoner/${prisonerNumber}`,
+      )
+      await expect(scanListPage.profileBannerPhoto).toHaveAttribute(
+        'aria-label',
+        'Photo of John Smith is not available',
+      )
+      await expect(scanListPage.getProfileBannerProperties()).resolves.toEqual([
+        {
+          title: 'Category',
+          description: 'C',
+        },
+      ])
+    })
+
+    test('Page inaccessible for a prisoner who has recently left user’s case loads without global search role', async ({
+      page,
+    }) => {
+      await stubRecentlyLeftPrisoner()
+      await login(page, startAtPath)
+      await AuthErrorPage.verifyOnPage(page)
+    })
   })
 
   test.describe('Scan summary', () => {
@@ -437,6 +475,7 @@ test.describe('Scan list page', () => {
         xrayBodyScansApi.stubListScans(
           prisonerNumber,
           pageResponse([
+            // my prison, just now
             {
               ...mockScanResponse(prisonerNumber, now),
               id: '019fc832-0000-7000-0000-000000000001',
@@ -446,8 +485,9 @@ test.describe('Scan list page', () => {
               outcome: 'POSITIVE',
               outcomeDescription: 'Item detected',
             },
+            // my prison, yesterday
             {
-              ...mockScanResponse(prisonerNumber, now),
+              ...mockScanResponse(prisonerNumber, daysAgo(1)),
               id: '019fc832-0000-7000-0000-000000000002',
               prisonId: 'MDI',
               justification: 'INTELLIGENCE',
@@ -456,8 +496,9 @@ test.describe('Scan list page', () => {
               outcomeDescription: 'Item detected',
               caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8',
             },
+            // different prison, recent
             {
-              ...mockScanResponse(prisonerNumber, now),
+              ...mockScanResponse(prisonerNumber, daysAgo(15)),
               id: '019fc832-0000-7000-0000-000000000003',
               prisonId: 'LEI',
               justification: 'REASONABLE_SUSPICION',
@@ -465,44 +506,123 @@ test.describe('Scan list page', () => {
               outcome: 'NEGATIVE',
               outcomeDescription: 'No item detected',
             },
+            // my prison, not recent
             {
-              ...mockScanResponse(prisonerNumber, now),
+              ...mockScanResponse(prisonerNumber, daysAgo(33)),
               id: '019fc832-0000-7000-0000-000000000004',
-              prisonId: 'LEI',
+              prisonId: 'MDI',
               justification: 'INTELLIGENCE',
               justificationDescription: 'Intelligence-led',
               outcome: 'INCONCLUSIVE',
               outcomeDescription: 'Inconclusive',
             },
+            // nomis
+            {
+              ...mockLegacyScanResponse(prisonerNumber, daysAgo(60), 'intel - neg'),
+              id: '715262',
+            },
             // nomis scan may be missing details
-            mockLegacyScanResponse(prisonerNumber, now),
+            {
+              ...mockLegacyScanResponse(prisonerNumber, daysAgo(61)),
+              id: '715247',
+            },
             // nomis scan may be missing scan date
-            mockLegacyScanResponse(prisonerNumber, null, 'positive'),
+            {
+              ...mockLegacyScanResponse(prisonerNumber, null, 'positive'),
+              id: '715187',
+            },
           ]),
         ),
       ])
 
       const scanListPage = await startOnScanListPage(page)
-      const dateStr = formatDisplayDate(now)
       await expect(scanListPage.getScanTableContents()).resolves.toEqual([
-        [dateStr, 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Add case note'],
-        [dateStr, 'Moorland (HMP & YOI)', 'Intelligence-led', 'Item detected', 'View case note'],
-        [dateStr, 'Leeds (HMP)', 'Reasonable suspicion', 'No item detected', 'Add case note'],
-        [dateStr, 'Leeds (HMP)', 'Intelligence-led', 'Inconclusive', 'Add case note'],
-        [dateStr, '', '', '', ''],
+        [formatDisplayDate(now), 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Add case note'],
+        [formatDisplayDate(daysAgo(1)), 'Moorland (HMP & YOI)', 'Intelligence-led', 'Item detected', 'View case note'],
+        [formatDisplayDate(daysAgo(15)), 'Leeds (HMP)', 'Reasonable suspicion', 'No item detected', ''],
+        [formatDisplayDate(daysAgo(33)), 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', ''],
+        [formatDisplayDate(daysAgo(60)), '', '', 'intel - neg', ''],
+        [formatDisplayDate(daysAgo(61)), '', '', '', ''],
         ['Not recorded', '', '', 'positive', ''],
       ])
       await expect(scanListPage.getScanTableActionUrls()).resolves.toEqual([
         expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000001/add-a-scan-case-note'),
         expect.stringContaining('/profile/prisoner/A1234BC/update-case-note/341c845e-fadc-4ec8-9330-81c83968c1a8'),
-        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000003/add-a-scan-case-note'),
-        expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000004/add-a-scan-case-note'),
+        undefined,
+        undefined,
+        undefined,
         undefined,
         undefined,
       ])
       await expect(scanListPage.pagination).toBeVisible()
-      await expect(scanListPage.getPaginationShowingDescription()).resolves.toEqual('Showing 1 to 6 of 6 results')
+      await expect(scanListPage.getPaginationShowingDescription()).resolves.toEqual('Showing 1 to 7 of 7 results')
     })
+
+    for (const { scenario, roles, canAddCaseNoteToRecentLocalScan } of [
+      {
+        scenario: 'and they have no POM role',
+        roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH'],
+        canAddCaseNoteToRecentLocalScan: false,
+      },
+      {
+        scenario: 'but they have global search and POM roles',
+        roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH', 'ROLE_POM'],
+        canAddCaseNoteToRecentLocalScan: true,
+      },
+    ]) {
+      test(`Shows table of scans for a prisoner who has recently left user’s case loads ${scenario}`, async ({
+        page,
+      }) => {
+        await Promise.all([
+          stubRecentlyLeftPrisoner(),
+          xrayBodyScansApi.stubGetScanSummary(
+            prisonerNumber,
+            mockScanSummaryResponse({
+              prisonerNumber,
+              now,
+              relevantAlerts: [],
+            }),
+            { includeAlerts: true },
+          ),
+          xrayBodyScansApi.stubListScans(
+            prisonerNumber,
+            pageResponse([
+              // recorded in new prison which is not in my case loads
+              {
+                ...mockScanResponse(prisonerNumber, daysAgo(1)),
+                id: '019fc832-0000-7000-0000-000000000001',
+                prisonId: 'MDI',
+              },
+              // recorded in my prison recently
+              {
+                ...mockScanResponse(prisonerNumber, daysAgo(6)),
+                id: '019fc832-0000-7000-0000-000000000002',
+                prisonId: 'LEI',
+              },
+              // recorded in my prison a while ago
+              {
+                ...mockScanResponse(prisonerNumber, daysAgo(36)),
+                id: '019fc832-0000-7000-0000-000000000003',
+                prisonId: 'LEI',
+              },
+            ]),
+          ),
+        ])
+
+        await login(page, startAtPath, { roles })
+        const scanListPage = await ScanListPage.verifyOnPage(page)
+
+        if (canAddCaseNoteToRecentLocalScan) {
+          await expect(scanListPage.getScanTableActionUrls()).resolves.toEqual([
+            undefined,
+            expect.stringContaining('/prisoner/A1234BC/scan/019fc832-0000-7000-0000-000000000002/add-a-scan-case-note'),
+            undefined,
+          ])
+        } else {
+          await expect(scanListPage.getScanTableActionUrls()).resolves.toEqual([undefined, undefined, undefined])
+        }
+      })
+    }
 
     const pageScenarios = [
       {
@@ -732,6 +852,7 @@ test.describe('Scan list page', () => {
           xrayBodyScansApi.stubGetScan(scans[1].id, scans[1]),
           xrayBodyScansApi.stubGetScanCaseNote(scans[1].id, caseNote),
         ])
+        await expect(scanListPage.getNthRowActionLink(1)).toContainText('View case note')
         await scanListPage.getNthRowActionLink(1).click()
         await expect(scanListPage.modal).toBeVisible()
         await expect(scanListPage.modalHeader).toContainText('Case note details')

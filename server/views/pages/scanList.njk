@@ -26,10 +26,13 @@
 
   <h1 class="govuk-heading-l">X-ray body scans</h1>
 
-  {{ govukButton({
-    text: "Record a new scan",
-    href: "/prisoner/" + prisonerNumber + "/record-scan"
-  }) }}
+  {% if isGranted(XRayBodyScansPermission.edit_scans, prisonerPermissions) %}
+    {# at present, edit check matches read check so if page is accessible, button is always visible #}
+    {{ govukButton({
+      text: "Record a new scan",
+      href: "/prisoner/" + prisonerNumber + "/record-scan"
+    }) }}
+  {% endif %}
 
   <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--m">
 
@@ -151,7 +154,9 @@
 
       {% set cellClasses = "scan-table__highlighted-cell" if scan.highlightedRow else "" %}
       {% set actionLink %}
+        {# everyone seeing this page sees the view link #}
         {% if scan.caseNoteId %}
+
           {% set caseNoteLink %}
             {%- if isGranted(CaseNotesPermission.edit, prisonerPermissions) -%}
               {{ prisoner | prisonerProfileUrl }}/update-case-note/{{ scan.caseNoteId }}
@@ -164,11 +169,15 @@
           <a href="{{ caseNoteLink }}" class="govuk-link govuk-link--no-visited-state hmpps-modal__trigger-show" data-hmpps-modal-id="case-note-modal" data-hmpps-modal-url="/prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note">
             View case note
           </a>
-        {% elseif scan.source === "DPS" %}
-          {# TODO: what permissions are needed? #}
+
+        {# only those who can *read* case notes can add one (they may not normally be allowed to create) #}
+        {# scan must have been recorded in active case load within last 31 days #}
+        {% elseif scan.source === "DPS" and isGranted(CaseNotesPermission.read, prisonerPermissions) and canAddCaseNotToScan(user, scan) %}
+
           <a href="/prisoner/{{ prisonerNumber }}/scan/{{ scan.id }}/add-a-scan-case-note{{ returnParameters }}" class="govuk-link govuk-link--no-visited-state add-case-note-link">
             Add case note
           </a>
+
         {% endif %}
       {% endset %}
 

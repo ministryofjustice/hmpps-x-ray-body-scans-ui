@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { formatIsoDate } from '../utils/dates'
+import { daysAgo, formatIsoDate } from '../utils/dates'
 import { justifications, outcomes } from '../data/interfaces/xrayBodyScansApi'
 import type { ZodErrorTree } from './formErrors'
 
@@ -106,8 +106,7 @@ export const createScanForm = baseCreateScanForm
         })
       }
 
-      const oldScanCutoff = new Date()
-      oldScanCutoff.setDate(oldScanCutoff.getDate() - 31)
+      const oldScanCutoff = daysAgo(31)
       if (formatIsoDate(date) < formatIsoDate(oldScanCutoff)) {
         // too old a date
         ctx.addIssue({

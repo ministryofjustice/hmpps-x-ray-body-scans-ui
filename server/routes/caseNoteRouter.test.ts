@@ -1,17 +1,20 @@
 import type { Express } from 'express'
 import request from 'supertest'
-import { PrisonerBasePermission, XRayBodyScansPermission } from '@ministryofjustice/hmpps-prison-permissions-lib'
-import { appWithAllRoutes, user } from './testutils/appSetup'
-import { emptyPageResponse } from '../testutils/pagination'
+import {
+  CaseNotesPermission,
+  PrisonerBasePermission,
+  XRayBodyScansPermission,
+} from '@ministryofjustice/hmpps-prison-permissions-lib'
+import { appWithAllRoutes } from './testutils/appSetup'
 import { mockAuditService } from '../testutils/mocks/auditService'
 import {
   mockGrantNoPrisonerPermissions,
   mockGrantPrisonerPermissions,
 } from '../testutils/mocks/prisonPermissionsService'
-import { mockPrisonNamesImpl } from '../testutils/mocks/prisonService'
 import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockServices } from '../testutils/mocks/services'
-import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApi'
+import { mockScanResponse, mockScanCaseNoteResponse } from '../testutils/mocks/xrayBodyScansApi'
+import { canAddCaseNotToScan } from '../utils/scanPermissions'
 
 jest.mock('@ministryofjustice/hmpps-prison-permissions-lib', () => {
   // ensure permissions library is properly installed into nunjucks environment
@@ -25,8 +28,10 @@ jest.mock('../data/prisonerSearchApiClient')
 jest.mock('../data/xrayBodyScansApiClient')
 jest.mock('../services/auditService')
 jest.mock('../services/prisonService')
+jest.mock('../utils/scanPermissions')
 
-const { auditService, prisonService, prisonerSearchApiClient, xrayBodyScansApiClient } = mockServices
+const { auditService, prisonerSearchApiClient, xrayBodyScansApiClient } = mockServices
+const mockedCanAddCaseNotToScan = jest.mocked(canAddCaseNotToScan)
 
 const prisonerNumber = 'A1234BC'
 
@@ -35,19 +40,26 @@ let app: Express
 beforeEach(() => {
   mockAuditService(auditService)
   prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce(mockPrisoner(prisonerNumber))
+  mockedCanAddCaseNotToScan.mockImplementation(() => {
+    throw Error('should not be called')
+  })
 })
 
 afterEach(() => {
   jest.resetAllMocks()
 })
 
-describe('scan router', () => {
-  describe('overview page', () => {
-    const url = `/prisoner/${prisonerNumber}/scan-overview`
+describe('case note router', () => {
+  describe('view case note', () => {
+    const scan = mockScanResponse(prisonerNumber, new Date())
+    const caseNote = mockScanCaseNoteResponse(scan)
+    scan.caseNoteId = caseNote.id
+    const url = `/prisoner/${prisonerNumber}/scan/${scan.id}/case-note`
 
     beforeEach(() => {
       mockGrantPrisonerPermissions(PrisonerBasePermission.read, XRayBodyScansPermission.read_scans)
-      prisonService.getPrisonNames.mockImplementation(mockPrisonNamesImpl)
+      xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
+      xrayBodyScansApiClient.getScanCaseNote.mockResolvedValueOnce(caseNote)
     })
 
     it.each([
@@ -66,26 +78,22 @@ describe('scan router', () => {
         .expect('Location', '/authError')
         .expect(() => {
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
-          expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
-          expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
+          expect(xrayBodyScansApiClient.getScan).not.toHaveBeenCalled()
+          expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
         })
     })
 
     it('should allow access when permission is granted', () => {
       app = appWithAllRoutes({ services: mockServices })
-      xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
-        mockScanSummaryResponse({ prisonerNumber, now: new Date(), relevantAlerts: [] }),
-      )
-      xrayBodyScansApiClient.listScans.mockResolvedValueOnce(emptyPageResponse())
 
       return request(app)
         .get(url)
         .expect(200)
         .expect(res => {
-          expect(res.text).toContain('X-ray body scans')
+          expect(res.text).toContain('X-ray body scan')
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
-          expect(xrayBodyScansApiClient.getScanSummary).toHaveBeenCalled()
-          expect(xrayBodyScansApiClient.listScans).toHaveBeenCalled()
+          expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
+          expect(xrayBodyScansApiClient.getScanCaseNote).toHaveBeenCalledWith(scan.id, 'user1')
         })
     })
 
@@ -99,54 +107,78 @@ describe('scan router', () => {
         .expect(404)
         .expect(() => {
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
-          expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
-          expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
+          expect(xrayBodyScansApiClient.getScan).not.toHaveBeenCalled()
+          expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
         })
     })
 
-    it('should redirect to DPS home page when user has no active caseload', () => {
-      app = appWithAllRoutes({
-        services: mockServices,
-        userSupplier: () => ({ ...user, activeCaseLoadId: undefined }),
-      })
+    it('should show 404 page when scan is not found', () => {
+      app = appWithAllRoutes({ services: mockServices })
+      xrayBodyScansApiClient.getScan.mockReset()
+      xrayBodyScansApiClient.getScan.mockResolvedValueOnce(null)
 
       return request(app)
         .get(url)
-        .expect(302)
-        .expect('Location', 'http://localhost:3001/dps-home')
+        .expect(404)
         .expect(() => {
-          expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
-          expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
-          expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
+          expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+          expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
+          expect(xrayBodyScansApiClient.getScanCaseNote).not.toHaveBeenCalled()
         })
     })
   })
 
-  describe('recording page', () => {
-    const url = `/prisoner/${prisonerNumber}/record-scan`
+  describe('add case note', () => {
+    const scan = mockScanResponse(prisonerNumber, new Date())
+    const url = `/prisoner/${prisonerNumber}/scan/${scan.id}/add-a-scan-case-note`
 
     beforeEach(() => {
       mockGrantPrisonerPermissions(
         PrisonerBasePermission.read,
         XRayBodyScansPermission.read_scans,
-        XRayBodyScansPermission.edit_scans,
+        CaseNotesPermission.read,
       )
+      mockedCanAddCaseNotToScan.mockReturnValue(true)
+      xrayBodyScansApiClient.getScan.mockResolvedValueOnce(scan)
     })
 
     it.each([
-      { scenario: 'fails base check', grantPermissions: mockGrantNoPrisonerPermissions },
+      { scenario: 'fails base check', grantPermissions: mockGrantNoPrisonerPermissions, checkedAfterScanLoaded: false },
       {
         scenario: 'fails x-ray body scans default check',
         grantPermissions: () => mockGrantPrisonerPermissions(PrisonerBasePermission.read),
+        checkedAfterScanLoaded: false,
       },
       {
-        scenario: 'fails x-ray body scans edit check (currently matches default check)',
+        scenario: 'fails case note check',
         grantPermissions: () =>
           mockGrantPrisonerPermissions(PrisonerBasePermission.read, XRayBodyScansPermission.read_scans),
+        checkedAfterScanLoaded: true,
       },
-    ])('should redirect to auth error page when unauthorised: $scenario', ({ grantPermissions }) => {
-      grantPermissions()
+    ])(
+      'should redirect to auth error page when unauthorised: $scenario',
+      ({ grantPermissions, checkedAfterScanLoaded }) => {
+        grantPermissions()
+        app = appWithAllRoutes({ services: mockServices })
+
+        return request(app)
+          .get(url)
+          .expect(302)
+          .expect('Location', '/authError')
+          .expect(() => {
+            expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+            if (checkedAfterScanLoaded) {
+              expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
+            } else {
+              expect(xrayBodyScansApiClient.getScan).not.toHaveBeenCalled()
+            }
+          })
+      },
+    )
+
+    it('should redirect to auth error page when it is unauthorised to add a case note to this scan', () => {
       app = appWithAllRoutes({ services: mockServices })
+      mockedCanAddCaseNotToScan.mockReturnValue(false)
 
       return request(app)
         .get(url)
@@ -154,6 +186,7 @@ describe('scan router', () => {
         .expect('Location', '/authError')
         .expect(() => {
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+          expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
         })
     })
 
@@ -164,8 +197,9 @@ describe('scan router', () => {
         .get(url)
         .expect(200)
         .expect(res => {
-          expect(res.text).toContain('Record an X-ray body scan')
+          expect(res.text).toContain('Add an X-ray body scan case note')
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+          expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
         })
     })
 
@@ -179,37 +213,22 @@ describe('scan router', () => {
         .expect(404)
         .expect(() => {
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+          expect(xrayBodyScansApiClient.getScan).not.toHaveBeenCalled()
         })
     })
 
-    it('should redirect to DPS home page when user has no active caseload', () => {
-      app = appWithAllRoutes({
-        services: mockServices,
-        userSupplier: () => ({ ...user, activeCaseLoadId: undefined }),
-      })
+    it('should show 404 page when scan is not found', () => {
+      app = appWithAllRoutes({ services: mockServices })
+      xrayBodyScansApiClient.getScan.mockReset()
+      xrayBodyScansApiClient.getScan.mockResolvedValueOnce(null)
 
       return request(app)
         .get(url)
-        .expect(302)
-        .expect('Location', 'http://localhost:3001/dps-home')
+        .expect(404)
         .expect(() => {
-          expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
+          expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+          expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
         })
     })
-  })
-
-  it('should redirect to scans list when trying to go to person’s link if they pass the base check', () => {
-    mockGrantPrisonerPermissions(PrisonerBasePermission.read)
-    app = appWithAllRoutes({ services: mockServices })
-
-    return request(app)
-      .get(`/prisoner/${prisonerNumber}`)
-      .expect(302)
-      .expect('Location', `/prisoner/${prisonerNumber}/scan-overview`)
-      .expect(() => {
-        expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
-        expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
-        expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
-      })
   })
 })

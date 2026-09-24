@@ -3,7 +3,6 @@ import {
   type PrisonerPermission,
   isGranted,
   prisonerPermissionsGuard,
-  PrisonerBasePermission,
 } from '@ministryofjustice/hmpps-prison-permissions-lib'
 
 // NB: required in test module:
@@ -34,7 +33,6 @@ export function mockGrantPrisonerPermissions(...grantedPermissions: PrisonerPerm
   jest.mocked(prisonerPermissionsGuard).mockImplementation((_service, { requestDependentOn: requiredPermissions }) => {
     return async (_req, _res, next) => {
       const deniedPermissionChecks = requiredPermissions.filter(permission => !grantedPermissions.includes(permission))
-      // TODO: res.locals.prisonerPermissions = { ...grantedPermissions }??
       if (deniedPermissionChecks.length) {
         next(new PrisonerPermissionError(deniedPermissionChecks))
       } else {
@@ -42,10 +40,6 @@ export function mockGrantPrisonerPermissions(...grantedPermissions: PrisonerPerm
       }
     }
   })
-}
-
-export function mockGrantMinimalPrisonerPermissions(): void {
-  return mockGrantPrisonerPermissions(PrisonerBasePermission.read)
 }
 
 // mimics unexported class used internally by permissions lib

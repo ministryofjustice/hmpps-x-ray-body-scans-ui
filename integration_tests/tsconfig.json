@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "noUnusedParameters": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "../server/@types/**/*.d.ts"]
 }

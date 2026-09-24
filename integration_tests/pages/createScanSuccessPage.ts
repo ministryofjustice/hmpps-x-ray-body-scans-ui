@@ -20,6 +20,14 @@ export default class CreateScanSuccessPage extends AbstractPage {
     return this.internalSecretorAlert.getByRole('link')
   }
 
+  get addCaseNoteSection(): Locator {
+    return this.page.locator('[data-testid="add-case-note"]')
+  }
+
+  get addCaseNoteLink(): Locator {
+    return this.addCaseNoteSection.getByRole('button', { name: 'Add a case note' })
+  }
+
   get returnButton(): Locator {
     return this.page.locator('.govuk-button-group a.govuk-button')
   }

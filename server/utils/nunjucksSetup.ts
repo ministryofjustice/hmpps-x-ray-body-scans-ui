@@ -10,6 +10,7 @@ import { formatDisplayDate, formatDisplayDateTime, formatDisplayShortDate } from
 import { initialiseName } from './utils'
 import type { Prisoner } from '../data/interfaces/prisonerSearchApi'
 import { errorMessageForField, errorSummary } from '../forms/formErrors'
+import { canAddCaseNotToScan } from './scanPermissions'
 
 export default function nunjucksSetup(app: express.Express): nunjucks.Environment {
   app.set('view engine', 'njk')
@@ -46,24 +47,31 @@ export default function nunjucksSetup(app: express.Express): nunjucks.Environmen
 
   setupNunjucksPermissions(njkEnv)
 
+  // other service urls
   njkEnv.addGlobal('dpsHomeUrl', config.serviceUrls.digitalPrison)
   njkEnv.addGlobal('prisonerProfileUrl', config.serviceUrls.prisonerProfile)
   njkEnv.addGlobal('welcomePeopleIntoPrisonUrl', config.serviceUrls.welcomePeopleIntoPrison)
 
-  njkEnv.addGlobal('now', () => new Date())
+  // scan-specific permission checks
+  njkEnv.addGlobal('canAddCaseNotToScan', canAddCaseNotToScan)
 
+  // date handling
+  njkEnv.addGlobal('now', () => new Date())
+  njkEnv.addFilter('formatDisplayShortDate', formatDisplayShortDate)
+  njkEnv.addFilter('formatDisplayDate', formatDisplayDate)
+  njkEnv.addFilter('formatDisplayDateTime', formatDisplayDateTime)
+
+  // error handling
   njkEnv.addGlobal('errorMessageForField', errorMessageForField)
   njkEnv.addGlobal('errorSummary', errorSummary)
 
-  njkEnv.addFilter('initialiseName', initialiseName)
+  // misc utilities
   njkEnv.addFilter('assetMap', (url: string) => assetManifest[url] || url)
+  njkEnv.addFilter('initialiseName', initialiseName)
   njkEnv.addFilter(
     'prisonerProfileUrl',
     (prisoner: Prisoner) => `${config.serviceUrls.prisonerProfile}/prisoner/${prisoner.prisonerNumber}`,
   )
-  njkEnv.addFilter('formatDisplayShortDate', formatDisplayShortDate)
-  njkEnv.addFilter('formatDisplayDate', formatDisplayDate)
-  njkEnv.addFilter('formatDisplayDateTime', formatDisplayDateTime)
 
   return njkEnv
 }

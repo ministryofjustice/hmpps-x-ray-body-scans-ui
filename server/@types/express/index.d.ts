@@ -1,4 +1,4 @@
-import type { SharedData } from '@ministryofjustice/hmpps-connect-dps-components'
+import type SharedData from '@ministryofjustice/hmpps-connect-dps-components/dist/types/SharedData'
 import type { PrisonerPermissions } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import type { PrisonUser } from '../../interfaces/hmppsUser'
 import type { Prisoner } from '../../data/interfaces/prisonerSearchApi'

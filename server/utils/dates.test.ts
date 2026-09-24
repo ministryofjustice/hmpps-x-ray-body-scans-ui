@@ -1,4 +1,15 @@
-import { formatDisplayDate, formatDisplayDateTime, formatIsoDate, formatDisplayShortDate } from './dates'
+import { fixedClock, now, today, yesterday } from '../testutils/fixedClock'
+import {
+  formatDisplayDate,
+  formatDisplayDateTime,
+  formatIsoDate,
+  formatDisplayShortDate,
+  withinLast31Days,
+} from './dates'
+
+beforeAll(() => {
+  fixedClock()
+})
 
 describe('formatIsoDate', () => {
   it.each([undefined, null])('should return undefined for nullish type %j', date => {
@@ -77,5 +88,28 @@ describe('formatDisplayDateTime', () => {
     [new Date('2021-10-31T01:00:01Z'), '31 October 2021 at 01:00'],
   ])('should format %s to %s', (date, expected) => {
     expect(formatDisplayDateTime(date)).toEqual(expected)
+  })
+})
+
+describe(`withinLast31Days when today is ${formatDisplayDate(today)}`, () => {
+  it.each([
+    new Date(),
+    now,
+    today,
+    yesterday,
+    new Date('2026-06-23T12:07:41+01:00'),
+    new Date('2026-06-23T23:59:59+01:00'),
+    new Date('2026-06-23T00:00:00+01:00'),
+  ])('should return true for %s', date => {
+    expect(withinLast31Days(date)).toBe(true)
+  })
+
+  it.each([
+    new Date('2026-01-01T12:00:00+00:00'),
+    new Date('2026-06-22T12:07:41+01:00'),
+    new Date('2026-06-22T23:59:59+01:00'),
+    new Date('2026-06-22T00:00:00+01:00'),
+  ])('should return false for %s', date => {
+    expect(withinLast31Days(date)).toBe(false)
   })
 })

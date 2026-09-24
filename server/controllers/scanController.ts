@@ -14,7 +14,6 @@ import type { PrisonUser } from '../interfaces/hmppsUser'
 import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest, ListScansRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
-
 import type AuditService from '../services/auditService'
 import { Page } from '../services/auditService'
 import { PrisonService } from '../services/prisonService'
@@ -31,8 +30,6 @@ export default class ScanController {
   async getScanList(req: Request, res: Response): Promise<void> {
     const { prisonerNumber } = res.locals.prisoner
     const { username } = res.locals.user
-
-    // TODO: determine if user can see list
 
     this.auditService
       .logPageView(Page.SCAN_LIST, {
@@ -117,8 +114,6 @@ export default class ScanController {
   async getCreateScan(req: Request, res: Response): Promise<void> {
     const { prisoner, user } = res.locals
 
-    // TODO: determine if user can create scan
-
     this.auditService
       .logPageView(Page.CREATE_SCAN, {
         who: user.username,
@@ -152,8 +147,6 @@ export default class ScanController {
   async postCreateScan(req: Request, res: Response): Promise<void> {
     const { prisonerNumber } = res.locals.prisoner
     const { username, activeCaseLoadId } = res.locals.user as PrisonUser
-
-    // TODO: determine if user can create scan
 
     const result = createScanForm.safeParse(req.body)
     if (!result.success) {

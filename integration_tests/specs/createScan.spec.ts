@@ -1,8 +1,10 @@
 import { type Page, expect, test } from '@playwright/test'
 import { DEFAULT_ROLES, login, resetStubs } from '../testUtils'
-import { formatIsoDate } from '../../server/utils/dates'
+import { daysAgo, formatIsoDate } from '../../server/utils/dates'
 import type { ScanResponse } from '../../server/data/interfaces/xrayBodyScansApi'
-import { badRequestErrorResponse } from '../../server/testutils/mocks/errorResponse'
+import { badRequestErrorResponse, notFoundErrorResponse } from '../../server/testutils/mocks/errorResponse'
+import { caseloadLEI } from '../../server/testutils/mocks/prisonApi'
+import { mockPrisoner } from '../../server/testutils/mocks/prisonerSearchApi'
 import {
   mockDoNotScanAlert,
   mockInternalSecretorAlert,
@@ -13,16 +15,21 @@ import microFrontendComponents from '../mockApis/microFrontendComponents'
 import prisonerSearchApi from '../mockApis/prisonerSearchApi'
 import wpipUI from '../mockApis/wpipUI'
 import xrayBodyScansApi from '../mockApis/xrayBodyScansApi'
+import AuthErrorPage from '../pages/authErrorPage'
 import CreateScanPage from '../pages/createScanPage'
 import CreateScanSuccessPage from '../pages/createScanSuccessPage'
 
 const prisonerNumber = 'A1234BC'
+const prisoner = mockPrisoner(prisonerNumber)
 
 const startAtPath = `/prisoner/${prisonerNumber}/record-scan`
 
 test.describe('Create scan page', () => {
   test.beforeEach(async () => {
-    await Promise.all([microFrontendComponents.stubComponents(), prisonerSearchApi.stubGetPrisoner(prisonerNumber)])
+    await Promise.all([
+      microFrontendComponents.stubComponents(),
+      prisonerSearchApi.stubGetPrisoner(prisonerNumber, prisoner),
+    ])
   })
 
   test.afterEach(async () => {
@@ -35,68 +42,111 @@ test.describe('Create scan page', () => {
     return CreateScanPage.verifyOnPage(page, 'John Smith')
   }
 
-  test('Page shows', async ({ page }) => {
-    const createScanPage = await startOnCreateScanPage(page)
+  test.describe('Page display', () => {
+    test('404 page when prisoner not found', async ({ page }) => {
+      await Promise.all([prisonerSearchApi.stubGetPrisoner('B2222BB', notFoundErrorResponse)])
 
-    // breadcrumbs
-    await expect(createScanPage.returnToWpipLink).not.toBeVisible()
-    await expect(createScanPage.getBreadcrumbs()).resolves.toEqual([
-      { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
-      { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
-      { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scan-overview` },
-    ])
+      const response = await login(page, '/prisoner/B2222BB/record-scan')
 
-    // nothing is pre-selected
-    await expect(createScanPage.getFormValues()).resolves.toEqual(
-      expect.not.objectContaining({
-        scanDateOption: expect.anything(),
-        justification: expect.anything(),
-        outcome: expect.anything(),
-      }),
-    )
+      expect(response?.status()).toBe(404)
+    })
 
-    // cancel link
-    await expect(createScanPage.cancelLink).toContainText('Cancel')
-    await expect(createScanPage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
-  })
+    test('Page shows', async ({ page }) => {
+      const createScanPage = await startOnCreateScanPage(page)
 
-  test('Links back to WPIP for users who came from there', async ({ page }) => {
-    const createScanPage = await startOnCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
+      // breadcrumbs
+      await expect(createScanPage.returnToWpipLink).not.toBeVisible()
+      await expect(createScanPage.getBreadcrumbs()).resolves.toEqual([
+        { text: 'Digital Prison Services', href: 'http://localhost:9091/dpshomepage' },
+        { text: 'Smith, John', href: `http://localhost:9091/profile/prisoner/${prisonerNumber}` },
+        { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scan-overview` },
+      ])
 
-    // breadcrumbs
-    await expect(createScanPage.returnToWpipLink).toContainText('Return to recent arrivals')
-    await expect(createScanPage.returnToWpipLink).toHaveAttribute(
-      'href',
-      `http://localhost:9091/welcome/recent-arrivals?search=John`,
-    )
+      // nothing is pre-selected
+      await expect(createScanPage.getFormValues()).resolves.toEqual(
+        expect.not.objectContaining({
+          scanDateOption: expect.anything(),
+          justification: expect.anything(),
+          outcome: expect.anything(),
+        }),
+      )
 
-    // cancel link
-    await expect(createScanPage.cancelLink).toContainText('Return to recent arrivals')
-    await expect(createScanPage.cancelLink).toHaveAttribute(
-      'href',
-      `http://localhost:9091/welcome/recent-arrivals?search=John`,
-    )
+      // cancel link
+      await expect(createScanPage.cancelLink).toContainText('Cancel')
+      await expect(createScanPage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
+    })
 
-    // end WPIP journey
-    await wpipUI.stubWpipRecentArrivals()
-    await createScanPage.cancelLink.click()
-    await page.goto(startAtPath)
-    await expect(createScanPage.returnToWpipLink).not.toBeVisible()
+    test('Links back to WPIP for users who came from there', async ({ page }) => {
+      const createScanPage = await startOnCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
+
+      // breadcrumbs
+      await expect(createScanPage.returnToWpipLink).toContainText('Return to recent arrivals')
+      await expect(createScanPage.returnToWpipLink).toHaveAttribute(
+        'href',
+        'http://localhost:9091/welcome/recent-arrivals?search=John',
+      )
+
+      // cancel link
+      await expect(createScanPage.cancelLink).toContainText('Return to recent arrivals')
+      await expect(createScanPage.cancelLink).toHaveAttribute(
+        'href',
+        'http://localhost:9091/welcome/recent-arrivals?search=John',
+      )
+
+      // end WPIP journey
+      await wpipUI.stubWpipRecentArrivals()
+      await createScanPage.cancelLink.click()
+      await page.goto(startAtPath)
+      await expect(createScanPage.returnToWpipLink).not.toBeVisible()
+    })
+
+    function stubRecentlyLeftPrisoner(): Promise<unknown> {
+      return Promise.all([
+        microFrontendComponents.stubComponents({ caseLoads: [caseloadLEI] }),
+        prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
+          ...prisoner,
+          previousPrisonId: 'LEI',
+          previousPrisonLeavingDate: daysAgo(5).toISOString(),
+        }),
+      ])
+    }
+
+    test('Page shows for a prisoner who has recently left user’s case loads', async ({ page }) => {
+      await stubRecentlyLeftPrisoner()
+      await login(page, startAtPath, { roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH'] })
+      await CreateScanPage.verifyOnPage(page, 'John Smith')
+    })
+
+    test('Page inaccessible for a prisoner who has recently left user’s case loads without global search role', async ({
+      page,
+    }) => {
+      await stubRecentlyLeftPrisoner()
+      await login(page, startAtPath)
+      await AuthErrorPage.verifyOnPage(page)
+    })
   })
 
   test.describe('Recording a scan successfully', () => {
-    async function expectSuccessPage(page: Page, linksBackToWpip = false): Promise<CreateScanSuccessPage> {
+    async function expectSuccessPage(
+      page: Page,
+      scan: ScanResponse,
+      linksBackToWpip = false,
+    ): Promise<CreateScanSuccessPage> {
       const createScanSuccessPage = await CreateScanSuccessPage.verifyOnPage(page)
 
       // no breadcrumbs
       await expect(createScanSuccessPage.breadcrumbs).not.toBeVisible()
 
       // links
+      await expect(createScanSuccessPage.addCaseNoteLink).toHaveAttribute(
+        'href',
+        `/prisoner/${prisonerNumber}/scan/${scan.id}/add-a-scan-case-note`,
+      )
       if (linksBackToWpip) {
         await expect(createScanSuccessPage.returnButton).toContainText('Return to recent arrivals')
         await expect(createScanSuccessPage.returnButton).toHaveAttribute(
           'href',
-          `http://localhost:9091/welcome/recent-arrivals?search=John`,
+          'http://localhost:9091/welcome/recent-arrivals?search=John',
         )
       } else {
         await expect(createScanSuccessPage.returnButton).toContainText('Return to X-ray body scans')
@@ -163,7 +213,7 @@ test.describe('Create scan page', () => {
 
       await createScanPage.saveButton.click()
 
-      const createScanSuccessPage = await expectSuccessPage(page)
+      const createScanSuccessPage = await expectSuccessPage(page, response)
 
       await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
       await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
@@ -175,9 +225,7 @@ test.describe('Create scan page', () => {
     })
 
     test('Can record a positive scan on another date', async ({ page }) => {
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      yesterday.setHours(12, 0, 0, 0)
+      const yesterday = daysAgo(1)
       const yesterdayString = formatIsoDate(yesterday)
       const [yesterdayYear, yesterdayMonth, yesterdayDay] = yesterdayString
         .split('-')
@@ -233,7 +281,7 @@ test.describe('Create scan page', () => {
 
       await createScanPage.saveButton.click()
 
-      const createScanSuccessPage = await expectSuccessPage(page)
+      const createScanSuccessPage = await expectSuccessPage(page, response)
 
       await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
       await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
@@ -249,9 +297,7 @@ test.describe('Create scan page', () => {
       { scenario: 'edit it', hasUpdateAlertRole: true },
     ]) {
       test(`Can record a scan for someone with the internal secretor alert and ${scenario}`, async ({ page }) => {
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        yesterday.setHours(12, 0, 0, 0)
+        const yesterday = daysAgo(1)
 
         const roles = [...DEFAULT_ROLES]
         if (hasUpdateAlertRole) {
@@ -304,7 +350,7 @@ test.describe('Create scan page', () => {
 
         await createScanPage.saveButton.click()
 
-        const createScanSuccessPage = await expectSuccessPage(page)
+        const createScanSuccessPage = await expectSuccessPage(page, response)
 
         if (hasUpdateAlertRole) {
           await expect(createScanSuccessPage.internalSecretorAlertLink).toContainText('Update internal secretor alert')
@@ -363,7 +409,7 @@ test.describe('Create scan page', () => {
 
       await createScanPage.saveButton.click()
 
-      const createScanSuccessPage = await expectSuccessPage(page, true)
+      const createScanSuccessPage = await expectSuccessPage(page, response, true)
 
       // end WPIP journey
       await wpipUI.stubWpipRecentArrivals()
