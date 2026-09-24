@@ -15,7 +15,11 @@
       No more scans allowed this year<span class="govuk-visually-hidden">.</span>
     {% elseif scanSummary.nearingScanLimit %}
       <strong class="scan-count__limit-warning">Near scan limit</strong>
-      {{ scanSummary.remainingScans }} scans left this year<span class="govuk-visually-hidden">.</span>
+      {% if scanSummary.remainingScans == 1 %}
+        1 scan left this year<span class="govuk-visually-hidden">.</span>
+      {% else %}
+        {{ scanSummary.remainingScans }} scans left this year<span class="govuk-visually-hidden">.</span>
+      {% endif %}
     {% elseif scanSummary.totalCount == 0 %}
       <span aria-hidden="true">No scans recorded</span>
     {% endif %}

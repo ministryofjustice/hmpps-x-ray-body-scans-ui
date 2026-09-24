@@ -271,6 +271,26 @@ test.describe('Scan list page', () => {
         expectedOutcomes: [1, 0, 100],
       },
       {
+        scenario: 'almost at the scan limit',
+        scanSummary: mockScanSummaryResponse({
+          prisonerNumber,
+          now,
+          nomisCount: 14,
+          dpsCount: 101,
+          positiveCount: 1,
+          negativeCount: 100,
+          relevantAlerts: [],
+        }),
+        expectedInfoBoxText: null,
+        expectedCurrentYearCount: {
+          count: 115,
+          ariaLabel: '115 scans this year',
+        },
+        expectedCountText: '1 scan left this year',
+        expectedCountWarningText: 'Near scan limit',
+        expectedOutcomes: [1, 0, 100],
+      },
+      {
         scenario: 'at the scan limit',
         scanSummary: mockScanSummaryResponse({
           prisonerNumber,
