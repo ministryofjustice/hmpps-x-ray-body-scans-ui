@@ -111,7 +111,7 @@ describe('getScanList', () => {
           classes: expect.stringContaining('dps-alert-status--security'),
         },
         {
-          label: 'Do not X-Ray body scan',
+          label: 'Do not X-ray body scan',
           alertCodes: [mockDoNotScanAlert.code],
           classes: expect.stringContaining('dps-alert-status--security'),
         },

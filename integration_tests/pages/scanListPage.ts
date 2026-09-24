@@ -9,15 +9,15 @@ export default class ScanListPage extends AbstractPage {
   }
 
   get summarySection(): Locator {
-    return this.page.locator('[data-testid="scan-summary"]')
+    return this.page.getByTestId('scan-summary')
   }
 
   get infoBox(): Locator {
-    return this.summarySection.locator('[data-testid="dps-scans-exist"]')
+    return this.summarySection.getByTestId('dps-scans-exist')
   }
 
   get countSection(): Locator {
-    return this.page.locator('[data-testid="scan-count"]')
+    return this.page.getByTestId('scan-count')
   }
 
   async getCurrentYearCount(): Promise<{ count: number; ariaLabel: string | null }> {
@@ -32,7 +32,7 @@ export default class ScanListPage extends AbstractPage {
   }
 
   get outcomeSection(): Locator {
-    return this.page.locator('[data-testid="scan-outcome"]')
+    return this.page.getByTestId('scan-outcome')
   }
 
   async getOutcomes(): Promise<number[]> {
@@ -44,7 +44,7 @@ export default class ScanListPage extends AbstractPage {
   }
 
   get alertsList(): Locator {
-    return this.page.locator('[data-testid="scan-alerts"] li')
+    return this.page.getByTestId('scan-alerts').locator('li')
   }
 
   get yearTabs(): Locator {
@@ -52,7 +52,7 @@ export default class ScanListPage extends AbstractPage {
   }
 
   get historySection(): Locator {
-    return this.page.locator('[data-testid="scan-history"]')
+    return this.page.getByTestId('scan-history')
   }
 
   get scanTable(): Locator {
@@ -127,7 +127,7 @@ export default class ScanListPage extends AbstractPage {
   }
 
   get returnLink(): Locator {
-    return this.page.locator('[data-testid="return-link"]')
+    return this.page.getByTestId('return-link')
   }
 }
 

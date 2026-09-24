@@ -13,7 +13,7 @@ export default class CreateScanPage extends AbstractPage {
   }
 
   get cancelLink(): Locator {
-    return this.page.locator('.govuk-button-group').getByRole('link')
+    return this.page.locator('.govuk-button-group').getByRole('link', { name: 'Cancel' })
   }
 
   checkRadioButton(label: string, { exact = true }: { exact?: boolean } = {}): Promise<void> {
@@ -21,7 +21,7 @@ export default class CreateScanPage extends AbstractPage {
   }
 
   get scanDateFormGroup(): Locator {
-    return this.page.locator('[data-testid="scanDate-form-group"]')
+    return this.page.getByTestId('scanDate-form-group')
   }
 
   typeScanDateComponent(label: string, text: string): Promise<void> {
@@ -48,11 +48,11 @@ export default class CreateScanPage extends AbstractPage {
   }
 
   get justificationFormGroup(): Locator {
-    return this.page.locator('[data-testid="justification-form-group"]')
+    return this.page.getByTestId('justification-form-group')
   }
 
   get outcomeFormGroup(): Locator {
-    return this.page.locator('[data-testid="outcome-form-group"]')
+    return this.page.getByTestId('outcome-form-group')
   }
 }
 

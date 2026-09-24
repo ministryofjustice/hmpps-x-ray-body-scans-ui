@@ -17,6 +17,6 @@ export default class AddScanCaseNotePage extends AbstractPage {
   }
 
   get cancelLink(): Locator {
-    return this.page.locator('.govuk-button-group').getByRole('link')
+    return this.page.locator('.govuk-button-group').getByRole('link', { name: 'Cancel' })
   }
 }

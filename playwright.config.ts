@@ -39,7 +39,6 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: process.env.CI ? 'off' : 'on',
     ...devices['Desktop Edge'],
-    testIdAttribute: 'data-qa',
     baseURL: 'http://localhost:3007',
   },
 

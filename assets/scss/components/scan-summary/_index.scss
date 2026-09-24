@@ -35,9 +35,11 @@
   }
 
   .scan-count__container {
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    flex: 1 0 25%;
+    flex: 2 0 33%;
+    @include spacing.govuk-responsive-padding(6, "right");
 
     .scan-count {
       flex-grow: 1;
@@ -45,6 +47,6 @@
   }
 
   .scan-outcome__container {
-    flex: 3 0 75%;
+    flex: 3 0 67%;
   }
 }

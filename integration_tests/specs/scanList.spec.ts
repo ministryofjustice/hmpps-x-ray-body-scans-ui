@@ -152,14 +152,14 @@ test.describe('Scan list page', () => {
       const scanListPage = await startOnScanListPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
       // breadcrumbs
-      await expect(scanListPage.returnToWpipLink).toContainText('Return to recent arrivals')
+      await expect(scanListPage.returnToWpipLink).toContainText('John Smith arrival summary')
       await expect(scanListPage.returnToWpipLink).toHaveAttribute(
         'href',
         `http://localhost:9091/welcome/recent-arrivals?search=John`,
       )
 
       // return link
-      await expect(scanListPage.returnLink).toContainText('Return to recent arrivals')
+      await expect(scanListPage.returnLink).toContainText('Return to prisoner’s arrival summary')
       await expect(scanListPage.returnLink).toHaveAttribute(
         'href',
         `http://localhost:9091/welcome/recent-arrivals?search=John`,
@@ -271,6 +271,26 @@ test.describe('Scan list page', () => {
         expectedOutcomes: [1, 0, 100],
       },
       {
+        scenario: 'almost at the scan limit',
+        scanSummary: mockScanSummaryResponse({
+          prisonerNumber,
+          now,
+          nomisCount: 14,
+          dpsCount: 101,
+          positiveCount: 1,
+          negativeCount: 100,
+          relevantAlerts: [],
+        }),
+        expectedInfoBoxText: null,
+        expectedCurrentYearCount: {
+          count: 115,
+          ariaLabel: '115 scans this year',
+        },
+        expectedCountText: '1 scan left this year',
+        expectedCountWarningText: 'Near scan limit',
+        expectedOutcomes: [1, 0, 100],
+      },
+      {
         scenario: 'at the scan limit',
         scanSummary: mockScanSummaryResponse({
           prisonerNumber,
@@ -347,7 +367,7 @@ test.describe('Scan list page', () => {
           now,
           relevantAlerts: [mockInternalSecretorAlert, mockDoNotScanAlert],
         }),
-        expectedAlertFlags: ['Internal secretor', 'Do not X-Ray body scan'],
+        expectedAlertFlags: ['Internal secretor', 'Do not X-ray body scan'],
       },
     ]
     for (const { scenario, scanSummary, expectedAlertFlags } of alertsScenarios) {

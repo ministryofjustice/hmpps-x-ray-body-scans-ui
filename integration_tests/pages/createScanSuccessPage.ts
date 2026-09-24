@@ -13,7 +13,7 @@ export default class CreateScanSuccessPage extends AbstractPage {
   }
 
   get internalSecretorAlert(): Locator {
-    return this.page.locator('[data-testid="internal-secretor-alert"]')
+    return this.page.getByTestId('internal-secretor-alert')
   }
 
   get internalSecretorAlertLink(): Locator {
@@ -21,7 +21,7 @@ export default class CreateScanSuccessPage extends AbstractPage {
   }
 
   get addCaseNoteSection(): Locator {
-    return this.page.locator('[data-testid="add-case-note"]')
+    return this.page.getByTestId('add-case-note')
   }
 
   get addCaseNoteLink(): Locator {
