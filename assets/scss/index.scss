@@ -1,24 +1,20 @@
-$govuk-global-styles: true;
-$path: "/assets/images/";
+@use 'govuk-frontend/dist/govuk' with (
+  $govuk-global-styles: true,
+  $govuk-page-width: 1170px,
+);
+@use '@ministryofjustice/frontend/moj/all';
+@use '@ministryofjustice/hmpps-connect-dps-components/dist/assets/all' as dps-components;
+@use '@ministryofjustice/hmpps-connect-dps-shared-items/dist/assets/scss/all' as dps-shared-items;
 
-$moj-page-width: 1170px;
-$govuk-page-width: $moj-page-width;
+@use './overrides/local';
+@use './overrides/typography';
 
-@import "govuk-frontend/dist/govuk/index";
-@import "@ministryofjustice/frontend/moj/all";
-@import "@ministryofjustice/hmpps-connect-dps-components/dist/assets/footer";
-@import "@ministryofjustice/hmpps-connect-dps-components/dist/assets/header-bar";
-@import "@ministryofjustice/hmpps-connect-dps-shared-items/dist/assets/scss/all";
-
-@import "./overrides/local";
-@import "./overrides/typography";
-
-@import "./components/breadcrumbs";
-@import "./components/case-note-modal";
-@import "./components/flash-message";
-@import "./components/info-box";
-@import "./components/pagination";
-@import "./components/profile-banner";
-@import "./components/scan-alerts";
-@import "./components/scan-summary";
-@import "./components/scan-table";
+@use './components/breadcrumbs';
+@use './components/case-note-modal';
+@use './components/flash-message';
+@use './components/info-box';
+@use './components/pagination';
+@use './components/profile-banner';
+@use './components/scan-alerts';
+@use './components/scan-summary';
+@use './components/scan-table';
