@@ -1,7 +1,8 @@
 # hmpps-x-ray-body-scans-ui
 
 [![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/hmpps-x-ray-body-scans-ui/badge?style=flat)](https://github-community.service.justice.gov.uk/repository-standards/hmpps-x-ray-body-scans-ui)
-[![Docker Repository on ghcr](https://img.shields.io/badge/ghcr.io-repository-2496ED.svg?logo=docker)](https://ghcr.io/ministryofjustice/hmpps-x-ray-body-scans-ui)
+[![Docker Repository on GHCR](https://img.shields.io/badge/ghcr.io-repository-2496ED.svg?logo=docker)](https://ghcr.io/ministryofjustice/hmpps-x-ray-body-scans-ui)
+[![Pipeline [test -> build -> deploy]](https://github.com/ministryofjustice/hmpps-x-ray-body-scans-ui/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/ministryofjustice/hmpps-x-ray-body-scans-ui/actions/workflows/pipeline.yml)
 
 Template github repo used for new Typescript based projects.
 
