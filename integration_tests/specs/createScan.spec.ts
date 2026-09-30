@@ -62,6 +62,30 @@ test.describe('Create scan page', () => {
         { text: 'X-ray body scans', href: `/prisoner/${prisonerNumber}/scan-overview` },
       ])
 
+      // radio button order
+      const justificationRadios = await createScanPage.justificationFormGroup.getByRole('radio').all()
+      expect(justificationRadios).toHaveLength(2)
+      await expect(justificationRadios[0]).toHaveAccessibleName('Intelligence-led cohort')
+      await expect(justificationRadios[0]).toHaveAccessibleDescription(
+        'The prisoner was selected for scanning as part of a group identified through security intelligence.',
+      )
+      await expect(justificationRadios[1]).toHaveAccessibleName('Reasonable suspicion')
+      await expect(justificationRadios[1]).toHaveAccessibleDescription(
+        'An individual prisoner was selected for scanning because there were reasonable grounds for suspicion.',
+      )
+      const outcomeRadios = await createScanPage.outcomeFormGroup.getByRole('radio').all()
+      expect(outcomeRadios).toHaveLength(3)
+      await expect(outcomeRadios[0]).toHaveAccessibleName('Inconclusive')
+      await expect(outcomeRadios[0]).toHaveAccessibleDescription('The image could not be interpreted.')
+      await expect(outcomeRadios[1]).toHaveAccessibleName('Negative')
+      await expect(outcomeRadios[1]).toHaveAccessibleDescription(
+        'The image does not indicate an illicit or unauthorised item is internally concealed.',
+      )
+      await expect(outcomeRadios[2]).toHaveAccessibleName('Positive')
+      await expect(outcomeRadios[2]).toHaveAccessibleDescription(
+        'The image indicates that an illicit or unauthorised item may be internally concealed.',
+      )
+
       // nothing is pre-selected
       await expect(createScanPage.getFormValues()).resolves.toEqual(
         expect.not.objectContaining({
@@ -167,8 +191,8 @@ test.describe('Create scan page', () => {
       const createScanPage = await startOnCreateScanPage(page)
 
       await createScanPage.checkRadioButton('Today', { exact: false })
-      await createScanPage.checkRadioButton('Intelligence-led')
-      await createScanPage.checkRadioButton('No item detected')
+      await createScanPage.checkRadioButton('Intelligence-led cohort')
+      await createScanPage.checkRadioButton('Negative')
 
       // radio buttons selected
       await expect(createScanPage.getFormValues()).resolves.toEqual(
@@ -182,7 +206,7 @@ test.describe('Create scan page', () => {
       const response: ScanResponse = {
         ...mockScanResponse(prisonerNumber, now),
         justification: 'INTELLIGENCE',
-        justificationDescription: 'Intelligence-led',
+        justificationDescription: 'Intelligence-led cohort',
         outcome: 'NEGATIVE',
         outcomeDescription: 'Negative',
       }
@@ -216,7 +240,7 @@ test.describe('Create scan page', () => {
       await expect(createScanSuccessPage.panel).toContainText('Name: John Smith')
       await expect(createScanSuccessPage.getSummaryList()).resolves.toEqual([
         { key: 'Date', value: expect.stringContaining(String(now.getFullYear())) },
-        { key: 'Reason', value: 'Intelligence-led' },
+        { key: 'Reason', value: 'Intelligence-led cohort' },
         { key: 'Result', value: 'Negative' },
       ])
       await expect(createScanSuccessPage.internalSecretorAlert).not.toBeVisible()
@@ -236,7 +260,7 @@ test.describe('Create scan page', () => {
       await createScanPage.typeScanDateComponent('Month', yesterdayMonth)
       await createScanPage.typeScanDateComponent('Year', yesterdayYear)
       await createScanPage.checkRadioButton('Reasonable suspicion')
-      await createScanPage.checkRadioButton('Item detected')
+      await createScanPage.checkRadioButton('Positive')
 
       // radio buttons selected
       await expect(createScanPage.getFormValues()).resolves.toEqual(
@@ -304,8 +328,8 @@ test.describe('Create scan page', () => {
         const createScanPage = await startOnCreateScanPage(page, '', roles)
 
         await createScanPage.checkRadioButton('Yesterday', { exact: false })
-        await createScanPage.checkRadioButton('Intelligence-led')
-        await createScanPage.checkRadioButton('No item detected')
+        await createScanPage.checkRadioButton('Intelligence-led cohort')
+        await createScanPage.checkRadioButton('Negative')
 
         // radio buttons selected
         await expect(createScanPage.getFormValues()).resolves.toEqual(
@@ -319,7 +343,7 @@ test.describe('Create scan page', () => {
         const response: ScanResponse = {
           ...mockScanResponse(prisonerNumber, yesterday),
           justification: 'INTELLIGENCE',
-          justificationDescription: 'Intelligence-led',
+          justificationDescription: 'Intelligence-led cohort',
           outcome: 'NEGATIVE',
           outcomeDescription: 'Negative',
         }
@@ -372,13 +396,13 @@ test.describe('Create scan page', () => {
       let createScanPage = await startOnCreateScanPage(page, '?wpipReturnPath=%2Frecent-arrivals%3Fsearch%3DJohn')
 
       await createScanPage.checkRadioButton('Today', { exact: false })
-      await createScanPage.checkRadioButton('Intelligence-led')
-      await createScanPage.checkRadioButton('No item detected')
+      await createScanPage.checkRadioButton('Intelligence-led cohort')
+      await createScanPage.checkRadioButton('Negative')
 
       const response: ScanResponse = {
         ...mockScanResponse(prisonerNumber, now),
         justification: 'INTELLIGENCE',
-        justificationDescription: 'Intelligence-led',
+        justificationDescription: 'Intelligence-led cohort',
         outcome: 'NEGATIVE',
         outcomeDescription: 'Negative',
       }
@@ -423,7 +447,7 @@ test.describe('Create scan page', () => {
       let createScanPage = await startOnCreateScanPage(page)
 
       await createScanPage.checkRadioButton('Today', { exact: false })
-      await createScanPage.checkRadioButton('Intelligence-led')
+      await createScanPage.checkRadioButton('Intelligence-led cohort')
       // outcome not selected
 
       await createScanPage.saveButton.click()
@@ -491,8 +515,8 @@ test.describe('Create scan page', () => {
       let createScanPage = await startOnCreateScanPage(page)
 
       await createScanPage.checkRadioButton('Today', { exact: false })
-      await createScanPage.checkRadioButton('Intelligence-led')
-      await createScanPage.checkRadioButton('No item detected')
+      await createScanPage.checkRadioButton('Intelligence-led cohort')
+      await createScanPage.checkRadioButton('Negative')
 
       // simulate 400 bad response (eg. if api contract changed but ui has not been updated)
       await xrayBodyScansApi.stubCreateScan(

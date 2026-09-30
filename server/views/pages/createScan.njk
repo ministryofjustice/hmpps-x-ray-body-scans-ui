@@ -112,16 +112,16 @@
             }
           },
           hint: {
-            text: "Select the option that best describes why the scan was carried out."
+            text: "Select the reason for checking for internally concealed items."
           },
           errorMessage: errorMessageForField("justification", errors),
           items: [
             {
               value: "INTELLIGENCE",
-              text: "Intelligence-led",
+              text: "Intelligence-led cohort",
               checked: formValues.justification === "INTELLIGENCE",
               hint: {
-                text: "Based on specific information or intelligence indicating the prisoner may be concealing an item."
+                text: "The prisoner was selected for scanning as part of a group identified through security intelligence."
               }
             },
             {
@@ -129,7 +129,7 @@
               text: "Reasonable suspicion",
               checked: formValues.justification === "REASONABLE_SUSPICION",
               hint: {
-                text: "Based on staff judgement that the prisoner may be concealing an item. For example, behaviour during or after a visit, search or escort."
+                text: "An individual prisoner was selected for scanning because there were reasonable grounds for suspicion."
               }
             }
           ]
@@ -145,25 +145,34 @@
               classes: "govuk-fieldset__legend--s"
             }
           },
+          hint: {
+            text: "Record the operator’s interpretation of the X-ray image at the time of the scan. This may not be a confirmed outcome."
+          },
           errorMessage: errorMessageForField("outcome", errors),
           items: [
             {
-              value: "NEGATIVE",
-              text: "No item detected",
-              checked: formValues.outcome === "NEGATIVE"
+              value: "INCONCLUSIVE",
+              checked: formValues.outcome === "INCONCLUSIVE",
+              text: "Inconclusive",
+              hint: {
+              text: "The image could not be interpreted."
+            }
             },
             {
-              value: "INCONCLUSIVE",
-              text: "Inconclusive",
-              checked: formValues.outcome === "INCONCLUSIVE",
+              value: "NEGATIVE",
+              checked: formValues.outcome === "NEGATIVE",
+              text: "Negative",
               hint: {
-                text: "The scan did not clearly show if an item was present."
+                text: "The image does not indicate an illicit or unauthorised item is internally concealed."
               }
             },
             {
               value: "POSITIVE",
-              text: "Item detected",
-              checked: formValues.outcome === "POSITIVE"
+              checked: formValues.outcome === "POSITIVE",
+              text: "Positive",
+              hint: {
+                text: "The image indicates that an illicit or unauthorised item may be internally concealed."
+              }
             }
           ]
         }) }}
