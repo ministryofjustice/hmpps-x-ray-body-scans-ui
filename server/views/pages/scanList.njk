@@ -96,7 +96,12 @@
 
       <ul class="govuk-list" data-testid="scan-alerts">
         {% for alert in alertFlags %}
-          <li>
+          <li
+            data-track-alert-click
+            data-alert-label="{{ alert.label }}"
+            data-prisoner-number="{{ prisonerNumber }}"
+            data-csrf-token="{{ csrfToken }}"
+          >
             {# href, if needed, could be:
             {% set alertDetailsUrl -%}
               {{ prisonerProfileUrl }}/prisoner/{{ prisoner.prisonerNumber }}/alerts//detail?ids={{ alert.id }}
@@ -166,7 +171,18 @@
               /prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note
             {%- endif -%}
           {% endset %}
-          <a href="{{ caseNoteLink }}" class="govuk-link govuk-link--no-visited-state hmpps-modal__trigger-show" data-hmpps-modal-id="case-note-modal" data-hmpps-modal-url="/prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note">
+          <a
+            href="{{ caseNoteLink }}"
+            class="govuk-link govuk-link--no-visited-state hmpps-modal__trigger-show"
+            data-hmpps-modal-id="case-note-modal"
+            data-hmpps-modal-url="/prisoner/{{ prisoner.prisonerNumber }}/scan/{{ scan.id }}/case-note"
+            data-track-case-note-click
+            data-scan-id="{{ scan.id }}"
+            data-case-note-id="{{ scan.caseNoteId }}"
+            data-scan-outcome="{{ scan.outcome }}"
+            data-prisoner-number="{{ prisonerNumber }}"
+            data-csrf-token="{{ csrfToken }}"
+          >
             View case note
           </a>
 
