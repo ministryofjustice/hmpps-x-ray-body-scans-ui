@@ -1,7 +1,5 @@
-@use "sass:color";
-@use "govuk-frontend/dist/govuk/helpers/colour";
-@use "govuk-frontend/dist/govuk/helpers/spacing";
-@use "govuk-frontend/dist/govuk/helpers/typography";
+@use 'sass:color';
+@use 'govuk-frontend/dist/govuk';
 
 .hmpps-flash-message {
   position: absolute;
@@ -14,10 +12,10 @@
     position: relative;
     z-index: 1;
     left: -50%;
-    padding: spacing.govuk-spacing(2) spacing.govuk-spacing(4);
-    background: colour.govuk-colour(green);
-    color: colour.govuk-colour(white);
-    box-shadow: 0 2px 2px 0 color.change(colour.govuk-colour(black), $alpha: 25%);
+    padding: govuk.govuk-spacing(2) govuk.govuk-spacing(4);
+    background: govuk.govuk-colour(green);
+    color: govuk.govuk-colour(white);
+    box-shadow: 0 2px 2px 0 color.change(govuk.govuk-colour(black), $alpha: 25%);
     animation: 1s ease-out 4s both flashMessageFadeOut;
   }
 
@@ -27,9 +25,9 @@
 
   p {
     margin: 0;
-    padding-left: spacing.govuk-spacing(2);
+    padding-left: govuk.govuk-spacing(2);
     color: inherit;
-    @include typography.govuk-font(19, $weight: bold);
+    @include govuk.govuk-font(19, $weight: bold);
   }
 }
 

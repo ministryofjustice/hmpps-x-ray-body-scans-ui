@@ -1,27 +1,21 @@
-@use "govuk-frontend/dist/govuk/helpers/clearfix";
-@use "govuk-frontend/dist/govuk/helpers/colour";
-@use "govuk-frontend/dist/govuk/helpers/links";
-@use "govuk-frontend/dist/govuk/helpers/media-queries";
-@use "govuk-frontend/dist/govuk/helpers/spacing";
-@use "govuk-frontend/dist/govuk/helpers/typography";
-@use "govuk-frontend/dist/govuk/settings/measurements";
+@use 'govuk-frontend/dist/govuk';
 
 .hmpps-profile-banner {
-  background: colour.govuk-colour(black, $variant: "tint-95");
-  @include spacing.govuk-responsive-padding(3);
-  @include spacing.govuk-responsive-margin(7, "bottom");
-  @include clearfix.govuk-clearfix;
-  margin-top: -#{spacing.govuk-spacing(4)};
+  background: govuk.govuk-colour(black, $variant: 'tint-95');
+  @include govuk.govuk-responsive-padding(3);
+  @include govuk.govuk-responsive-margin(7, 'bottom');
+  @include govuk.govuk-clearfix;
+  margin-top: -#{govuk.govuk-spacing(4)};
 
-  @media #{media-queries.govuk-from-breakpoint(tablet)} {
-    margin-top: -#{spacing.govuk-spacing(7)};
+  @media #{govuk.govuk-from-breakpoint(tablet)} {
+    margin-top: -#{govuk.govuk-spacing(7)};
   }
 
   svg {
     color: #6f777b;
 
     rect {
-      fill: colour.govuk-colour(white);
+      fill: govuk.govuk-colour(white);
     }
 
     @media (forced-colors: active) and (prefers-color-scheme: dark) {
@@ -38,16 +32,16 @@
   }
 
   dt {
-    @include typography.govuk-font($size: 19, $weight: bold);
-    @include spacing.govuk-responsive-margin(1, "bottom");
+    @include govuk.govuk-font($size: 19, $weight: bold);
+    @include govuk.govuk-responsive-margin(1, 'bottom');
   }
 
   dd {
-    @include typography.govuk-font($size: 19);
+    @include govuk.govuk-font($size: 19);
 
     img, svg {
       float: left;
-      margin-right: measurements.$govuk-gutter;
+      margin-right: govuk.$govuk-gutter;
     }
 
     img {
@@ -59,20 +53,20 @@
 .hmpps-profile-banner__properties {
   display: flex;
   flex-wrap: wrap;
-  gap: measurements.$govuk-gutter;
+  gap: govuk.$govuk-gutter;
 
-  @media #{media-queries.govuk-from-breakpoint(tablet)} {
+  @media #{govuk.govuk-from-breakpoint(tablet)} {
     flex-wrap: nowrap;
   }
 
   dd a {
-    @include links.govuk-link-common;
-    @include links.govuk-link-style-text;
+    @include govuk.govuk-link-common;
+    @include govuk.govuk-link-style-text;
   }
 }
 
 .hmpps-profile-banner__name {
-  @media #{media-queries.govuk-from-breakpoint(desktop)} {
-    @include spacing.govuk-responsive-padding(9, "right");
+  @media #{govuk.govuk-from-breakpoint(desktop)} {
+    @include govuk.govuk-responsive-padding(9, 'right');
   }
 }
