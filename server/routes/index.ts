@@ -11,6 +11,7 @@ import { requireActiveCaseload } from '../middleware/requireActiveCaseload'
 import { photoRouter } from './photoRouter'
 import scanRouter from './scanRouter'
 import { signalEndJourneyRoute } from './signalEndJourneyRoute'
+import { trackClickRoute } from './trackClickRoute'
 
 export default function routes(services: Services): Router {
   const router = Router()
@@ -42,6 +43,7 @@ export default function routes(services: Services): Router {
   )
 
   router.get('/api/signal-end-journey', signalEndJourneyRoute)
+  router.post('/api/track-click', trackClickRoute)
 
   router.use(
     '/prisoner/:prisonerNumber',
