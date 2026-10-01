@@ -4,7 +4,7 @@ import logger from '../../logger'
 
 const wpipHostPattern = /^welcome(-\w+)?\.prison\.service\.justice\.gov\.uk$/
 const profileHostPattern = /^prisoner(-\w+)?\.digital\.prison\.service\.justice\.gov\.uk$/
-const xrbsHostPattern = /^x-ray-body-scans(-\w+)?\.hmpps\.service\.justice\.gov\.uk$/
+const xrbsHostPattern = /^(x-ray-body-scans(-\w+)?\.hmpps\.service\.justice\.gov\.uk|localhost)$/
 
 export type EntryPoint = 'wpip' | 'profile-overview' | 'xrbs-summary' | 'other' | 'unspecified'
 

@@ -54,6 +54,7 @@ describe('entryPointMiddleware', () => {
     ['https://x-ray-body-scans.hmpps.service.justice.gov.uk/prisoner/A1234BC/scan-overview', 'xrbs-summary'],
     ['https://x-ray-body-scans-dev.hmpps.service.justice.gov.uk/prisoner/A1234BC/scan-overview', 'xrbs-summary'],
     ['https://x-ray-body-scans-preprod.hmpps.service.justice.gov.uk/prisoner/A1234BC/scan-overview', 'xrbs-summary'],
+    ['http://localhost:3000/prisoner/A1234BC/scan-overview', 'xrbs-summary'],
     ['https://some-other-service.justice.gov.uk/foo', 'other'],
   ])('should track entryPoint %s as %s', (referer, entryPoint) => {
     req.headers.referer = referer
