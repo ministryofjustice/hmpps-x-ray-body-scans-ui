@@ -30,7 +30,7 @@
     "npm": "^12"
   },
   "dependencies": {
-    "@aws-sdk/client-sqs": "3.1138.0",
+    "@aws-sdk/client-sqs": "3.1139.0",
     "@ministryofjustice/frontend": "11.1.0",
     "@ministryofjustice/hmpps-auth-clients": "3.0.0",
     "@ministryofjustice/hmpps-azure-telemetry": "1.1.0",
@@ -39,7 +39,7 @@
     "@ministryofjustice/hmpps-monitoring": "^2.1.0",
     "@ministryofjustice/hmpps-prison-permissions-lib": "4.4.0",
     "@ministryofjustice/hmpps-rest-client": "^2.2.0",
-    "@sentry/node": "10.75.2",
+    "@sentry/node": "11.0.0",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1",
     "compression": "^1.8.2",
@@ -95,7 +95,7 @@
     "lint-staged": "17.5.1",
     "nock": "^14.0.17",
     "supertest": "^7.3.0",
-    "ts-jest": "29.4.12",
+    "ts-jest": "29.4.13",
     "typescript": "^6.0.3"
   },
   "overrides": {
