@@ -38,6 +38,23 @@
         Record an X-ray body scan for {{ prisoner.displayName }}
       </h1>
 
+      {% if locationNotActiveCaseload %}
+        {% set activeCaseloadName = user.activeCaseLoad.description %}
+        {% set msgTitle %}
+          This scan will be recorded at {{ activeCaseloadName }}
+        {% endset %}
+        {% set msgText %}
+          {{ prisoner.displayName }} is not at this establishment.
+          Enter the scan details if it took place at {{ activeCaseloadName }}.
+        {% endset %}
+        {{ mojAlert({
+          variant: "information",
+          title: msgTitle | safe,
+          html: msgText,
+          showTitleAsHeading: true
+        }) }}
+      {% endif %}
+
       <form id="form" method="POST" novalidate>
         <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 

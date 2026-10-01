@@ -1,12 +1,11 @@
 import type { Request, Response } from 'express'
 import { telemetry } from '@ministryofjustice/hmpps-azure-telemetry'
-import type { PrisonUser } from '../interfaces/hmppsUser'
 import logger from '../../logger'
 
 // eslint-disable-next-line import/prefer-default-export
 export function trackClickRoute(req: Request, res: Response): void {
   const { body } = req
-  const { username, activeCaseLoadId } = res.locals.user as PrisonUser
+  const { username, activeCaseLoadId } = res.locals.user
 
   const common: Record<string, string> = {
     elementType: body.elementType,

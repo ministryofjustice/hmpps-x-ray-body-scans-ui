@@ -96,7 +96,11 @@ export default class AbstractPage {
   }
 
   get alert(): Locator {
-    return this.page.locator('.moj-alert')
+    return this.page.locator('.moj-alert.moj-alert--error')
+  }
+
+  get infoAlert(): Locator {
+    return this.page.locator('.moj-alert.moj-alert--information')
   }
 
   getSummaryList(): Promise<SummaryListItem[]> {
