@@ -3,7 +3,14 @@ import { telemetry } from '@ministryofjustice/hmpps-azure-telemetry'
 import logger from '../../logger'
 
 export default function entryPointMiddleware(req: Request, res: Response, next: NextFunction): void {
-  const entryPoint = typeof req.query.entryPoint === 'string' ? req.query.entryPoint : 'other'
+  let entryPoint: string
+  if (req.query.wpipReturnPath) {
+    entryPoint = 'wpip'
+  } else if (typeof req.query.entryPoint === 'string') {
+    entryPoint = req.query.entryPoint
+  } else {
+    entryPoint = 'other'
+  }
 
   const { username, activeCaseLoadId } = res.locals.user
   const { prisonerNumber } = res.locals.prisoner
@@ -18,6 +25,8 @@ export default function entryPointMiddleware(req: Request, res: Response, next: 
 
   logger.info(properties, 'XRBSEntryPoint')
   telemetry.trackEvent('XRBSEntryPoint', properties)
+
+  delete req.query.entryPoint
 
   next()
 }

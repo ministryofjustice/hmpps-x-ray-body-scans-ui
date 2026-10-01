@@ -6,6 +6,7 @@ import type { Services } from '../services'
 import authorisationMiddleware from '../middleware/authorisationMiddleware'
 import { getPrisonerMiddleware } from '../middleware/getPrisonerMiddleware'
 import { registerWpipReturnPathMiddleware } from '../middleware/registerWpipReturnPathMiddleware'
+import entryPointMiddleware from '../middleware/entryPointMiddleware'
 import { requireActiveAgency } from '../middleware/requireActiveAgency'
 import { requireActiveCaseload } from '../middleware/requireActiveCaseload'
 import { photoRouter } from './photoRouter'
@@ -49,6 +50,7 @@ export default function routes(services: Services): Router {
     '/prisoner/:prisonerNumber',
     getPrisonerMiddleware(prisonerSearchApiClient),
     prisonerPermissionsGuard(prisonPermissionsService, { requestDependentOn: [PrisonerBasePermission.read] }),
+    entryPointMiddleware,
     registerWpipReturnPathMiddleware,
     photoRouter(auditService, prisonApiClient),
     scanRouter(auditService, prisonPermissionsService, prisonService, xrayBodyScansApiClient),

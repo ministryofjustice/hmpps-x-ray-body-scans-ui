@@ -113,7 +113,7 @@ test.describe('Scan list page', () => {
       // record button is always visible if user can access this page
       await expect(page.getByRole('button', { name: 'Record a new scan' })).toHaveAttribute(
         'href',
-        `/prisoner/${prisonerNumber}/record-scan`,
+        `/prisoner/${prisonerNumber}/record-scan?entryPoint=xrbs-summary`,
       )
 
       // summary headings

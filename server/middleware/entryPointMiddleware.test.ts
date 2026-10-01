@@ -22,6 +22,10 @@ describe('entryPointMiddleware', () => {
     next = jest.fn()
   })
 
+  afterEach(() => {
+    expect(req.query.entryPoint).toBeUndefined()
+  })
+
   const expectedCommon = {
     page: '/scan-overview',
     username: 'USER1',
@@ -37,7 +41,17 @@ describe('entryPointMiddleware', () => {
     expect(next).toHaveBeenCalledWith()
   })
 
-  it.each(['wpip', 'profile-overview', 'xrbs-summary'] as const)('should track entryPoint %s', entryPoint => {
+  it('should track wpip when wpipReturnPath is present', () => {
+    req.query.wpipReturnPath = '/recent-arrivals/A1234BC/summary'
+
+    entryPointMiddleware(req, res, next)
+
+    expect(logger.info).toHaveBeenCalledWith({ ...expectedCommon, entryPoint: 'wpip' }, 'XRBSEntryPoint')
+    expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', { ...expectedCommon, entryPoint: 'wpip' })
+    expect(next).toHaveBeenCalledWith()
+  })
+
+  it.each(['profile-overview', 'xrbs-summary'] as const)('should track entryPoint %s', entryPoint => {
     req.query.entryPoint = entryPoint
 
     entryPointMiddleware(req, res, next)

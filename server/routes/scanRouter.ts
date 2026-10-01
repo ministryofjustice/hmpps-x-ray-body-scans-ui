@@ -12,7 +12,6 @@ import type AuditService from '../services/auditService'
 import type { PrisonService } from '../services/prisonService'
 import { canAddCaseNotToScan } from '../utils/scanPermissions'
 import ScanController from '../controllers/scanController'
-import entryPointMiddleware from '../middleware/entryPointMiddleware'
 import CaseNoteController from '../controllers/caseNoteController'
 
 export default function scanRouter(
@@ -35,9 +34,7 @@ export default function scanRouter(
       requestDependentOn: [XRayBodyScansPermission.read_scans],
     }),
   )
-  router.get('/scan-overview', entryPointMiddleware, (req, res, next) =>
-    scanController.getScanList(req, res).catch(next),
-  )
+  router.get('/scan-overview', (req, res, next) => scanController.getScanList(req, res).catch(next))
 
   router.use(
     '/record-scan',
@@ -45,9 +42,7 @@ export default function scanRouter(
       requestDependentOn: [XRayBodyScansPermission.edit_scans],
     }),
   )
-  router.get('/record-scan', entryPointMiddleware, (req, res, next) =>
-    scanController.getCreateScan(req, res).catch(next),
-  )
+  router.get('/record-scan', (req, res, next) => scanController.getCreateScan(req, res).catch(next))
   router.post('/record-scan', (req, res, next) => scanController.postCreateScan(req, res).catch(next))
 
   router.use(
