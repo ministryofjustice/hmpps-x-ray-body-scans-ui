@@ -10,7 +10,6 @@ import { formatDisplayDate } from '../utils/dates'
 import { paginate, sortable } from '../utils/paginate'
 import { type CreateScanFormErrors, createScanForm, treeifyCreateScanFormErrors } from '../forms/createScanForm'
 import { listScansForm } from '../forms/listScansForm'
-import type { PrisonUser } from '../interfaces/hmppsUser'
 import { internalSecretorCode } from '../data/interfaces/alertsApi'
 import type { XrayBodyScansApiClient } from '../data/xrayBodyScansApiClient'
 import type { CreateScanRequest, ListScansRequest, ScanResponse } from '../data/interfaces/xrayBodyScansApi'
@@ -127,14 +126,17 @@ export default class ScanController {
   }
 
   private renderCreateScanForm(req: Request, res: Response, createScanFormErrors?: CreateScanFormErrors): void {
-    const { prisoner } = res.locals
+    const { prisoner, user } = res.locals
     const { errors, scanDateComponentsWithErrors, createCallFailed } = createScanFormErrors ?? {}
 
     const today = new Date()
     const yesterday = new Date(today.getTime() - dayMillis)
 
+    const locationNotActiveCaseload = prisoner.prisonId !== user.activeCaseLoad!.caseLoadId
+
     res.render('pages/createScan', {
       prisoner,
+      locationNotActiveCaseload,
       today: formatDisplayDate(today),
       yesterday: formatDisplayDate(yesterday),
       errors,
@@ -146,7 +148,7 @@ export default class ScanController {
 
   async postCreateScan(req: Request, res: Response): Promise<void> {
     const { prisonerNumber } = res.locals.prisoner
-    const { username, activeCaseLoadId } = res.locals.user as PrisonUser
+    const { username, activeCaseLoadId } = res.locals.user
 
     const result = createScanForm.safeParse(req.body)
     if (!result.success) {
