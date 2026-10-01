@@ -71,6 +71,10 @@ test.describe('Create scan page', () => {
         }),
       )
 
+      // no alerts
+      await expect(createScanPage.alert).not.toBeVisible()
+      await expect(createScanPage.infoAlert).not.toBeVisible()
+
       // cancel link
       await expect(createScanPage.cancelLink).toHaveAttribute('href', `/prisoner/${prisonerNumber}/scan-overview`)
     })
@@ -109,19 +113,63 @@ test.describe('Create scan page', () => {
       ])
     }
 
-    test('Page shows for a prisoner who has recently left user’s case loads', async ({ page }) => {
-      await stubRecentlyLeftPrisoner()
-      await login(page, startAtPath, { roles: [...DEFAULT_ROLES, 'ROLE_GLOBAL_SEARCH'] })
-      await CreateScanPage.verifyOnPage(page, 'John Smith')
-    })
+    function stubPrisonerInTransfer(): Promise<unknown> {
+      return prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
+        ...prisoner,
+        prisonId: 'TRN',
+        prisonName: 'Transfer',
+      })
+    }
 
-    test('Page inaccessible for a prisoner who has recently left user’s case loads without global search role', async ({
-      page,
-    }) => {
-      await stubRecentlyLeftPrisoner()
-      await login(page, startAtPath)
-      await AuthErrorPage.verifyOnPage(page)
-    })
+    function stubReleasedPrisoner(): Promise<unknown> {
+      return prisonerSearchApi.stubGetPrisoner(prisonerNumber, {
+        ...prisoner,
+        prisonId: 'OUT',
+        prisonName: 'Outside',
+      })
+    }
+
+    for (const { scenario, setup, requiredRole, requiredRoleName, expectedRecordingPrison } of [
+      {
+        scenario: 'a prisoner who has recently left user’s case loads',
+        setup: stubRecentlyLeftPrisoner,
+        requiredRole: 'ROLE_GLOBAL_SEARCH',
+        requiredRoleName: 'global search',
+        expectedRecordingPrison: 'Leeds (HMP)',
+      },
+      {
+        scenario: 'a prisoner being transferred',
+        setup: stubPrisonerInTransfer,
+        requiredRole: 'ROLE_GLOBAL_SEARCH',
+        requiredRoleName: 'global search',
+        expectedRecordingPrison: 'Moorland (HMP & YOI)',
+      },
+      {
+        scenario: 'a released prisoner',
+        setup: stubReleasedPrisoner,
+        requiredRole: 'ROLE_INACTIVE_BOOKINGS',
+        requiredRoleName: 'inactive bookings',
+        expectedRecordingPrison: 'Moorland (HMP & YOI)',
+      },
+    ]) {
+      test(`Page shows for ${scenario} with ${requiredRoleName} role`, async ({ page }) => {
+        await setup()
+        await login(page, startAtPath, { roles: [...DEFAULT_ROLES, requiredRole] })
+        const createScanPage = await CreateScanPage.verifyOnPage(page, 'John Smith')
+
+        await expect(createScanPage.infoAlert).toContainText(`This scan will be recorded at ${expectedRecordingPrison}`)
+        await expect(createScanPage.infoAlert).toContainText('John Smith is not at this establishment.')
+        await expect(createScanPage.infoAlert).toContainText(
+          `Enter the scan details if it took place at ${expectedRecordingPrison}.`,
+        )
+      })
+
+      test(`Page inaccessible for ${scenario} without ${requiredRoleName} role`, async ({ page }) => {
+        await setup()
+        await login(page, startAtPath)
+        await AuthErrorPage.verifyOnPage(page)
+      })
+    }
   })
 
   test.describe('Recording a scan successfully', () => {
