@@ -353,7 +353,7 @@ describe('getCreateScan', () => {
     req.originalUrl = `/prisoner/${prisonerNumber}/record-scan`
   })
 
-  it('logs a page view and renders the create scan form', async () => {
+  it('should log a page view and renders the create scan form', async () => {
     await scanController.getCreateScan(req, res)
 
     expect(auditService.logPageView).toHaveBeenCalledWith(Page.CREATE_SCAN, {
@@ -362,19 +362,42 @@ describe('getCreateScan', () => {
       subjectType: 'PRISONER_ID',
       correlationId,
     })
-    expect(res.render).toHaveBeenCalledWith(
-      'pages/createScan',
-      expect.objectContaining({
-        prisoner,
-        today: '24 July 2026',
-        yesterday: '23 July 2026',
-        errors: undefined,
-        scanDateComponentsWithErrors: new Set(),
-        createCallFailed: undefined,
-        formValues: undefined,
-      }),
-    )
+    expect(res.render).toHaveBeenCalledWith('pages/createScan', {
+      prisoner,
+      locationNotActiveCaseload: false,
+      today: '24 July 2026',
+      yesterday: '23 July 2026',
+      errors: undefined,
+      scanDateComponentsWithErrors: new Set(),
+      createCallFailed: undefined,
+      formValues: undefined,
+    })
   })
+
+  it.each([
+    { scenario: 'they are in another prison', prisonId: 'LEI', prisonName: 'Leeds (HMP)' },
+    { scenario: 'they are being transferred', prisonId: 'TRN', prisonName: 'Transfer' },
+    { scenario: 'they were released', prisonId: 'OUT', prisonName: 'Outside' },
+    { scenario: 'their location is not set', prisonId: undefined, prisonName: undefined },
+  ])(
+    'should indicate that the prisoner is not in user’s active caseload when $scenario',
+    async ({ prisonId, prisonName }) => {
+      res.locals.prisoner = {
+        ...res.locals.prisoner,
+        prisonId,
+        prisonName,
+      }
+
+      await scanController.getCreateScan(req, res)
+
+      expect(res.render).toHaveBeenCalledWith(
+        'pages/createScan',
+        expect.objectContaining({
+          locationNotActiveCaseload: true,
+        }),
+      )
+    },
+  )
 })
 
 describe('postCreateScan', () => {
@@ -543,18 +566,16 @@ describe('postCreateScan', () => {
 
     await scanController.postCreateScan(req, res)
 
-    expect(res.render).toHaveBeenCalledWith(
-      'pages/createScan',
-      expect.objectContaining({
-        prisoner,
-        today: '24 July 2026',
-        yesterday: '23 July 2026',
-        errors: expectedErrors,
-        scanDateComponentsWithErrors: new Set(expectedScanDateComponentsWithErrors),
-        createCallFailed: undefined,
-        formValues: body,
-      }),
-    )
+    expect(res.render).toHaveBeenCalledWith('pages/createScan', {
+      prisoner,
+      locationNotActiveCaseload: false,
+      today: '24 July 2026',
+      yesterday: '23 July 2026',
+      errors: expectedErrors,
+      scanDateComponentsWithErrors: new Set(expectedScanDateComponentsWithErrors),
+      createCallFailed: undefined,
+      formValues: body,
+    })
     expect(res.redirect).not.toHaveBeenCalled()
     expect(xrayBodyScansApiClient.createScan).not.toHaveBeenCalled()
     expect(auditService.logAuditEvent).not.toHaveBeenCalled()
