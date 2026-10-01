@@ -12,7 +12,7 @@ import type AuditService from '../services/auditService'
 import type { PrisonService } from '../services/prisonService'
 import { canAddCaseNotToScan } from '../utils/scanPermissions'
 import ScanController from '../controllers/scanController'
-import { entryPointMiddleware } from '../middleware/entryPointMiddleware'
+import entryPointMiddleware from '../middleware/entryPointMiddleware'
 import CaseNoteController from '../controllers/caseNoteController'
 
 export default function scanRouter(

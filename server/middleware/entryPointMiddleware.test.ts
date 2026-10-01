@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import { telemetry } from '@ministryofjustice/hmpps-azure-telemetry'
 import logger from '../../logger'
-import { entryPointMiddleware } from './entryPointMiddleware'
+import entryPointMiddleware from './entryPointMiddleware'
 
 jest.mock('@ministryofjustice/hmpps-azure-telemetry', () => ({ telemetry: { trackEvent: jest.fn() } }))
 jest.mock('../../logger', () => ({ info: jest.fn() }))
@@ -12,7 +12,7 @@ describe('entryPointMiddleware', () => {
   let next: NextFunction
 
   beforeEach(() => {
-    req = { headers: {}, path: '/scan-overview' } as unknown as Request
+    req = { query: {}, path: '/scan-overview' } as unknown as Request
     res = {
       locals: {
         user: { username: 'USER1', activeCaseLoadId: 'LEI' },
@@ -29,40 +29,21 @@ describe('entryPointMiddleware', () => {
     prisonerNumber: 'A1234BC',
   }
 
-  it('should track unspecified when no referer', () => {
+  it('should track other when no entryPoint param', () => {
     entryPointMiddleware(req, res, next)
 
-    expect(logger.info).toHaveBeenCalledWith(
-      { ...expectedCommon, entryPoint: 'unspecified', referer: 'unspecified' },
-      'XRBSEntryPoint',
-    )
-    expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', {
-      ...expectedCommon,
-      entryPoint: 'unspecified',
-      referer: 'unspecified',
-    })
+    expect(logger.info).toHaveBeenCalledWith({ ...expectedCommon, entryPoint: 'other' }, 'XRBSEntryPoint')
+    expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', { ...expectedCommon, entryPoint: 'other' })
     expect(next).toHaveBeenCalledWith()
   })
 
-  it.each([
-    ['https://welcome.prison.service.justice.gov.uk/recent-arrivals', 'wpip'],
-    ['https://welcome-dev.prison.service.justice.gov.uk/recent-arrivals', 'wpip'],
-    ['https://welcome-preprod.prison.service.justice.gov.uk/recent-arrivals', 'wpip'],
-    ['https://prisoner.digital.prison.service.justice.gov.uk/prisoner/A1234BC/overview', 'profile-overview'],
-    ['https://prisoner-dev.digital.prison.service.justice.gov.uk/prisoner/A1234BC/overview', 'profile-overview'],
-    ['https://prisoner-preprod.digital.prison.service.justice.gov.uk/prisoner/A1234BC/overview', 'profile-overview'],
-    ['https://x-ray-body-scans.hmpps.service.justice.gov.uk/prisoner/A1234BC/scan-overview', 'xrbs-summary'],
-    ['https://x-ray-body-scans-dev.hmpps.service.justice.gov.uk/prisoner/A1234BC/scan-overview', 'xrbs-summary'],
-    ['https://x-ray-body-scans-preprod.hmpps.service.justice.gov.uk/prisoner/A1234BC/scan-overview', 'xrbs-summary'],
-    ['http://localhost:3000/prisoner/A1234BC/scan-overview', 'xrbs-summary'],
-    ['https://some-other-service.justice.gov.uk/foo', 'other'],
-  ])('should track entryPoint %s as %s', (referer, entryPoint) => {
-    req.headers.referer = referer
+  it.each(['wpip', 'profile-overview', 'xrbs-summary'] as const)('should track entryPoint %s', entryPoint => {
+    req.query.entryPoint = entryPoint
 
     entryPointMiddleware(req, res, next)
 
-    expect(logger.info).toHaveBeenCalledWith({ ...expectedCommon, entryPoint, referer }, 'XRBSEntryPoint')
-    expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', { ...expectedCommon, entryPoint, referer })
+    expect(logger.info).toHaveBeenCalledWith({ ...expectedCommon, entryPoint }, 'XRBSEntryPoint')
+    expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', { ...expectedCommon, entryPoint })
     expect(next).toHaveBeenCalledWith()
   })
 })
