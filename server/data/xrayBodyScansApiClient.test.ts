@@ -351,7 +351,7 @@ describe('X-ray body scans API client', () => {
         justification: scanData.justification,
         justificationDescription: 'Intelligence',
         outcome: scanData.outcome,
-        outcomeDescription: 'No item detected',
+        outcomeDescription: 'Negative',
       }
 
       nock(config.apis.xrayBodyScansApi.url)
