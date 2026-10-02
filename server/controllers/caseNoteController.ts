@@ -76,6 +76,7 @@ export default class CaseNoteController {
     const text = this.buildCaseNoteText(scan, result.data.additionalDetails)
 
     try {
+      // TODO: should scan.prisonId be used instead of user.activeCaseLoadId?? ie. case note is forced into location of scan irrespective of user
       const request: CreateScanCaseNoteRequest = { text, prisonId: user.activeCaseLoadId! }
       const caseNote = await this.xrayBodyScansApiClient.createScanCaseNote(scan.id, request, user.username)
       logger.info(`Created case note ${caseNote.id} for scan ${scan.id}`)

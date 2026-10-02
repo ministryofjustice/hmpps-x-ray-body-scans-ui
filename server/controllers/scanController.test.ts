@@ -173,7 +173,7 @@ describe('getScanList', () => {
           justification: 'REASONABLE_SUSPICION',
           justificationDescription: 'Reasonable suspicion',
           outcome: 'POSITIVE',
-          outcomeDescription: 'Item detected',
+          outcomeDescription: 'Positive',
         },
         mockLegacyScanResponse(prisonerNumber, now),
         mockLegacyScanResponse(prisonerNumber, null, 'pos'),
@@ -200,7 +200,7 @@ describe('getScanList', () => {
           scanDateDescription: '24 July 2026',
           prisonDescription: 'Leeds (HMP)',
           justificationDescription: 'Reasonable suspicion',
-          outcomeDescription: 'Item detected',
+          outcomeDescription: 'Positive',
           highlightedRow: false,
         }),
         expect.objectContaining({

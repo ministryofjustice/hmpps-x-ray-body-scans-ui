@@ -24,7 +24,7 @@ export function mockScanResponse(
     justification: 'REASONABLE_SUSPICION',
     justificationDescription: 'Reasonable suspicion',
     outcome: 'POSITIVE',
-    outcomeDescription: 'Item detected',
+    outcomeDescription: 'Positive',
     caseNoteId: null,
     mergedAt: null,
     mergedFromPrisonerNumber: null,

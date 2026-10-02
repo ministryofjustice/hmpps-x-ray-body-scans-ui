@@ -503,7 +503,7 @@ test.describe('Scan list page', () => {
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
               outcome: 'POSITIVE',
-              outcomeDescription: 'Item detected',
+              outcomeDescription: 'Positive',
             },
             // my prison, yesterday
             {
@@ -511,9 +511,9 @@ test.describe('Scan list page', () => {
               id: '019fc832-0000-7000-0000-000000000002',
               prisonId: 'MDI',
               justification: 'INTELLIGENCE',
-              justificationDescription: 'Intelligence-led',
+              justificationDescription: 'Intelligence-led cohort',
               outcome: 'POSITIVE',
-              outcomeDescription: 'Item detected',
+              outcomeDescription: 'Positive',
               caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8',
             },
             // different prison, recent
@@ -524,7 +524,7 @@ test.describe('Scan list page', () => {
               justification: 'REASONABLE_SUSPICION',
               justificationDescription: 'Reasonable suspicion',
               outcome: 'NEGATIVE',
-              outcomeDescription: 'No item detected',
+              outcomeDescription: 'Negative',
             },
             // my prison, not recent
             {
@@ -532,7 +532,7 @@ test.describe('Scan list page', () => {
               id: '019fc832-0000-7000-0000-000000000004',
               prisonId: 'MDI',
               justification: 'INTELLIGENCE',
-              justificationDescription: 'Intelligence-led',
+              justificationDescription: 'Intelligence-led cohort',
               outcome: 'INCONCLUSIVE',
               outcomeDescription: 'Inconclusive',
             },
@@ -557,10 +557,16 @@ test.describe('Scan list page', () => {
 
       const scanListPage = await startOnScanListPage(page)
       await expect(scanListPage.getScanTableContents()).resolves.toEqual([
-        [formatDisplayDate(now), 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Item detected', 'Add case note'],
-        [formatDisplayDate(daysAgo(1)), 'Moorland (HMP & YOI)', 'Intelligence-led', 'Item detected', 'View case note'],
-        [formatDisplayDate(daysAgo(15)), 'Leeds (HMP)', 'Reasonable suspicion', 'No item detected', ''],
-        [formatDisplayDate(daysAgo(33)), 'Moorland (HMP & YOI)', 'Intelligence-led', 'Inconclusive', ''],
+        [formatDisplayDate(now), 'Moorland (HMP & YOI)', 'Reasonable suspicion', 'Positive', 'Add case note'],
+        [
+          formatDisplayDate(daysAgo(1)),
+          'Moorland (HMP & YOI)',
+          'Intelligence-led cohort',
+          'Positive',
+          'View case note',
+        ],
+        [formatDisplayDate(daysAgo(15)), 'Leeds (HMP)', 'Reasonable suspicion', 'Negative', ''],
+        [formatDisplayDate(daysAgo(33)), 'Moorland (HMP & YOI)', 'Intelligence-led cohort', 'Inconclusive', ''],
         [formatDisplayDate(daysAgo(60)), '', '', 'intel - neg', ''],
         [formatDisplayDate(daysAgo(61)), '', '', '', ''],
         ['Not recorded', '', '', 'positive', ''],
@@ -828,7 +834,7 @@ test.describe('Scan list page', () => {
             justification: 'REASONABLE_SUSPICION',
             justificationDescription: 'Reasonable suspicion',
             outcome: 'POSITIVE',
-            outcomeDescription: 'Item detected',
+            outcomeDescription: 'Positive',
           },
           {
             ...mockScanResponse(prisonerNumber, now),
@@ -837,7 +843,7 @@ test.describe('Scan list page', () => {
             justification: 'REASONABLE_SUSPICION',
             justificationDescription: 'Reasonable suspicion',
             outcome: 'POSITIVE',
-            outcomeDescription: 'Item detected',
+            outcomeDescription: 'Positive',
             caseNoteId: '341c845e-fadc-4ec8-9330-81c83968c1a8',
           },
         ]

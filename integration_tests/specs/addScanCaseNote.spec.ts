@@ -90,18 +90,18 @@ test.describe('Add scan case note page', () => {
         stubScan: {
           ...scan,
           outcome: 'NEGATIVE',
-          outcomeDescription: 'No item detected',
+          outcomeDescription: 'Negative',
         },
-        expectedDescription: ['Reason: Reasonable suspicion', 'Result: No item detected'],
+        expectedDescription: ['Reason: Reasonable suspicion', 'Result: Negative'],
       },
       {
         scenario: 'positive scan',
         stubScan: {
           ...scan,
           justification: 'INTELLIGENCE',
-          justificationDescription: 'Intelligence-led',
+          justificationDescription: 'Intelligence-led cohort',
         },
-        expectedDescription: ['Reason: Intelligence-led', 'Result: Item detected'],
+        expectedDescription: ['Reason: Intelligence-led cohort', 'Result: Positive'],
       },
     ]
     for (const { scenario, stubScan, expectedDescription } of scanScenarios) {
@@ -280,7 +280,7 @@ test.describe('Add scan case note page', () => {
         {
           text: `
 Reason: Reasonable suspicion
-Result: Item detected
+Result: Positive
         `.trim(),
           prisonId: 'MDI',
         },
@@ -300,7 +300,7 @@ Result: Item detected
         {
           text: `
 Reason: Reasonable suspicion
-Result: Item detected
+Result: Positive
 --
 Some extra details
         `.trim(),
