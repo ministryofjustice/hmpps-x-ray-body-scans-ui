@@ -176,9 +176,9 @@ describe('postAddScanCaseNote', () => {
       scanScenario: {
         ...scan,
         outcome: 'NEGATIVE',
-        outcomeDescription: 'No item detected',
+        outcomeDescription: 'Negative',
       },
-      expectedText: 'Reason: Reasonable suspicion\nResult: No item detected',
+      expectedText: 'Reason: Reasonable suspicion\nResult: Negative',
     },
     {
       scenario: 'inconclusive scan',
@@ -194,9 +194,9 @@ describe('postAddScanCaseNote', () => {
       scanScenario: {
         ...scan,
         justification: 'INTELLIGENCE',
-        justificationDescription: 'Intelligence-led',
+        justificationDescription: 'Intelligence-led cohort',
       },
-      expectedText: 'Reason: Intelligence-led\nResult: Item detected',
+      expectedText: 'Reason: Intelligence-led cohort\nResult: Positive',
     },
   ]
   it.each(scanScenarios)(
@@ -237,7 +237,7 @@ describe('postAddScanCaseNote', () => {
       {
         text: `
 Reason: Reasonable suspicion
-Result: Item detected
+Result: Positive
 --
 Extra info
         `.trim(),
