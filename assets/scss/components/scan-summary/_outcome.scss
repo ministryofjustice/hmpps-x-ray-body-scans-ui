@@ -32,7 +32,7 @@
   --scan-outcome-border-colour: #{colour.govuk-colour(black, $variant: "tint-50")};
   --scan-outcome-text-colour: #{colour.govuk-colour(black)};
 
-  flex: 1 1 auto;
+  flex: 1 1 30%;
   margin: 0;
   @include spacing.govuk-responsive-padding(2);
 
