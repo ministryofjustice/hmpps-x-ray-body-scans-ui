@@ -30,7 +30,7 @@
     "npm": "^12"
   },
   "dependencies": {
-    "@aws-sdk/client-sqs": "3.1140.0",
+    "@aws-sdk/client-sqs": "3.1142.0",
     "@ministryofjustice/frontend": "11.1.0",
     "@ministryofjustice/hmpps-auth-clients": "3.0.0",
     "@ministryofjustice/hmpps-azure-telemetry": "1.1.0",
@@ -39,7 +39,7 @@
     "@ministryofjustice/hmpps-monitoring": "^2.1.0",
     "@ministryofjustice/hmpps-prison-permissions-lib": "4.4.0",
     "@ministryofjustice/hmpps-rest-client": "^2.2.0",
-    "@sentry/node": "11.0.0",
+    "@sentry/node": "11.1.0",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1",
     "compression": "^1.8.2",
@@ -75,7 +75,7 @@
     "@types/http-errors": "^2.0.5",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^24.13.6",
+    "@types/node": "^24.19.0",
     "@types/nunjucks": "^3.2.6",
     "@types/passport": "^1.0.17",
     "@types/passport-oauth2": "^1.8.0",
@@ -92,10 +92,10 @@
     "jest-html-reporter": "^4.4.2",
     "jest-junit": "^17.0.0",
     "jsonwebtoken": "^9.0.3",
-    "lint-staged": "17.5.1",
+    "lint-staged": "17.6.0",
     "nock": "^14.0.17",
     "supertest": "^7.3.0",
-    "ts-jest": "29.4.13",
+    "ts-jest": "29.4.14",
     "typescript": "^6.0.3"
   },
   "overrides": {
