@@ -3,8 +3,8 @@ import { telemetry } from '@ministryofjustice/hmpps-azure-telemetry'
 import logger from '../../logger'
 import entryPointMiddleware from './entryPointMiddleware'
 
-jest.mock('@ministryofjustice/hmpps-azure-telemetry', () => ({ telemetry: { trackEvent: jest.fn() } }))
-jest.mock('../../logger', () => ({ info: jest.fn() }))
+jest.mock('@ministryofjustice/hmpps-azure-telemetry')
+jest.mock('../../logger')
 
 describe('entryPointMiddleware', () => {
   let req: Request
