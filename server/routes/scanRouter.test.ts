@@ -1,5 +1,6 @@
 import type { Express } from 'express'
 import request from 'supertest'
+import { telemetry } from '@ministryofjustice/hmpps-azure-telemetry'
 import { PrisonerBasePermission, XRayBodyScansPermission } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import { appWithAllRoutes, user } from './testutils/appSetup'
 import { emptyPageResponse } from '../testutils/pagination'
@@ -13,6 +14,7 @@ import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockServices } from '../testutils/mocks/services'
 import { mockScanSummaryResponse } from '../testutils/mocks/xrayBodyScansApi'
 
+jest.mock('@ministryofjustice/hmpps-azure-telemetry')
 jest.mock('@ministryofjustice/hmpps-prison-permissions-lib', () => {
   // ensure permissions library is properly installed into nunjucks environment
   type Module = typeof import('@ministryofjustice/hmpps-prison-permissions-lib')
@@ -86,6 +88,42 @@ describe('scan router', () => {
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
           expect(xrayBodyScansApiClient.getScanSummary).toHaveBeenCalled()
           expect(xrayBodyScansApiClient.listScans).toHaveBeenCalled()
+
+          expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', {
+            activeCaseLoadId: 'MDI',
+            entryPoint: 'other',
+            page: '/scan-overview',
+            prisonerNumber,
+            username: 'user1',
+          })
+        })
+    })
+
+    it.each([
+      { scenario: 'scan list page', querystring: 'entryPoint=xrbs-summary', expectedEntryPoint: 'xrbs-summary' },
+      {
+        scenario: 'WPIP',
+        querystring: `wpipReturnPath=%2Frecent-arrivals%2F${prisonerNumber}%2Fsummary`,
+        expectedEntryPoint: 'wpip',
+      },
+    ])('should track entry point from $scenario in Azure telemetry', ({ querystring, expectedEntryPoint }) => {
+      app = appWithAllRoutes({ services: mockServices })
+      xrayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(
+        mockScanSummaryResponse({ prisonerNumber, now: new Date(), relevantAlerts: [] }),
+      )
+      xrayBodyScansApiClient.listScans.mockResolvedValueOnce(emptyPageResponse())
+
+      return request(app)
+        .get(`${url}?${querystring}`)
+        .expect(200)
+        .expect(() => {
+          expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', {
+            activeCaseLoadId: 'MDI',
+            entryPoint: expectedEntryPoint,
+            page: '/scan-overview',
+            prisonerNumber,
+            username: 'user1',
+          })
         })
     })
 
@@ -101,6 +139,7 @@ describe('scan router', () => {
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
           expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
           expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
+          expect(telemetry.trackEvent).not.toHaveBeenCalled()
         })
     })
 
@@ -118,6 +157,7 @@ describe('scan router', () => {
           expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
           expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
           expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
+          expect(telemetry.trackEvent).not.toHaveBeenCalled()
         })
     })
   })
@@ -166,6 +206,38 @@ describe('scan router', () => {
         .expect(res => {
           expect(res.text).toContain('Record an X-ray body scan')
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+
+          expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', {
+            activeCaseLoadId: 'MDI',
+            entryPoint: 'other',
+            page: '/record-scan',
+            prisonerNumber,
+            username: 'user1',
+          })
+        })
+    })
+
+    it.each([
+      { scenario: 'scan list page', querystring: 'entryPoint=xrbs-summary', expectedEntryPoint: 'xrbs-summary' },
+      {
+        scenario: 'WPIP',
+        querystring: `wpipReturnPath=%2Frecent-arrivals%2F${prisonerNumber}%2Fsummary`,
+        expectedEntryPoint: 'wpip',
+      },
+    ])('should track entry point from $scenario in Azure telemetry', ({ querystring, expectedEntryPoint }) => {
+      app = appWithAllRoutes({ services: mockServices })
+
+      return request(app)
+        .get(`${url}?${querystring}`)
+        .expect(200)
+        .expect(() => {
+          expect(telemetry.trackEvent).toHaveBeenCalledWith('XRBSEntryPoint', {
+            activeCaseLoadId: 'MDI',
+            entryPoint: expectedEntryPoint,
+            page: '/record-scan',
+            prisonerNumber,
+            username: 'user1',
+          })
         })
     })
 
@@ -179,6 +251,7 @@ describe('scan router', () => {
         .expect(404)
         .expect(() => {
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
+          expect(telemetry.trackEvent).not.toHaveBeenCalled()
         })
     })
 
@@ -194,6 +267,7 @@ describe('scan router', () => {
         .expect('Location', 'http://localhost:3001/dps-home')
         .expect(() => {
           expect(prisonerSearchApiClient.getPrisoner).not.toHaveBeenCalled()
+          expect(telemetry.trackEvent).not.toHaveBeenCalled()
         })
     })
   })
@@ -210,6 +284,7 @@ describe('scan router', () => {
         expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
         expect(xrayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
         expect(xrayBodyScansApiClient.listScans).not.toHaveBeenCalled()
+        expect(telemetry.trackEvent).not.toHaveBeenCalled()
       })
   })
 })

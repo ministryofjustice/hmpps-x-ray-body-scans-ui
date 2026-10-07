@@ -1,5 +1,6 @@
 import type { Express } from 'express'
 import request from 'supertest'
+import { telemetry } from '@ministryofjustice/hmpps-azure-telemetry'
 import {
   CaseNotesPermission,
   PrisonerBasePermission,
@@ -16,6 +17,7 @@ import { mockServices } from '../testutils/mocks/services'
 import { mockScanResponse, mockScanCaseNoteResponse } from '../testutils/mocks/xrayBodyScansApi'
 import { canAddCaseNotToScan } from '../utils/scanPermissions'
 
+jest.mock('@ministryofjustice/hmpps-azure-telemetry')
 jest.mock('@ministryofjustice/hmpps-prison-permissions-lib', () => {
   // ensure permissions library is properly installed into nunjucks environment
   type Module = typeof import('@ministryofjustice/hmpps-prison-permissions-lib')
@@ -94,6 +96,7 @@ describe('case note router', () => {
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
           expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
           expect(xrayBodyScansApiClient.getScanCaseNote).toHaveBeenCalledWith(scan.id, 'user1')
+          expect(telemetry.trackEvent).not.toHaveBeenCalled()
         })
     })
 
@@ -200,6 +203,7 @@ describe('case note router', () => {
           expect(res.text).toContain('Add an X-ray body scan case note')
           expect(prisonerSearchApiClient.getPrisoner).toHaveBeenCalledWith(prisonerNumber, 'user1')
           expect(xrayBodyScansApiClient.getScan).toHaveBeenCalledWith(scan.id, 'user1')
+          expect(telemetry.trackEvent).not.toHaveBeenCalled()
         })
     })
 
