@@ -30,7 +30,7 @@
     "npm": "^12"
   },
   "dependencies": {
-    "@aws-sdk/client-sqs": "3.1142.0",
+    "@aws-sdk/client-sqs": "3.1144.0",
     "@ministryofjustice/frontend": "11.1.0",
     "@ministryofjustice/hmpps-auth-clients": "3.0.0",
     "@ministryofjustice/hmpps-azure-telemetry": "1.1.0",
@@ -56,7 +56,7 @@
     "nunjucks": "^3.2.4",
     "passport": "^0.7.0",
     "passport-oauth2": "^1.8.0",
-    "redis": "6.2.1",
+    "redis": "6.3.0",
     "superagent": "^10.4.1",
     "zod": "4.6.5"
   },
@@ -111,9 +111,9 @@
   "allowScripts": {
     "@parcel/watcher@2.6.0": true,
     "dtrace-provider@0.8.8": false,
-    "fsevents@2.3.3": true,
+    "esbuild@0.28.2": true,
     "fsevents@2.3.2": true,
-    "unrs-resolver@1.12.2": true,
-    "esbuild@0.28.2": true
+    "fsevents@2.3.3": true,
+    "unrs-resolver@1.12.2": true
   }
 }
