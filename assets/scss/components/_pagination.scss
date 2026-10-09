@@ -1,25 +1,23 @@
-@use "govuk-frontend/dist/govuk/helpers/media-queries";
-@use "govuk-frontend/dist/govuk/helpers/spacing";
-@use "govuk-frontend/dist/govuk/helpers/typography";
+@use 'govuk-frontend/dist/govuk';
 
 .dps-pagination {
   .dps-pagination__showing {
-    @include typography.govuk-font($size: 19);
-    @include spacing.govuk-responsive-margin(4, "bottom");
+    @include govuk.govuk-font($size: 19);
+    @include govuk.govuk-responsive-margin(4, 'bottom');
 
     p {
-      @include spacing.govuk-responsive-margin(2, "bottom");
+      @include govuk.govuk-responsive-margin(2, 'bottom');
 
       span {
-        @include typography.govuk-font($size: 19, $weight: bold);
+        @include govuk.govuk-font($size: 19, $weight: bold);
       }
     }
   }
 
-  @include media-queries.govuk-media-query($from: desktop) {
+  @include govuk.govuk-media-query($from: desktop) {
     display: flex;
     flex-direction: row;
-    @include spacing.govuk-responsive-margin(2, "bottom");
+    @include govuk.govuk-responsive-margin(2, 'bottom');
 
     .dps-pagination__pages {
       flex: 1 0 75%;
