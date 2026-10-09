@@ -21,7 +21,7 @@ export const user: PrisonUser = {
   name: 'FIRST LAST',
   userId: 'id',
   userUuid: '11111111-1111-1111-1111-111111111111',
-  token: createUserToken(['ROLE_PRISON', 'ROLE_DPS_APPLICATION_DEVELOPER']),
+  token: createUserToken(['ROLE_PRISON']),
   username: 'user1',
   displayName: 'First Last',
   authSource: 'nomis',
