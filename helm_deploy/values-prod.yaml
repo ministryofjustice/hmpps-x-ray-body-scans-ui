@@ -1,6 +1,3 @@
----
-# Per environment values which override defaults in hmpps-x-ray-body-scans-ui/values.yaml
-
 generic-service:
   ingress:
     host: x-ray-body-scans.hmpps.service.justice.gov.uk
@@ -29,6 +26,3 @@ generic-service:
     groups:
       - digital_staff_and_mojo
       - moj_cloud_platform
-
-generic-prometheus-alerts:
-  alertSeverity: hmpps-connect-dps-prod

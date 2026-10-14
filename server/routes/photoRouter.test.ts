@@ -11,6 +11,7 @@ import { mockPrisoner } from '../testutils/mocks/prisonerSearchApi'
 import { mockPhotoReadable } from '../testutils/mocks/prisonApi'
 import { mockServices } from '../testutils/mocks/services'
 
+jest.mock('@ministryofjustice/hmpps-azure-telemetry')
 jest.mock('@ministryofjustice/hmpps-prison-permissions-lib')
 jest.mock('../data/prisonApi')
 jest.mock('../data/prisonerSearchApiClient')
