@@ -83,7 +83,7 @@
     "@types/supertest": "^7.2.1",
     "audit-ci": "^7.1.0",
     "aws-sdk-client-mock": "^4.1.0",
-    "del": "8.0.1",
+    "del": "9.0.1",
     "esbuild": "0.28.2",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-manifest": "^1.0.5",
@@ -93,7 +93,7 @@
     "jest-junit": "^17.0.0",
     "jsonwebtoken": "^9.0.3",
     "lint-staged": "17.6.0",
-    "nock": "14.0.17",
+    "nock": "15.0.1",
     "supertest": "7.3.1",
     "ts-jest": "29.4.14",
     "typescript": "^6.0.3"
