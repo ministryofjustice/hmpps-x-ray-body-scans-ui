@@ -1,0 +1,21 @@
+@use "govuk-frontend/dist/govuk/helpers/spacing";
+@use "govuk-frontend/dist/govuk/helpers/typography";
+
+.hmpps-feedback-banner {
+  background: #FFF7BF;
+  border: 1px solid #594D00;
+  color: #594D00;
+  display: inline-block;
+  line-height: 20px;
+  padding: 8px 8px 6px 8px;
+  @include spacing.govuk-responsive-margin(6, "bottom");
+
+  a {
+    color: inherit;
+  }
+
+  p {
+    margin: 0;
+    @include typography.govuk-font(16, $weight: light);
+  }
+}

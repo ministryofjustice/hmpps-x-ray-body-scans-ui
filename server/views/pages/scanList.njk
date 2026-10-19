@@ -4,6 +4,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "dps/components/alert-flag/macro.njk" import alertFlag %}
 {% from "dps/components/modal/macro.njk" import hmppsModal %}
+{% from "components/feedbackBanner.njk" import feedbackBanner %}
 {% from "components/flashMessage.njk" import flashMessage %}
 {% from "components/infoBox.njk" import infoBox %}
 {% from "components/pagination.njk" import paginate %}
@@ -22,6 +23,13 @@
   {{ profileBanner({
     prisoner: prisoner,
     prisonerPermissions: prisonerPermissions
+  }) }}
+
+  {{ feedbackBanner({
+    info: "Tell us what you think about using X-ray body scan information in DPS.",
+    url: "https://www.smartsurvey.co.uk/s/BKDP4Y/",
+    urlText: "Give Feedback",
+    moreInfo:"(opens in a new tab)"
   }) }}
 
   <h1 class="govuk-heading-l">X-ray body scans</h1>

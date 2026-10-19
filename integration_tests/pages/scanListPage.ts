@@ -76,6 +76,14 @@ export default class ScanListPage extends AbstractPage {
     return this.page.locator('.hmpps-flash-message')
   }
 
+  get feedBackBanner(): Locator {
+    return this.page.getByTestId('feedback-banner')
+  }
+
+  get feedBackBannerLink(): Locator {
+    return this.page.getByTestId('feedback-banner-link')
+  }
+
   async getScanTableContents(): Promise<string[][]> {
     return this.scanTable
       .locator('.govuk-table__body tr')
