@@ -8,7 +8,7 @@
   display: inline-block;
   line-height: 20px;
   padding: 8px 8px 6px 8px;
-  @include spacing.govuk-responsive-margin(6, "bottom");
+  @include spacing.govuk-responsive-margin(7, "bottom");
 
   a {
     color: inherit;

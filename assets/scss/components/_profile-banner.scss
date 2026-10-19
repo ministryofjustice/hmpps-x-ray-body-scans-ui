@@ -9,7 +9,7 @@
 .hmpps-profile-banner {
   background: colour.govuk-colour(black, $variant: "tint-95");
   @include spacing.govuk-responsive-padding(3);
-  @include spacing.govuk-responsive-margin(7, "bottom");
+  @include spacing.govuk-responsive-margin(5, "bottom");
   @include clearfix.govuk-clearfix;
   margin-top: -#{spacing.govuk-spacing(4)};
 
