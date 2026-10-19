@@ -1,8 +1,8 @@
 {% macro feedbackBanner(params) %}
-  <div class="hmpps-feedback-banner">
+  <div class="hmpps-feedback-banner" data-testid="feedback-banner">
     <p class="govuk-body-s">
       {{ params.info }}
-      <a href="{{ params.url }}" rel="noreferrer noopener" target="_blank">{{ params.urlText }}</a>
+      <a href="{{ params.url }}" rel="noreferrer noopener" target="_blank" data-testid="feedback-banner-link">{{ params.urlText }} </a>
       {{ params.moreInfo }}
     </p>
   </div>
