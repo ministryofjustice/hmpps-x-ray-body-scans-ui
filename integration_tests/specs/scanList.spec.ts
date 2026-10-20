@@ -112,7 +112,7 @@ test.describe('Scan list page', () => {
 
       // feedback banner
       await expect(scanListPage.feedBackBanner).toBeVisible()
-      await expect(scanListPage.feedBackBannerLink).toContainText('Give Feedback')
+      await expect(scanListPage.feedBackBannerLink).toContainText('Give feedback')
       await expect(scanListPage.feedBackBannerLink).toHaveAttribute('href', `https://www.smartsurvey.co.uk/s/BKDP4Y/`)
 
       // record button is always visible if user can access this page
