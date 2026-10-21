@@ -21,10 +21,10 @@ export class PrisonApiClient extends RestClient {
     )
   }
 
-  getPhoto(imageId: string, getFullSizedImage: boolean, username: string): Promise<Readable> {
+  getPhoto(prisonerNumber: string, getFullSizedImage: boolean, username: string): Promise<Readable> {
     return this.stream(
       {
-        path: `/api/images/${imageId}/data?fullSizeImage=${getFullSizedImage}`,
+        path: `/api/bookings/offenderNo/${prisonerNumber}/image/data?fullSizeImage=${getFullSizedImage}`,
       },
       asSystem(username),
     )

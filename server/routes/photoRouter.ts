@@ -42,7 +42,7 @@ export function photoRouter(auditService: AuditService, prisonApiClient: PrisonA
         .catch(error => logger.error(error))
 
       try {
-        const imageStream = await prisonApiClient.getPhoto(prisoner.currentFacialImageId, false, user.username)
+        const imageStream = await prisonApiClient.getPhoto(prisoner.prisonerNumber, false, user.username)
         res.type('image/jpeg')
         imageStream.pipe(res)
       } catch (error) {

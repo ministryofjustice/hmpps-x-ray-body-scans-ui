@@ -36,7 +36,7 @@ test.describe('Add scan case note page', () => {
   test.beforeEach(async () => {
     await Promise.all([
       microFrontendComponents.stubComponents(),
-      prisonApi.stubPrisonerPhoto(prisoner.currentFacialImageId!),
+      prisonApi.stubPrisonerPhoto(prisonerNumber),
       prisonerSearchApi.stubGetPrisoner(prisonerNumber, prisoner),
     ])
   })
