@@ -11,5 +11,4 @@ export interface Prisoner {
   previousPrisonLeavingDate?: string
   category?: string
   cellLocation?: string
-  currentFacialImageId?: string
 }

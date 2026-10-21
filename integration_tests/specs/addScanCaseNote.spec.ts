@@ -22,7 +22,7 @@ import AuthErrorPage from '../pages/authErrorPage'
 import ScanListPage from '../pages/scanListPage'
 
 const prisonerNumber = 'A1234BC'
-const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
+const prisoner = mockPrisoner(prisonerNumber)
 const scanId = '019f94a7-17cd-746f-b1df-5d4848da42e1'
 const now = new Date()
 
@@ -36,7 +36,7 @@ test.describe('Add scan case note page', () => {
   test.beforeEach(async () => {
     await Promise.all([
       microFrontendComponents.stubComponents(),
-      prisonApi.stubPrisonerPhoto(prisoner.currentFacialImageId!),
+      prisonApi.stubPrisonerPhoto(prisonerNumber),
       prisonerSearchApi.stubGetPrisoner(prisonerNumber, prisoner),
     ])
   })

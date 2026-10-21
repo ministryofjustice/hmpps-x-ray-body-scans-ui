@@ -25,7 +25,7 @@ import ScanListPage from '../pages/scanListPage'
 
 const now = new Date() // cannot fix clock since backend runs in separate process with no mocking
 const prisonerNumber = 'A1234BC'
-const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
+const prisoner = mockPrisoner(prisonerNumber)
 
 const startAtPath = `/prisoner/${prisonerNumber}/scan-overview`
 
@@ -33,7 +33,7 @@ test.describe('Scan list page', () => {
   test.beforeEach(async () => {
     await Promise.all([
       microFrontendComponents.stubComponents(),
-      prisonApi.stubPrisonerPhoto(prisoner.currentFacialImageId!),
+      prisonApi.stubPrisonerPhoto(prisonerNumber),
       prisonRegisterApi.stubAllPrisons(),
       prisonerSearchApi.stubGetPrisoner(prisonerNumber, prisoner),
     ])

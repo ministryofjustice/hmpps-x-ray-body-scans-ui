@@ -21,12 +21,12 @@ export default {
       },
     }),
 
-  async stubPrisonerPhoto(imageId: string, getFullSizedImage = false): Promise<Response> {
+  async stubPrisonerPhoto(prisonerNumber: string, getFullSizedImage = false): Promise<Response> {
     const photo = await fs.readFile('assets/images/photo-unavailable.jpeg', { encoding: 'base64' })
     return stubFor({
       request: {
         method: 'GET',
-        urlPath: `/prison-api/api/images/${imageId}/data`,
+        urlPath: `/prison-api/api/bookings/offenderNo/${prisonerNumber}/image/data`,
         queryParameters: { fullSizeImage: { equalTo: getFullSizedImage ? 'true' : 'false' } },
       },
       response: {
