@@ -22,7 +22,7 @@ jest.mock('../services/prisonService')
 const { auditService, prisonApiClient, prisonerSearchApiClient } = mockServices
 
 const prisonerNumber = 'A1234BC'
-const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
+const prisoner = mockPrisoner(prisonerNumber)
 const photoUrl = `/prisoner/${prisonerNumber}/photo`
 
 const jpegMockImageSize = 3260
@@ -84,7 +84,6 @@ describe('photo router', () => {
           subjectId: prisonerNumber,
           subjectType: 'PRISONER_ID',
           correlationId: expect.any(String),
-          details: { photoId: '1008971246' },
         })
         expect(prisonApiClient.getPhoto).toHaveBeenCalledWith(prisonerNumber, false, user.username)
         const body = res.body as Buffer
@@ -108,7 +107,6 @@ describe('photo router', () => {
           subjectId: prisonerNumber,
           subjectType: 'PRISONER_ID',
           correlationId: expect.any(String),
-          details: { photoId: '1008971246' },
         })
         expect(prisonApiClient.getPhoto).toHaveBeenCalledWith(prisonerNumber, false, user.username)
         const body = res.body as Buffer
@@ -119,26 +117,6 @@ describe('photo router', () => {
   it('should send placeholder image when permission is not granted', () => {
     mockGrantPrisonerPermissions(PrisonerBasePermission.read)
     app = appWithAllRoutes({ services: mockServices })
-
-    return request(app)
-      .get(photoUrl)
-      .expect(200)
-      .expect('Content-Type', 'image/png')
-      .expect('Cache-Control', 'private, max-age=86400')
-      .expect(res => {
-        expect(auditService.logAuditEvent).not.toHaveBeenCalled()
-        expect(prisonApiClient.getPhoto).not.toHaveBeenCalled()
-        const body = res.body as Buffer
-        expect(body.byteLength).toEqual(pngPlaceholderSize)
-      })
-  })
-
-  it('should send placeholder image when prisoner does not have a current facial image', () => {
-    app = appWithAllRoutes({ services: mockServices })
-    prisonerSearchApiClient.getPrisoner.mockResolvedValueOnce({
-      ...prisoner,
-      currentFacialImageId: undefined,
-    })
 
     return request(app)
       .get(photoUrl)

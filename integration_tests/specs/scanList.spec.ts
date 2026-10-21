@@ -25,7 +25,7 @@ import ScanListPage from '../pages/scanListPage'
 
 const now = new Date() // cannot fix clock since backend runs in separate process with no mocking
 const prisonerNumber = 'A1234BC'
-const prisoner = mockPrisoner(prisonerNumber, { currentFacialImageId: '1008971246' })
+const prisoner = mockPrisoner(prisonerNumber)
 
 const startAtPath = `/prisoner/${prisonerNumber}/scan-overview`
 
