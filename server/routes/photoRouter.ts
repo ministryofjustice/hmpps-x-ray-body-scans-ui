@@ -29,11 +29,7 @@ export function photoRouter(auditService: AuditService, prisonApiClient: PrisonA
     res.set('cache-control', 'private, max-age=86400')
     res.removeHeader('pragma')
 
-    if (
-      prisoner.currentFacialImageId &&
-      user?.token &&
-      isGranted(CorePersonRecordPermission.read_photo, prisonerPermissions)
-    ) {
+    if (prisoner.currentFacialImageId && isGranted(CorePersonRecordPermission.read_photo, prisonerPermissions)) {
       auditService
         .logAuditEvent({
           what: 'VIEW_PHOTO',
@@ -46,7 +42,7 @@ export function photoRouter(auditService: AuditService, prisonApiClient: PrisonA
         .catch(error => logger.error(error))
 
       try {
-        const imageStream = await prisonApiClient.getPhoto(prisoner.currentFacialImageId, false, user.token)
+        const imageStream = await prisonApiClient.getPhoto(prisoner.currentFacialImageId, false, user.username)
         res.type('image/jpeg')
         imageStream.pipe(res)
       } catch (error) {

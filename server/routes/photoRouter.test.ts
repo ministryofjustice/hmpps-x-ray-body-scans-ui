@@ -86,7 +86,7 @@ describe('photo router', () => {
           correlationId: expect.any(String),
           details: { photoId: '1008971246' },
         })
-        expect(prisonApiClient.getPhoto).toHaveBeenCalledWith('1008971246', false, user.token)
+        expect(prisonApiClient.getPhoto).toHaveBeenCalledWith('1008971246', false, user.username)
         const body = res.body as Buffer
         expect(body.byteLength).toEqual(jpegMockImageSize)
       })
@@ -110,7 +110,7 @@ describe('photo router', () => {
           correlationId: expect.any(String),
           details: { photoId: '1008971246' },
         })
-        expect(prisonApiClient.getPhoto).toHaveBeenCalledWith('1008971246', false, user.token)
+        expect(prisonApiClient.getPhoto).toHaveBeenCalledWith('1008971246', false, user.username)
         const body = res.body as Buffer
         expect(body.byteLength).toEqual(pngPlaceholderSize)
       })
