@@ -26,11 +26,13 @@ const shutdown = async () => {
  * Fix for when nested routes can't resolve the full path
  */
 function ensureHttpRouteIsSet(): SpanModifierFn {
+  const encodedPrisonerNumberPattern = /(?<=%2F)[A-Z]\d{4}[A-Z]{2}\b/g
   const prisonerNumberPattern = /\b[A-Z]\d{4}[A-Z]{2}\b/g
   const uuidPattern = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi
 
   const parameterise = (value: string) =>
     value //
+      ?.replace(encodedPrisonerNumberPattern, '_PRISONER_NUMBER_')
       ?.replace(prisonerNumberPattern, ':prisonerNumber')
       ?.replace(uuidPattern, ':id')
 
