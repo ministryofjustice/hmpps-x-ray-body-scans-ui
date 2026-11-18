@@ -1,5 +1,4 @@
 import nock from 'nock'
-import type { Interceptor } from 'nock'
 import type { AuthenticationClient } from '@ministryofjustice/hmpps-auth-clients'
 import config from '../config'
 import { internalServerErrorResponse, notFoundErrorResponse } from '../testutils/mocks/errorResponse'
@@ -65,6 +64,10 @@ describe('X-ray body scans API client', () => {
   afterEach(() => {
     nock.cleanAll()
     jest.resetAllMocks()
+  })
+
+  afterAll(() => {
+    nock.restore()
   })
 
   describe('raw response conversion', () => {
@@ -257,15 +260,15 @@ describe('X-ray body scans API client', () => {
       }
 
       nock(config.apis.xrayBodyScansApi.url)
-        .post(`/scan/${scanId}/case-note`)
-        .matchHeader('authorization', 'Bearer test-system-token')
-        .reply(201, (_uri, body) => {
+        .post(`/scan/${scanId}/case-note`, (body: nock.Body) => {
           expect(body).toEqual(request)
-          return {
-            ...caseNoteResponse,
-            occurredAt: `${scanDateString}T00:00:00`,
-            createdAt: nowString,
-          }
+          return true
+        })
+        .matchHeader('authorization', 'Bearer test-system-token')
+        .reply(201, {
+          ...caseNoteResponse,
+          occurredAt: `${scanDateString}T00:00:00`,
+          createdAt: nowString,
         })
 
       const response = await xrayBodyScansApiClient.createScanCaseNote(scanId, request, username)
@@ -279,7 +282,7 @@ describe('X-ray body scans API client', () => {
     interface Scenario {
       scenario: string
       request: ListScansRequest
-      expectedQueryParameters: Parameters<Interceptor['query']>[0] | undefined
+      expectedQueryParameters: Parameters<nock.Interceptor['query']>[0] | undefined
     }
     const scenarios: Scenario[] = [
       { scenario: 'without filters', request: {}, expectedQueryParameters: undefined },
@@ -355,16 +358,16 @@ describe('X-ray body scans API client', () => {
       }
 
       nock(config.apis.xrayBodyScansApi.url)
-        .post(`/prisoner/${prisonerNumber}/scan`)
-        .matchHeader('authorization', 'Bearer test-system-token')
-        .reply(201, (_uri, body) => {
+        .post(`/prisoner/${prisonerNumber}/scan`, (body: unknown) => {
           expect(body).toEqual(scanData)
-          return {
-            ...expectedResponse,
-            scanDate: scanData.scanDate,
-            createdAt: nowString,
-            lastModifiedAt: nowString,
-          }
+          return true
+        })
+        .matchHeader('authorization', 'Bearer test-system-token')
+        .reply(201, {
+          ...expectedResponse,
+          scanDate: scanData.scanDate,
+          createdAt: nowString,
+          lastModifiedAt: nowString,
         })
 
       const response = await xrayBodyScansApiClient.createScan(prisonerNumber, scanData, username)

@@ -20,6 +20,10 @@ describe('Prisoner search API client', () => {
     nock.cleanAll()
   })
 
+  afterAll(() => {
+    nock.restore()
+  })
+
   const prisonerNumber = 'G6123VU'
   const username = 'abc12a'
 
